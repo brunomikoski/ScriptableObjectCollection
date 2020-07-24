@@ -10,9 +10,17 @@ Scriptable Object Collection its a tool to help you work with scriptable objects
 
 
 ![wizard](/Documentation~/create-collection-wizzard.png)
+*Create new Collections by the Collection Creation Wizzard*
+
 ![collection-usability](/Documentation~/collection-usability.gif) 
+*Automatically Add New, delete and manage order of items*
+
 ![wizard](/Documentation~/property-drawer.gif)
+*Expose items to be selected from a dropdown, including an inline editor for the CollectableScriptableObject*
+
 ![code-access](/Documentation~/code-access.gif) 
+*Access all the ScriptableObjects by code by the automatic generated static access*
+
 
 
 ## Features
@@ -22,6 +30,7 @@ Scriptable Object Collection its a tool to help you work with scriptable objects
 - Automatically generate static access code
 - Allow you to expose the entire object to be tweakable in any inspector
 - Makes the usability of Scriptable Objects in bigger teams a lot better
+- Iterate over all the items of any collection by `Collection.Values`
 
 
 ## How to use
@@ -36,6 +45,7 @@ Scriptable Object Collection its a tool to help you work with scriptable objects
  - The generated code needs to be inside the same assembly as the `CollectableScriptableObject` and `ScriptableObjectcollection`, you can configure where this should be stored on the `ScriptableObjectCollectionSettings`, if you are not seeing the settings, create one by using the menu `Assets/Create/Scriptable Object Collection/Create Settings`
  - While dealing with saving to json / reading by json you can avoid serializing the entire object, you can see how Its done for [FullSerializer](https://github.com/jacobdufault/fullserializer) on the file `fsCollectableScriptableObjectConverter`
  - This works almost like a database, so keep in mind that everything that any of the objects have reference will go inside the "Resources" bundle, so if you have plans to have heavy assets there, I recomend using addressables / asset bundles and use proper lazy references to loading those items. 
+ 
  
 ## System Requirements
 Unity 2018.4.0 or later versions

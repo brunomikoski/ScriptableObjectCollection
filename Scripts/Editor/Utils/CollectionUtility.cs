@@ -87,6 +87,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             else
                 objectToFoldOut[targetObject] = value;
         }
+
+       
     }
 }
 

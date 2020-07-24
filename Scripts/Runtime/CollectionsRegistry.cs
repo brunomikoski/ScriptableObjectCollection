@@ -92,6 +92,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
+        
+        public void RemoveCollection(ScriptableObjectCollection collection)
+        {
+            if (collections.Remove(collection))
+                knowCollectionGUIDs.Remove(collection.GUID);
+            
+#if UNITY_EDITOR
+            for (int i = collection.Items.Count - 1; i >= 0; i--)
+                UnityEditor.AssetDatabase.DeleteAsset(UnityEditor.AssetDatabase.GetAssetPath(collection.Items[i]));
+#endif
+
+            ObjectUtility.SetDirty(this);
+        }
         public void ReloadCollections()
         {
 #if UNITY_EDITOR
@@ -122,6 +135,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
 #endif
         }
+
+       
     }
 }
 

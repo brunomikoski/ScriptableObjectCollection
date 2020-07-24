@@ -118,12 +118,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
 #if UNITY_EDITOR
-        public CollectableScriptableObject AddNew()
+        public CollectableScriptableObject AddNew(Type collectionType)
         {
             if (Application.isPlaying)
                 throw new NotSupportedException();
             
-            Type collectionType = GetCollectionType();
             CollectableScriptableObject item = (CollectableScriptableObject)CreateInstance(collectionType);
             string assetPath = Path.GetDirectoryName(UnityEditor.AssetDatabase.GetAssetPath(this));
             string parentFolderPath = Path.Combine(assetPath, "Items");

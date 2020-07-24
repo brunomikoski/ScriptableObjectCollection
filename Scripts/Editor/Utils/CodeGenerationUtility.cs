@@ -149,7 +149,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 int indentation = 0;
                 AppendHeader(writer, ref indentation, nameSpace, filename,
-                    dehumanizeCollectionName.Pascalize(), true, false, typeof(List<>).Namespace, "System.Linq", typeof(CollectionsRegistry).Namespace);
+                    dehumanizeCollectionName.Pascalize(), true, false, typeof(CollectionsRegistry).Namespace);
 
                 AppendLine(writer, indentation, $"private static {collection.GetType()} values;");
 

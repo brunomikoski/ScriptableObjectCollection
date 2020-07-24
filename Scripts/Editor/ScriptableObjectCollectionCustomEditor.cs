@@ -115,10 +115,51 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void AddNewItem()
         {
-            collection.AddNew();
+            List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectionType(), true);
+            if (collectableSubclasses.Count == 0)
+            {
+                EditorApplication.delayCall += () =>
+                {
+                    AddNewItemOfType(collection.GetCollectionType());
+                };
+            }
+            else
+            {
+                GenericMenu optionsMenu = new GenericMenu();
+                AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
+                {
+                    EditorApplication.delayCall += () =>
+                    {
+                        AddNewItemOfType(collection.GetCollectionType());
+                    };
+                });
+
+                for (int i = 0; i < collectableSubclasses.Count; i++)
+                {
+                    Type collectableSubClass = collectableSubclasses[i];
+                    AddMenuOption(optionsMenu, collectableSubClass.Name, () =>
+                    {
+                        EditorApplication.delayCall += () =>
+                        {
+                            AddNewItemOfType(collectableSubClass);
+                        };
+                    });
+                }
+                optionsMenu.ShowAsContext();
+            }
+        }
+
+        private void AddNewItemOfType(Type targetType)
+        {
+            collection.AddNew(targetType);
             filteredItemListDirty = true;
         }
-        
+
+        private void AddMenuOption(GenericMenu optionsMenu, string displayName, Action action)
+        {
+            optionsMenu.AddItem(new GUIContent(displayName), false, action.Invoke);
+        }
+
         private void DrawSearchField()
         {                
             Rect searchRect =

@@ -1,0 +1,19 @@
+{
+  "name": "com.brunomikoski.scriptableobjectcollection",
+  "displayName": "Scriptable Object Collection",
+  "version": "0.0.4",
+  "unity": "2018.4",
+  "description": "Scriptable Object Collection easy ",
+  "keywords": [
+    "scriptable object",
+    "collection",
+    "code generation"
+  ],
+  "category": "editor extensions",
+  "homepage": "https://github.com/badawe/ScriptableObjectCollection",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/badawe/ScriptableObjectCollection.git"
+  },
+  "bugs": "https://github.com/badawe/ScriptableObjectCollection/issues"
+}

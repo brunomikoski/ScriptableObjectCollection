@@ -40,11 +40,7 @@ Scriptable Object Collection its a tool to help you work with scriptable objects
  4. After you are done, click on Generate Code on the collection to generate the Static access to those objects
 
 
-## Tips 
- - Avoid Duplicating / Deleting `CollectableScriptableObject` asset manually, use the `Add New` and the `X` buttons on the Collection Inspector
- - The generated code needs to be inside the same assembly as the `CollectableScriptableObject` and `ScriptableObjectcollection`, you can configure where this should be stored on the `ScriptableObjectCollectionSettings`, if you are not seeing the settings, create one by using the menu `Assets/Create/Scriptable Object Collection/Create Settings`
- - While dealing with saving to json / reading by json you can avoid serializing the entire object, you can see how Its done for [FullSerializer](https://github.com/jacobdufault/fullserializer) on the file `fsCollectableScriptableObjectConverter`
- - This works almost like a database, so keep in mind that everything that any of the objects have reference will go inside the "Resources" bundle, so if you have plans to have heavy assets there, I recomend using addressables / asset bundles and use proper lazy references to loading those items. 
+## [FAQ](https://github.com/badawe/ScriptableObjectCollection/wiki/FAQ)
  
  
 ## System Requirements

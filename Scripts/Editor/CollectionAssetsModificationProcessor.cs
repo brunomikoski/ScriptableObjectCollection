@@ -22,11 +22,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ScriptableObjectCollection collection =
                     AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(targetAssetPath);
 
-                CollectionsRegistry.Instance.RemoveCollection(collection);
+                CollectionsRegistry.Instance.DeleteCollection(collection);
                 return AssetDeleteResult.DidNotDelete;
             }
-
-            
             
             return AssetDeleteResult.DidNotDelete;
         }

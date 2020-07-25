@@ -14,6 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string SCRIPTABLE_OBJECT_FOLDER_KEY = "LastScriptableObjectFolderKey";
         private const string NAMESPACE_KEY = "LastNamespaceKey";
         private const string GENERATED_SCRIPTS_FOLDER_KEY = "GeneratedScriptsFolderKey";
+        private const string USE_TRY_GET_FOR_NON_AUTOMATIC_LOADED_COLLECTIONS_KEY = "TryGetForNonAutomaticLoadedCollectionsKey";
 
         private static Dictionary<CollectableScriptableObject, Editor> itemToEditor =
             new Dictionary<CollectableScriptableObject, Editor>();
@@ -44,7 +45,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => EditorPrefs.GetString($"{Application.productName}{GENERATED_SCRIPTS_FOLDER_KEY}", DEFAULT_GENERATED_PATH);
             set => EditorPrefs.SetString($"{Application.productName}{GENERATED_SCRIPTS_FOLDER_KEY}", value);
         }
-
 
         [MenuItem("Assets/Create/Scriptable Object Collection/New Collection", false, 100)]
         private static void CreateNewItem(MenuCommand menuCommand)

@@ -7,6 +7,12 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
+    public enum StaticFileType
+    {
+        DirectAccess,
+        TryGet
+    }
+    
     public class ScriptableObjectCollection : ScriptableObject, IList
     {
         [SerializeField, HideInInspector]
@@ -17,6 +23,30 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 SyncGUID();
                 return guid;
+            }
+        }
+
+        [SerializeField]
+        private List<CollectableScriptableObject> items = new List<CollectableScriptableObject>();
+
+        [SerializeField] 
+        private bool automaticallyLoaded = true;
+        public bool AutomaticallyLoaded => automaticallyLoaded;
+
+        [SerializeField] 
+        private StaticFileType staticFileGenerationType = StaticFileType.DirectAccess;
+        public StaticFileType StaticFileGenerationType => staticFileGenerationType;
+        
+
+        private bool isReadyListDirty = true;
+        private IReadOnlyList<CollectableScriptableObject> readOnlyList = new List<CollectableScriptableObject>();
+        public IReadOnlyList<CollectableScriptableObject> Items
+        {
+            get
+            {
+                if (isReadyListDirty)
+                    readOnlyList = items.AsReadOnly();
+                return readOnlyList;
             }
         }
 
@@ -31,22 +61,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
 #endif
         }
-
-        [SerializeField]
-        private List<CollectableScriptableObject> items = new List<CollectableScriptableObject>();
-
-        private bool isReadyListDirty = true;
-        private IReadOnlyList<CollectableScriptableObject> readOnlyList = new List<CollectableScriptableObject>();
-        public IReadOnlyList<CollectableScriptableObject> Items
-        {
-            get
-            {
-                if (isReadyListDirty)
-                    readOnlyList = items.AsReadOnly();
-                return readOnlyList;
-            }
-        }
-
+        
         public CollectableScriptableObject this[int index]
         {
             get => items[index];

@@ -106,6 +106,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     if (CollectionUtility.IsFoldoutOpen(foldoutObject))
                     {
+                        EditorGUI.indentLevel++;
                         using (new EditorGUILayout.VerticalScope("Box"))
                         {
                             Editor editor = CollectionUtility.GetEditorForItem(collectableItem);
@@ -123,6 +124,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                     property.serializedObject.ApplyModifiedProperties();
                             }
                         }
+                        EditorGUI.indentLevel--;
                     }
                 }
 

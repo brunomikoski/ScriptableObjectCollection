@@ -10,15 +10,19 @@ Scriptable Object Collection its a tool to help you work with scriptable objects
 
 
 ![wizard](/Documentation~/create-collection-wizzard.png)
+
 *Create new Collections by the Collection Creation Wizzard*
 
 ![collection-usability](/Documentation~/collection-usability.gif) 
+
 *Automatically Add New, delete and manage order of items*
 
 ![wizard](/Documentation~/property-drawer.gif)
+
 *Expose items to be selected from a dropdown, including an inline editor for the CollectableScriptableObject*
 
 ![code-access](/Documentation~/code-access.gif) 
+
 *Access all the ScriptableObjects by code by the automatic generated static access*
 
 

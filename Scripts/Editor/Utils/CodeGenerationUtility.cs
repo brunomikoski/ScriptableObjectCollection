@@ -124,9 +124,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            string dehumanizeCollectionName = collection.GetCollectionType().Name.Dehumanize();
+            string dehumanizeCollectionName = collection.GetCollectionType().Name.Sanitize();
 
-            string filename = $"{dehumanizeCollectionName.Pascalize()}Static";
+            string filename = $"{dehumanizeCollectionName.FirstToUpper()}Static";
             string nameSpace = collection.GetCollectionType().Namespace;
             string finalFolder = CollectionUtility.StaticGeneratedScriptsFolderPath;
             
@@ -149,64 +149,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 int indentation = 0;
                 AppendHeader(writer, ref indentation, nameSpace, filename,
-                    dehumanizeCollectionName.Pascalize(), true, false, typeof(CollectionsRegistry).Namespace);
+                    dehumanizeCollectionName.FirstToUpper(), true, false, typeof(CollectionsRegistry).Namespace);
 
-                AppendLine(writer, indentation, $"private static {collection.GetType()} values;");
-
-                for (int i = 0; i < collection.Items.Count; i++)
-                {
-                    CollectableScriptableObject collectionItem = collection.Items[i];
-                    AppendLine(writer, indentation,
-                        $"private static {collectionItem.GetType()} {collectionItem.name.Dehumanize().Camelize()};");
-                }
-
-                AppendLine(writer, indentation);
-
-                AppendLine(writer, indentation,
-                    $"public static {collection.GetType()} Values");
-                AppendLine(writer, indentation, "{");
-                indentation++;
-                AppendLine(writer, indentation, "get");
-                AppendLine(writer, indentation, "{");
-                indentation++;
-                AppendLine(writer, indentation, "if (values == null)");
-                indentation++;
-                AppendLine(writer, indentation,
-                    $"values = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(\"{collection.GUID}\");");
-                indentation--;
-                AppendLine(writer, indentation, "return values;");
-                indentation--;
-                AppendLine(writer, indentation, "}");
-                indentation--;
-                AppendLine(writer, indentation, "}");
-                AppendLine(writer, indentation);
-
-                AppendLine(writer, indentation);
-
-                for (int i = 0; i < collection.Items.Count; i++)
-                {
-                    CollectableScriptableObject collectionItem = collection.Items[i];
-                    AppendLine(writer, indentation,
-                        $"public static {collectionItem.GetType()} {collectionItem.name.Dehumanize().Pascalize()}");
-                    AppendLine(writer, indentation, "{");
-                    indentation++;
-                    AppendLine(writer, indentation, "get");
-                    AppendLine(writer, indentation, "{");
-                    indentation++;
-                    string privateStaticName = collectionItem.name.Dehumanize().Camelize();
-
-                    AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
-                    indentation++;
-                    AppendLine(writer, indentation,
-                        $"{privateStaticName} = ({collectionItem.GetType()})Values.GetCollectableByGUID(\"{collectionItem.GUID}\");");
-                    indentation--;
-                    AppendLine(writer, indentation, $"return {privateStaticName};");
-                    indentation--;
-                    AppendLine(writer, indentation, "}");
-                    indentation--;
-                    AppendLine(writer, indentation, "}");
-                    AppendLine(writer, indentation);
-                }
+                if (collection.StaticFileGenerationType == StaticFileType.DirectAccess)
+                    WriteDirectAccessCollectionStatic(collection, writer, ref indentation);
+                else
+                    WriteTryGetAccessCollectionStatic(collection, writer, ref indentation);
 
                 indentation--;
                 AppendFooter(writer, ref indentation, nameSpace);
@@ -214,6 +162,160 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+         private static void WriteTryGetAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
+            ref int indentation)
+        {
+            AppendLine(writer, indentation, $"private static {collection.GetType()} values;");
+
+            for (int i = 0; i < collection.Items.Count; i++)
+            {
+                CollectableScriptableObject collectionItem = collection.Items[i];
+                AppendLine(writer, indentation,
+                    $"private static {collectionItem.GetType()} {collectionItem.name.Sanitize().FirstToLower()};");
+            }
+
+            AppendLine(writer, indentation);
+            
+            AppendLine(writer, indentation, $"public static bool TryGetValues(out {collection.GetType()} result)");
+            AppendLine(writer, indentation, "{");
+            indentation++;
+            AppendLine(writer, indentation, "if (values != null)");
+            AppendLine(writer, indentation, "{");
+            indentation++;
+            AppendLine(writer, indentation, "result = values;");
+            AppendLine(writer, indentation, "return true;");
+            indentation--;
+            AppendLine(writer, indentation, "}");
+            AppendLine(writer, indentation);
+            AppendLine(writer, indentation, $"if (!CollectionsRegistry.Instance.TryGetCollectionByGUID(\"{collection.GUID}\", out ScriptableObjectCollection resultCollection))");
+            AppendLine(writer, indentation, "{");
+            indentation++;
+            AppendLine(writer, indentation, "result = values;");
+            AppendLine(writer, indentation, "return false;");
+            indentation--;
+            AppendLine(writer, indentation, "}");
+            AppendLine(writer, indentation);
+            AppendLine(writer, indentation, $"values = ({collection.GetType()}) resultCollection;");
+            AppendLine(writer, indentation, $"result = values;");
+            AppendLine(writer, indentation, $"return true;");
+            indentation--;
+            AppendLine(writer, indentation, "}");
+
+            AppendLine(writer, indentation);
+
+            for (int i = 0; i < collection.Items.Count; i++)
+            {
+                CollectableScriptableObject collectionItem = collection.Items[i];
+                string pascalizedItemName = collectionItem.name.Sanitize().FirstToUpper();
+                string camelizedItemName = collectionItem.name.Sanitize().FirstToLower();
+                Type itemType = collectionItem.GetType();
+                
+                
+                AppendLine(writer, indentation, $"public static bool TryGet{pascalizedItemName}(out {itemType} result)");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, $"if ({camelizedItemName} != null)");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, $"result = {camelizedItemName};");
+                AppendLine(writer, indentation, "return true;");
+                indentation--;
+                AppendLine(writer, indentation, "}");
+                AppendLine(writer, indentation);
+                
+                AppendLine(writer, indentation, $"if (!TryGetValues(out {collection.GetType()} collectionResult))");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, "result = null;");
+                AppendLine(writer, indentation, "return false;");
+                indentation--;
+                AppendLine(writer, indentation, "}");
+                AppendLine(writer, indentation);
+
+                
+                AppendLine(writer, indentation, $"if (!collectionResult.TryGetCollectableByGUID(\"{collectionItem.GUID}\", out CollectableScriptableObject resultCollectable))");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, "result = null;");
+                AppendLine(writer, indentation, "return false;");
+                indentation--;
+                AppendLine(writer, indentation);
+                AppendLine(writer, indentation, "}");
+
+                
+                AppendLine(writer, indentation, $"{camelizedItemName} = ({itemType}) resultCollectable;");
+                AppendLine(writer, indentation, $"result = {camelizedItemName};");
+                AppendLine(writer, indentation, "return true;");
+                indentation--;
+                AppendLine(writer, indentation, "}");
+                AppendLine(writer, indentation);
+
+            }
+        }
+        
+        private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
+            ref int indentation)
+        {
+            AppendLine(writer, indentation, $"private static {collection.GetType()} values;");
+
+            for (int i = 0; i < collection.Items.Count; i++)
+            {
+                CollectableScriptableObject collectionItem = collection.Items[i];
+                AppendLine(writer, indentation,
+                    $"private static {collectionItem.GetType()} {collectionItem.name.Sanitize().FirstToLower()};");
+            }
+
+            AppendLine(writer, indentation);
+
+            AppendLine(writer, indentation,
+                $"public static {collection.GetType()} Values");
+            AppendLine(writer, indentation, "{");
+            indentation++;
+            AppendLine(writer, indentation, "get");
+            AppendLine(writer, indentation, "{");
+            indentation++;
+            AppendLine(writer, indentation, "if (values == null)");
+            indentation++;
+            AppendLine(writer, indentation,
+                $"values = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(\"{collection.GUID}\");");
+            indentation--;
+            AppendLine(writer, indentation, "return values;");
+            indentation--;
+            AppendLine(writer, indentation, "}");
+            indentation--;
+            AppendLine(writer, indentation, "}");
+            AppendLine(writer, indentation);
+
+            AppendLine(writer, indentation);
+
+            for (int i = 0; i < collection.Items.Count; i++)
+            {
+                CollectableScriptableObject collectionItem = collection.Items[i];
+                string collectionNameFirstUpper = collectionItem.name.Sanitize().FirstToUpper();
+                string privateStaticName = collectionItem.name.Sanitize().FirstToLower();
+
+                AppendLine(writer, indentation,
+                    $"public static {collectionItem.GetType()} {collectionNameFirstUpper}");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, "get");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+
+                AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
+                indentation++;
+                AppendLine(writer, indentation,
+                    $"{privateStaticName} = ({collectionItem.GetType()})Values.GetCollectableByGUID(\"{collectionItem.GUID}\");");
+                indentation--;
+                AppendLine(writer, indentation, $"return {privateStaticName};");
+                indentation--;
+                AppendLine(writer, indentation, "}");
+                indentation--;
+                AppendLine(writer, indentation, "}");
+                AppendLine(writer, indentation);
+            }
         }
     }
 }

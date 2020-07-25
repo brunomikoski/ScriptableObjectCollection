@@ -11,25 +11,43 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
         [SerializeField, HideInInspector]
-        private List<string> knowCollectionGUIDs = new List<string>();
+        private List<string> collectionGUIDs = new List<string>();
         
         public bool IsKnowCollectionGUID(string guid)
         {
             ValidateCurrentGUIDs();
-            return knowCollectionGUIDs.Contains(guid);
+            return collectionGUIDs.Contains(guid);
+        }
+
+        public void RegisterCollection(ScriptableObjectCollection targetCollection)
+        {
+            if (collections.Contains(targetCollection))
+                return;
+            
+            collections.Add(targetCollection);
+            collectionGUIDs.Add(targetCollection.GUID);
+        }
+
+        public void UnregisterCollection(ScriptableObjectCollection targetCollection)
+        {
+            if (!collections.Contains(targetCollection))
+                return;
+
+            collections.Remove(targetCollection);
+            collectionGUIDs.Remove(targetCollection.GUID);
         }
 
         private void ValidateCurrentGUIDs()
         {
-            if (knowCollectionGUIDs.Count != collections.Count)
+            if (collectionGUIDs.Count != collections.Count)
             {
                 ReloadCollections();
                 return;
             }
 
-            for (int i = 0; i < knowCollectionGUIDs.Count; i++)
+            for (int i = 0; i < collectionGUIDs.Count; i++)
             {
-                string guid = knowCollectionGUIDs[i];
+                string guid = collectionGUIDs[i];
                 bool guidFound = false;
                 for (int j = 0; j < collections.Count; j++)
                 {
@@ -92,19 +110,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
-        
-        public void RemoveCollection(ScriptableObjectCollection collection)
+        public void DeleteCollection(ScriptableObjectCollection collection)
         {
-            if (collections.Remove(collection))
-                knowCollectionGUIDs.Remove(collection.GUID);
+            if (Application.isPlaying)
+                return;
+            
+            if (!collections.Remove(collection))
+                return;
+            collectionGUIDs.Remove(collection.GUID);
             
 #if UNITY_EDITOR
             for (int i = collection.Items.Count - 1; i >= 0; i--)
                 UnityEditor.AssetDatabase.DeleteAsset(UnityEditor.AssetDatabase.GetAssetPath(collection.Items[i]));
 #endif
-
             ObjectUtility.SetDirty(this);
         }
+        
         public void ReloadCollections()
         {
 #if UNITY_EDITOR
@@ -114,7 +135,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string[] collectionsGUIDs = UnityEditor.AssetDatabase.FindAssets($"t:{nameof(ScriptableObjectCollection)}");
 
             collections.Clear();
-            knowCollectionGUIDs.Clear();
+            collectionGUIDs.Clear();
             
             for (int i = 0; i < collectionsGUIDs.Length; i++)
             {
@@ -129,14 +150,39 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 collection.RefreshCollection();
                 collections.Add(collection);
-                knowCollectionGUIDs.Add(collection.GUID);
+                collectionGUIDs.Add(collection.GUID);
             }
 
             ObjectUtility.SetDirty(this);
 #endif
         }
+        
+        public void PreBuildProcess()
+        {
+            RemoveNonAutomaticallyInitializedCollections();
+            ObjectUtility.SetDirty(this);
+#if UNITY_EDITOR
+            UnityEditor.AssetDatabase.SaveAssets();
+#endif
+        }
 
-       
+        public void RemoveNonAutomaticallyInitializedCollections()
+        {
+            for (int i = collections.Count - 1; i >= 0; i--)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                if (collection.AutomaticallyLoaded)
+                    continue;
+
+                collections.Remove(collection);
+                collectionGUIDs.Remove(collection.GUID);
+            }
+        }
+
+        public void PostBuildProcess()
+        {
+            ReloadCollections();
+        }
     }
 }
 

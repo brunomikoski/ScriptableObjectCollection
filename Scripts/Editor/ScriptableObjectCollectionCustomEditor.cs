@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -18,6 +19,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool filteredItemListDirty = true;
         private SearchField searchField;
 
+        private Object settingsFoldoutObject = new Object();
+        
         public void OnEnable()
         {
             collection = (ScriptableObjectCollection)target;
@@ -67,7 +70,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 UpdateFilteredItemList();
                 DrawSearchField();
-                EditorGUILayout.Space();
                 DrawItems();
                 DrawBottomMenu();
             }
@@ -106,7 +108,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     AddNewItem();
                 }
 
-                if (GUILayout.Button($"Generate {collection.name}Static.cs", EditorStyles.miniButtonRight))
+                if (GUILayout.Button($"Generate Static File", EditorStyles.miniButtonRight))
                 {
                     CodeGenerationUtility.GenerateStaticCollectionScript(collection);
                 }
@@ -216,8 +218,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     DrawMoveItemUpButton(collectionItem);
                     DrawDeleteButton(collectionItem);
                 }
+                
                 if (CollectionUtility.IsFoldoutOpen(collectionItem))
                 {
+                    EditorGUI.indentLevel++;
                     Editor editor = CollectionUtility.GetEditorForItem(collectionItem);
                     using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                     {
@@ -226,8 +230,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUILayout.Space();
 
                         if (changeCheck.changed)
-                            filteredSerializedList[index].ApplyModifiedProperties();
+                        {
+                            if (index > filteredSerializedList.Count - 1 || filteredSerializedList[index] == null)
+                                filteredItemListDirty = true;
+                            else
+                                filteredSerializedList[index].ApplyModifiedProperties();
+                        }
                     }
+                    EditorGUI.indentLevel--;
                 }
             }
         }

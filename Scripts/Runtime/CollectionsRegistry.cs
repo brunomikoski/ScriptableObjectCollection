@@ -159,6 +159,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public void PreBuildProcess()
         {
+            RemoveNonAutomaticallyInitializedCollections();
+            ObjectUtility.SetDirty(this);
+#if UNITY_EDITOR
+            UnityEditor.AssetDatabase.SaveAssets();
+#endif
+        }
+
+        public void RemoveNonAutomaticallyInitializedCollections()
+        {
             for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
@@ -168,10 +177,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collections.Remove(collection);
                 collectionGUIDs.Remove(collection.GUID);
             }
-            ObjectUtility.SetDirty(this);
-#if UNITY_EDITOR
-            UnityEditor.AssetDatabase.SaveAssets();
-#endif
         }
 
         public void PostBuildProcess()

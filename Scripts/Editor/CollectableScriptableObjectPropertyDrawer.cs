@@ -159,6 +159,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             options = collection.Items.ToArray();
             List<string> displayOptions = collection.Items.Select(o => o.name).ToList();
             displayOptions.Insert(0, CollectionEditorGUI.DEFAULT_NONE_ITEM_TEXT);
+            
             optionsNames = displayOptions.ToArray();
             guiContents = optionsNames.Select(s => new GUIContent(s)).ToArray();
 
@@ -170,7 +171,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             using (EditorGUI.ChangeCheckScope changedCheck = new EditorGUI.ChangeCheckScope())
             {
-                int selectedIndex = -1;
+                int selectedIndex = 0;
 
                 if (collectableItem != null)
                     selectedIndex = Array.IndexOf(options, collectableItem) + 1;

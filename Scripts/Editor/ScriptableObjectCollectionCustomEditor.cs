@@ -218,6 +218,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     DrawMoveItemUpButton(collectionItem);
                     DrawDeleteButton(collectionItem);
                 }
+                
                 if (CollectionUtility.IsFoldoutOpen(collectionItem))
                 {
                     EditorGUI.indentLevel++;
@@ -229,7 +230,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUILayout.Space();
 
                         if (changeCheck.changed)
-                            filteredSerializedList[index].ApplyModifiedProperties();
+                        {
+                            if (index > filteredSerializedList.Count - 1 || filteredSerializedList[index] == null)
+                                filteredItemListDirty = true;
+                            else
+                                filteredSerializedList[index].ApplyModifiedProperties();
+                        }
                     }
                     EditorGUI.indentLevel--;
                 }

@@ -210,8 +210,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return CodeGenerationUtility.CreateNewEmptyScript(collectableName, 
                 targetFolder,
                 TargetNameSpace, 
-                $"public partial class {collectableName} : CollectableScriptableObject", 
-                    typeof(CollectableScriptableObject));
+                string.Empty,
+                $"public class {collectableName} : CollectableScriptableObject", 
+                    typeof(CollectableScriptableObject).Namespace);
         }
         
         private bool CreateCollectionScript()
@@ -219,12 +220,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string targetFolder = AssetDatabase.GetAssetPath(ScriptsFolder);
             if (createFoldForThisCollectionScripts)
                 targetFolder = Path.Combine(targetFolder, $"{collectionName}");
-            
-            bool result = CodeGenerationUtility.CreateNewEmptyScript(collectionName, 
+
+            bool result = CodeGenerationUtility.CreateNewEmptyScript(collectionName,
                 targetFolder,
-                TargetNameSpace, 
-                $"public class {collectionName} : ScriptableObjectCollection<{collectableName}>", 
-                typeof(ScriptableObjectCollection));
+                TargetNameSpace,
+                $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {collectionName}\", fileName = \"{collectionName}\", order = 0)]",
+                $"public partial class {collectionName} : ScriptableObjectCollection<{collectableName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
 
             if (string.IsNullOrEmpty(TargetNameSpace))
                 LastCollectionFullName = $"{collectionName}";

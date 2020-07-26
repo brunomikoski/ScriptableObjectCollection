@@ -1,18 +1,15 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEngine;
-using static BrunoMikoski.ScriptableObjectCollections.CodeGenerationUtility;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
-        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace, string classDeclarationString, params Type[] directives)
+        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace, string createAssetMenuInput, string classDeclarationString, params string[] directives)
         {
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolder);
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
@@ -25,9 +22,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
                 int indentation = 0;
 
-                foreach (Type directive in directives)
+                foreach (string directive in directives)
                 {
-                    writer.WriteLine($"using {directive.Namespace};");
+                    writer.WriteLine($"using {directive};");
                 }
                 
                 writer.WriteLine();
@@ -38,6 +35,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     indentation++;
                 }
 
+                if (!string.IsNullOrEmpty(createAssetMenuInput))
+                    writer.WriteLine($"{GetIndentation(indentation)}{createAssetMenuInput}");
+                
                 writer.WriteLine($"{GetIndentation(indentation)}{classDeclarationString}");
                 writer.WriteLine(GetIndentation(indentation)+"{");
                 indentation++;
@@ -124,7 +124,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            string dehumanizeCollectionName = collection.GetCollectionType().Name.Sanitize();
+            string collectionScriptName = collection.GetCollectionType().Name.Sanitize();
+            string dehumanizeCollectionName = collection.name.Sanitize();
 
             string filename = $"{dehumanizeCollectionName.FirstToUpper()}Static";
             string nameSpace = collection.GetCollectionType().Namespace;

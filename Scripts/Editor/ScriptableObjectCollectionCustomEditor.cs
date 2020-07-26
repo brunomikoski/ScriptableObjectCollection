@@ -105,12 +105,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (GUILayout.Button("Add New", EditorStyles.miniButtonLeft))
                 {
-                    AddNewItem();
+                    EditorApplication.delayCall += AddNewItem;
                 }
 
-                if (GUILayout.Button($"Generate Static File", EditorStyles.miniButtonRight))
+                if (GUILayout.Button($"Generate {collection.name} Static", EditorStyles.miniButtonRight))
                 {
-                    CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+                    EditorApplication.delayCall += () =>
+                    {
+                        CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+                    };
                 }
             }
         }
@@ -120,20 +123,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectionType(), true);
             if (collectableSubclasses.Count == 0)
             {
-                EditorApplication.delayCall += () =>
-                {
-                    AddNewItemOfType(collection.GetCollectionType());
-                };
+                AddNewItemOfType(collection.GetCollectionType());
             }
             else
             {
                 GenericMenu optionsMenu = new GenericMenu();
                 AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
                 {
-                    EditorApplication.delayCall += () =>
-                    {
-                        AddNewItemOfType(collection.GetCollectionType());
-                    };
+                    AddNewItemOfType(collection.GetCollectionType());
                 });
 
                 for (int i = 0; i < collectableSubclasses.Count; i++)
@@ -141,10 +138,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     Type collectableSubClass = collectableSubclasses[i];
                     AddMenuOption(optionsMenu, collectableSubClass.Name, () =>
                     {
-                        EditorApplication.delayCall += () =>
-                        {
-                            AddNewItemOfType(collectableSubClass);
-                        };
+                        AddNewItemOfType(collectableSubClass);
                     });
                 }
                 optionsMenu.ShowAsContext();

@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1]
+### Added
+- Added the `[CreateAssetMenu]` to the Collection automatic generated file
+
+### Changed
+- The Static file uses the Collection name instead of the collectable type, so you can have multiple collections of the same type and unique access to that specific collection
+- Fixed asset creation menu name to use `ScriptableObject` instead of `Scriptable Object`
+
+## Fixed
+- Editor Group issues when adding new items throwing error
+
+
 ## [1.1.0]
 ### Added 
  - Added support for non automatically loaded Collections, this allow you initialize collections when they are necessary, avoiding adding all the collectable 

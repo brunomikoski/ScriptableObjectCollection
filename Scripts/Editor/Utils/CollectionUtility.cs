@@ -46,13 +46,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => EditorPrefs.SetString($"{Application.productName}{GENERATED_SCRIPTS_FOLDER_KEY}", value);
         }
 
-        [MenuItem("Assets/Create/Scriptable Object Collection/New Collection", false, 100)]
+        [MenuItem("Assets/Create/ScriptableObject Collection/New Collection", false, 100)]
         private static void CreateNewItem(MenuCommand menuCommand)
         {
             CreateCollectionWizzard.Show();
         }
         
-        [MenuItem("Assets/Create/Scriptable Object Collection/Create Settings", false, 200)]
+        [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", false, 200)]
         private static void CreateSettings()
         {
             ScriptableObjectCollectionSettings.LoadOrCreateInstance();

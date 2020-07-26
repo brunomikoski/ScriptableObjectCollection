@@ -6,25 +6,14 @@
 ![](https://img.shields.io/github/followers/badawe?label=Follow&style=social) ![](https://img.shields.io/twitter/follow/brunomikoski?style=social)
 
 
-Scriptable Object Collection its a tool to help you work with scriptable objects, by allowing static code access to any of the Assets while keeping the usability of having a configurable by Inspector asset.
+Most of the time when dealing with Scriptable Object they all belong to some sort of collections, let's say for example all your consumables on the game? Or maybe all your weapons? Or even all your in-app purchases. And dealing with this can be quite challenging since you have to rely on proper naming of those scriptable objects, this can become a problem super fast as the project continues to grow.
+
+The ScriptableObjectCollection exists to help you deal with scriptable objects without losing your sanity! Its a set of tools that will make your life a lot easier.
 
 
 ![wizard](/Documentation~/create-collection-wizzard.png)
 
-*Create new Collections by the Collection Creation Wizzard*
-
-![collection-usability](/Documentation~/collection-usability.gif) 
-
-*Automatically Add New, delete and manage order of items*
-
-![wizard](/Documentation~/property-drawer.gif)
-
-*Expose items to be selected from a dropdown, including an inline editor for the CollectableScriptableObject*
-
-![code-access](/Documentation~/code-access.gif) 
-
-*Access all the ScriptableObjects by code by the automatic generated static access*
-
+Check the [FAQ](https://github.com/badawe/ScriptableObjectCollection/wiki/FAQ) with more examples and use examples.
 
 
 ## Features
@@ -35,6 +24,7 @@ Scriptable Object Collection its a tool to help you work with scriptable objects
 - Allow you to expose the entire object to be tweakable in any inspector
 - Makes the usability of Scriptable Objects in bigger teams a lot better
 - Iterate over all the items of any collection by `Collection.Values`
+- If you are using the Static Access to the files, if any of the items goes missing, you will have an editor time compilation error, super easy to catch and fix it.
 
 
 ## How to use

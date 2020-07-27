@@ -21,10 +21,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (cachedScriptableObjectFolder != null) 
                     return cachedScriptableObjectFolder;
                 
-                if (!string.IsNullOrEmpty(CollectionUtility.ScriptableObjectFolderPath))
+                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.CollectionAssetsFolderPath))
                 {
                     cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                        CollectionUtility.ScriptableObjectFolderPath);
+                        ScriptableObjectCollectionSettings.Instance.CollectionAssetsFolderPath);
                 }
                 return cachedScriptableObjectFolder;
             }
@@ -38,10 +38,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (cachedScriptsFolder != null) 
                     return cachedScriptsFolder;
-                if (!string.IsNullOrEmpty(CollectionUtility.ScriptsFolderPath))
+                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.CollectionScriptsFolderPath))
                 {
                     cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                        CollectionUtility.ScriptsFolderPath);
+                        ScriptableObjectCollectionSettings.Instance.CollectionScriptsFolderPath);
                 }
                 return cachedScriptsFolder;
             }
@@ -54,7 +54,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get
             {
                 if (string.IsNullOrEmpty(cachedNameSpace))
-                    cachedNameSpace = CollectionUtility.TargetNamespace;
+                    cachedNameSpace = ScriptableObjectCollectionSettings.Instance.NameSpace;
 
                 return cachedNameSpace;
             }
@@ -152,22 +152,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         Color color = GUI.color;
                         GUI.color = Color.green;
                         if (GUILayout.Button("Create"))
-                        {
-                            SaveLastUsed();
                             CreateNewCollection();
-                        }
 
                         GUI.color = color;
                     }
                 }
             }
-        }
-
-        private void SaveLastUsed()
-        {
-            CollectionUtility.ScriptsFolderPath = AssetDatabase.GetAssetPath(ScriptsFolder);
-            CollectionUtility.TargetNamespace = TargetNameSpace;
-            CollectionUtility.ScriptableObjectFolderPath = AssetDatabase.GetAssetPath(ScriptableObjectFolder);
         }
 
         private void CreateNewCollection()

@@ -8,43 +8,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CollectionUtility
     {
-        private const string DEFAULT_GENERATED_PATH = "Assets/Generated/Scripts";
-
-        private const string SCRIPTS_FOLDER_KEY = "LastScriptsFolderKey";
-        private const string SCRIPTABLE_OBJECT_FOLDER_KEY = "LastScriptableObjectFolderKey";
-        private const string NAMESPACE_KEY = "LastNamespaceKey";
-        private const string GENERATED_SCRIPTS_FOLDER_KEY = "GeneratedScriptsFolderKey";
-        private const string USE_TRY_GET_FOR_NON_AUTOMATIC_LOADED_COLLECTIONS_KEY = "TryGetForNonAutomaticLoadedCollectionsKey";
-
         private static Dictionary<CollectableScriptableObject, Editor> itemToEditor =
             new Dictionary<CollectableScriptableObject, Editor>();
 
         private static Dictionary<Object, bool> objectToFoldOut = new Dictionary<Object, bool>();
-
-        
-        public static string ScriptableObjectFolderPath
-        {
-            get => EditorPrefs.GetString($"{Application.productName}{SCRIPTABLE_OBJECT_FOLDER_KEY}", String.Empty);
-            set => EditorPrefs.SetString($"{Application.productName}{SCRIPTABLE_OBJECT_FOLDER_KEY}", value);
-        }
-
-        public static string ScriptsFolderPath
-        {
-            get => EditorPrefs.GetString($"{Application.productName}{SCRIPTS_FOLDER_KEY}", String.Empty);
-            set => EditorPrefs.SetString($"{Application.productName}{SCRIPTS_FOLDER_KEY}", value);
-        }
-
-        public static string TargetNamespace
-        {
-            get => EditorPrefs.GetString($"{Application.productName}{NAMESPACE_KEY}", String.Empty);
-            set => EditorPrefs.SetString($"{Application.productName}{NAMESPACE_KEY}", value);
-        }
-        
-        public static string StaticGeneratedScriptsFolderPath
-        {
-            get => EditorPrefs.GetString($"{Application.productName}{GENERATED_SCRIPTS_FOLDER_KEY}", DEFAULT_GENERATED_PATH);
-            set => EditorPrefs.SetString($"{Application.productName}{GENERATED_SCRIPTS_FOLDER_KEY}", value);
-        }
 
         [MenuItem("Assets/Create/ScriptableObject Collection/New Collection", false, 100)]
         private static void CreateNewItem(MenuCommand menuCommand)

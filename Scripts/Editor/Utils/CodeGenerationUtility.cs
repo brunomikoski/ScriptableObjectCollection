@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Compilation;
@@ -62,9 +64,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return stringBuilder.ToString();
         }
-    
-        public static void AppendHeader(StreamWriter writer, ref int identation, string nameSpace, string filename,string className, bool isPartial, bool isStatic, 
-            params string[] directives)
+
+        public static void AppendHeader(StreamWriter writer, ref int identation, string nameSpace, string className,
+            bool isPartial, bool isStatic, params string[] directives)
         {
             writer.WriteLine("//  Automatically generated");
             writer.WriteLine("//");
@@ -124,12 +126,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            string collectionScriptName = collection.GetCollectionType().Name.Sanitize();
             string dehumanizeCollectionName = collection.name.Sanitize();
 
             string filename = $"{dehumanizeCollectionName.FirstToUpper()}Static";
             string nameSpace = collection.GetCollectionType().Namespace;
-            string finalFolder = CollectionUtility.StaticGeneratedScriptsFolderPath;
+            string finalFolder = ScriptableObjectCollectionSettings.Instance.StaticScriptsFolderPath;
             
             string assemblyForStaticContent = CompilationPipeline.GetAssemblyNameFromScriptPath(finalFolder);
             MonoScript scriptableObjectScript = MonoScript.FromScriptableObject(collection);
@@ -149,8 +150,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{filename}.cs")))
             {
                 int indentation = 0;
-                AppendHeader(writer, ref indentation, nameSpace, filename,
-                    dehumanizeCollectionName.FirstToUpper(), true, false, typeof(CollectionsRegistry).Namespace);
+                
+                List<string> directives = new List<string>();
+                directives.Add(typeof(CollectionsRegistry).Namespace);
+                directives.Add(collection.GetType().Namespace);
+                directives.AddRange(GetCollectionDirectives(collection));
+
+                AppendHeader(writer, ref indentation, nameSpace,
+                    dehumanizeCollectionName.FirstToUpper(), true, false, directives.Distinct().ToArray());
 
                 if (collection.StaticFileGenerationType == StaticFileType.DirectAccess)
                     WriteDirectAccessCollectionStatic(collection, writer, ref indentation);
@@ -165,21 +172,30 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabase.Refresh();
         }
 
-         private static void WriteTryGetAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
+        private static string[] GetCollectionDirectives(ScriptableObjectCollection collection)
+        {
+            HashSet<string> directives = new HashSet<string>();
+            for (int i = 0; i < collection.Count; i++)
+                directives.Add(collection[i].GetType().Namespace);
+
+            return directives.ToArray();
+        }
+
+        private static void WriteTryGetAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            AppendLine(writer, indentation, $"private static {collection.GetType()} values;");
+            AppendLine(writer, indentation, $"private static {collection.GetType().Name} values;");
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
                 CollectableScriptableObject collectionItem = collection.Items[i];
                 AppendLine(writer, indentation,
-                    $"private static {collectionItem.GetType()} {collectionItem.name.Sanitize().FirstToLower()};");
+                    $"private static {collectionItem.GetType().Name} {collectionItem.name.Sanitize().FirstToLower()};");
             }
 
             AppendLine(writer, indentation);
             
-            AppendLine(writer, indentation, $"public static bool TryGetValues(out {collection.GetType()} result)");
+            AppendLine(writer, indentation, $"public static bool TryGetValues(out {collection.GetType().Name} result)");
             AppendLine(writer, indentation, "{");
             indentation++;
             AppendLine(writer, indentation, "if (values != null)");
@@ -198,7 +214,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             indentation--;
             AppendLine(writer, indentation, "}");
             AppendLine(writer, indentation);
-            AppendLine(writer, indentation, $"values = ({collection.GetType()}) resultCollection;");
+            AppendLine(writer, indentation, $"values = ({collection.GetType().Name}) resultCollection;");
             AppendLine(writer, indentation, $"result = values;");
             AppendLine(writer, indentation, $"return true;");
             indentation--;
@@ -214,7 +230,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 Type itemType = collectionItem.GetType();
                 
                 
-                AppendLine(writer, indentation, $"public static bool TryGet{pascalizedItemName}(out {itemType} result)");
+                AppendLine(writer, indentation, $"public static bool TryGet{pascalizedItemName}(out {itemType.Name} result)");
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, $"if ({camelizedItemName} != null)");
@@ -226,7 +242,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, "}");
                 AppendLine(writer, indentation);
                 
-                AppendLine(writer, indentation, $"if (!TryGetValues(out {collection.GetType()} collectionResult))");
+                AppendLine(writer, indentation, $"if (!TryGetValues(out {collection.GetType().Name} collectionResult))");
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, "result = null;");
@@ -246,7 +262,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, "}");
 
                 
-                AppendLine(writer, indentation, $"{camelizedItemName} = ({itemType}) resultCollectable;");
+                AppendLine(writer, indentation, $"{camelizedItemName} = ({itemType.Name}) resultCollectable;");
                 AppendLine(writer, indentation, $"result = {camelizedItemName};");
                 AppendLine(writer, indentation, "return true;");
                 indentation--;
@@ -259,19 +275,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            AppendLine(writer, indentation, $"private static {collection.GetType()} values;");
+            AppendLine(writer, indentation, $"private static {collection.GetType().Name} values;");
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
                 CollectableScriptableObject collectionItem = collection.Items[i];
                 AppendLine(writer, indentation,
-                    $"private static {collectionItem.GetType()} {collectionItem.name.Sanitize().FirstToLower()};");
+                    $"private static {collectionItem.GetType().Name} {collectionItem.name.Sanitize().FirstToLower()};");
             }
 
             AppendLine(writer, indentation);
 
             AppendLine(writer, indentation,
-                $"public static {collection.GetType()} Values");
+                $"public static {collection.GetType().Name} Values");
             AppendLine(writer, indentation, "{");
             indentation++;
             AppendLine(writer, indentation, "get");
@@ -298,7 +314,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 string privateStaticName = collectionItem.name.Sanitize().FirstToLower();
 
                 AppendLine(writer, indentation,
-                    $"public static {collectionItem.GetType()} {collectionNameFirstUpper}");
+                    $"public static {collectionItem.GetType().Name} {collectionNameFirstUpper}");
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, "get");
@@ -308,7 +324,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({collectionItem.GetType()})Values.GetCollectableByGUID(\"{collectionItem.GUID}\");");
+                    $"{privateStaticName} = ({collectionItem.GetType().Name})Values.GetCollectableByGUID(\"{collectionItem.GUID}\");");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;

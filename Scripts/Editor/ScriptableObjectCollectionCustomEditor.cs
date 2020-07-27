@@ -105,7 +105,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (GUILayout.Button("Add New", EditorStyles.miniButtonLeft))
                 {
-                    EditorApplication.delayCall += AddNewItem;
+                    AddNewItem();
                 }
 
                 if (GUILayout.Button($"Generate {collection.name} Static", EditorStyles.miniButtonRight))
@@ -123,14 +123,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectionType(), true);
             if (collectableSubclasses.Count == 0)
             {
-                AddNewItemOfType(collection.GetCollectionType());
+                EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
             }
             else
             {
                 GenericMenu optionsMenu = new GenericMenu();
                 AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
                 {
-                    AddNewItemOfType(collection.GetCollectionType());
+                    EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
                 });
 
                 for (int i = 0; i < collectableSubclasses.Count; i++)
@@ -138,7 +138,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     Type collectableSubClass = collectableSubclasses[i];
                     AddMenuOption(optionsMenu, collectableSubClass.Name, () =>
                     {
-                        AddNewItemOfType(collectableSubClass);
+                        EditorApplication.delayCall += () => { AddNewItemOfType(collectableSubClass); };
                     });
                 }
                 optionsMenu.ShowAsContext();

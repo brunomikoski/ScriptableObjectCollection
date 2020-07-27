@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.1.2]
+### Changed
+ - Changed the Settings file to be the main place where data is stored, not using EditorPrefs anymore
+ - Added all the namespaces for individual assets as diretives on top of static generated file
+
+## Fixed
+- Fixed issue with the Add New Item missing the DelayCall on the Collection Editor Window
+
+
 ## [1.1.1]
 ### Added
 - Added the `[CreateAssetMenu]` to the Collection automatic generated file
@@ -42,8 +52,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-[1.0.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.0.0
+[1.1.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.2
+[1.1.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.1
+[1.1.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.0
 [1.0.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.0.1
-[1.0.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.0
+[1.0.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.0.0
 
 

@@ -37,7 +37,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private StaticFileType staticFileGenerationType = StaticFileType.DirectAccess;
         public StaticFileType StaticFileGenerationType => staticFileGenerationType;
         
-
         private bool isReadyListDirty = true;
         private IReadOnlyList<CollectableScriptableObject> readOnlyList = new List<CollectableScriptableObject>();
         public IReadOnlyList<CollectableScriptableObject> Items

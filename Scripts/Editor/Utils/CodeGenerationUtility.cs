@@ -72,7 +72,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             writer.WriteLine("//");
             writer.WriteLine();
             for (int i = 0; i < directives.Length; i++)
-                writer.WriteLine($"using {directives[i]};");
+            {
+                string directive = directives[i];
+
+                if (string.IsNullOrEmpty(directive))
+                    continue;
+                
+                writer.WriteLine($"using {directive};");
+            }
 
             writer.WriteLine();
 

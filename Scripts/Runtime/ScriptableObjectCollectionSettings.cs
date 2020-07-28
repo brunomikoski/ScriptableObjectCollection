@@ -18,7 +18,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             internal GeneratedStaticFileType generatedStaticFileGeneratorType;
 
             [SerializeField]
-            internal string staticGeneratedFileLocation;
+            internal string staticGeneratedFileParentFolder;
 
             [SerializeField]
             internal bool isAutomaticallyLoaded;
@@ -48,44 +48,69 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public GeneratedStaticFileType GetStaticFileTypeForCollection(ScriptableObjectCollection collection)
         {
-            CollectionToSettings settings =
-                collectionsSettings.FirstOrDefault(toSettings => toSettings.collection == collection);
+            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
+                return defaultFileType;
 
-            return settings?.generatedStaticFileGeneratorType ?? defaultFileType;
+            return settings.generatedStaticFileGeneratorType;
         }
 
         public bool IsCollectionAutomaticallyLoaded(ScriptableObjectCollection collection)
         {
-            CollectionToSettings settings =
-                collectionsSettings.FirstOrDefault(toSettings => toSettings.collection == collection);
+            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
+                return true;
 
-            return settings?.isAutomaticallyLoaded ?? true;
+            return settings.isAutomaticallyLoaded;
         }
 
+        
+        public string GetStaticFileFolderForCollection(ScriptableObjectCollection collection)
+        {
+            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
+                return StaticScriptsFolderPath;
+
+            if (string.IsNullOrEmpty(settings.staticGeneratedFileParentFolder))
+                return StaticScriptsFolderPath;
+
+            return settings.staticGeneratedFileParentFolder;
+        }
+        
         public void SetCollectionAutomaticallyLoaded(ScriptableObjectCollection targetCollection,  bool isAutomaticallyLoaded)
         {
-            CollectionToSettings settings =
-                collectionsSettings.FirstOrDefault(toSettings => toSettings.collection == targetCollection);
-
-            if (settings == null)
-                collectionsSettings.Add(new CollectionToSettings {collection = targetCollection, isAutomaticallyLoaded = isAutomaticallyLoaded});
-            else
-                settings.isAutomaticallyLoaded = isAutomaticallyLoaded;
-
+            CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
+            settings.isAutomaticallyLoaded = isAutomaticallyLoaded;
             ObjectUtility.SetDirty(this);
         }
 
         public void SetStaticFileGeneratorTypeForCollection(ScriptableObjectCollection targetCollection, GeneratedStaticFileType staticCodeGeneratorType)
         {
-            CollectionToSettings settings =
-                collectionsSettings.FirstOrDefault(toSettings => toSettings.collection == targetCollection);
-
-            if (settings == null)
-                collectionsSettings.Add(new CollectionToSettings {collection = targetCollection, generatedStaticFileGeneratorType = staticCodeGeneratorType});
-            else
-                settings.generatedStaticFileGeneratorType = staticCodeGeneratorType;
-
+            CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
+            settings.generatedStaticFileGeneratorType = staticCodeGeneratorType;
             ObjectUtility.SetDirty(this);
+        }
+
+        public void SetStaticFileFolderForCollection(ScriptableObjectCollection targetCollection, string targetFolder)
+        {
+            CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
+            settings.staticGeneratedFileParentFolder = targetFolder;
+            ObjectUtility.SetDirty(this);
+        }
+
+        private bool TryGetSettingsForCollection(ScriptableObjectCollection targetCollection,
+            out CollectionToSettings settings)
+        {
+            settings = collectionsSettings.FirstOrDefault(toSettings => toSettings.collection == targetCollection);
+            return settings != null;
+        }
+        
+        private CollectionToSettings GetOrCreateSettingsForCollection(ScriptableObjectCollection targetCollection)
+        {
+            if (!TryGetSettingsForCollection(targetCollection, out CollectionToSettings settings))
+            {
+                settings = new CollectionToSettings {collection = targetCollection};
+                collectionsSettings.Add(settings);
+            }
+
+            return settings;
         }
     }
 }

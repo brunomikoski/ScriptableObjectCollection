@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.1.3]
+## Added
+ - Added support for codacy code quality
+ -  
+## Changed
+ 
+
 ## [1.1.2]
 ### Changed
  - Changed the Settings file to be the main place where data is stored, not using EditorPrefs anymore

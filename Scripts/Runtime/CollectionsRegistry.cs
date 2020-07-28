@@ -171,7 +171,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
-                if (collection.AutomaticallyLoaded)
+                if (ScriptableObjectCollectionSettings.Instance.IsCollectionAutomaticallyLoaded(collection))
                     continue;
 
                 collections.Remove(collection);

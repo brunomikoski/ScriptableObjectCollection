@@ -166,7 +166,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendHeader(writer, ref indentation, nameSpace,
                     dehumanizeCollectionName.FirstToUpper(), true, false, directives.Distinct().ToArray());
 
-                if (collection.StaticFileGenerationType == StaticFileType.DirectAccess)
+                GeneratedStaticFileType staticFileTypeForCollection = ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(collection);
+                if (staticFileTypeForCollection == GeneratedStaticFileType.DirectAccess)
                     WriteDirectAccessCollectionStatic(collection, writer, ref indentation);
                 else
                     WriteTryGetAccessCollectionStatic(collection, writer, ref indentation);

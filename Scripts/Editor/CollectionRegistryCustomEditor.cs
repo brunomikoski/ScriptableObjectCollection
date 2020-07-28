@@ -12,7 +12,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             collections = serializedObject.FindProperty("collections");
         }
-
         public override void OnInspectorGUI()
         {
             DrawCollections();
@@ -44,18 +43,31 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (CollectionUtility.IsFoldoutOpen(collection))
                 {
                     EditorGUI.indentLevel++;
-                    SerializedObject serializedObject = new SerializedObject(collection);
+
                     using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                     {
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("automaticallyLoaded"));
-                        EditorGUILayout.PropertyField(serializedObject.FindProperty("staticFileGenerationType"));
+                        bool isAutomaticallyLoaded = EditorGUILayout.ToggleLeft("Automatically Loaded",
+                            ScriptableObjectCollectionSettings.Instance.IsCollectionAutomaticallyLoaded(collection));
 
                         if (changeCheck.changed)
                         {
-                            ObjectUtility.SetDirty(collection);
-                            serializedObject.ApplyModifiedProperties();
+                            ScriptableObjectCollectionSettings.Instance.SetCollectionAutomaticallyLoaded(collection,
+                                isAutomaticallyLoaded);
                         }
                     }
+
+                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                    {
+                        GeneratedStaticFileType staticCodeGeneratorType = (GeneratedStaticFileType)EditorGUILayout.EnumPopup("Static File Generator Type",
+                            ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(collection));
+
+                        if (changeCheck.changed)
+                        {
+                            ScriptableObjectCollectionSettings.Instance.SetStaticFileGeneratorTypeForCollection(collection,
+                                staticCodeGeneratorType);
+                        }
+                    }
+
                     EditorGUI.indentLevel--;
                 }
             }

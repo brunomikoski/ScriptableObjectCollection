@@ -30,7 +30,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private CollectableScriptableObject[] options;
         private string[] optionsNames;
-        public GUIContent[] guiContents;
+        private GUIContent[] GUIContents;
         
         private CollectableScriptableObject collectableItem;
 
@@ -161,7 +161,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             displayOptions.Insert(0, CollectionEditorGUI.DEFAULT_NONE_ITEM_TEXT);
             
             optionsNames = displayOptions.ToArray();
-            guiContents = optionsNames.Select(s => new GUIContent(s)).ToArray();
+            GUIContents = optionsNames.Select(s => new GUIContent(s)).ToArray();
 
             foldoutObject = property.serializedObject.targetObject;
             initialized = true;
@@ -178,7 +178,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 
                 int newSelectedIndex = EditorGUI.Popup(position, selectedIndex,
-                    guiContents, EditorStyles.popup);
+                    GUIContents, EditorStyles.popup);
 
                 newSelectedIndex -= 1;
 

@@ -3,7 +3,7 @@
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [InitializeOnLoad]
-    public class RegistryEditorBehaviour
+    public static class RegistryEditorBehaviour
     {
         static RegistryEditorBehaviour()
         {

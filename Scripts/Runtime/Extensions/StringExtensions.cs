@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -36,7 +37,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static string StartingNumbersToWords(this string input)
         {
-            string targetNumberString = "";
+            StringBuilder targetNumberString = new StringBuilder();
             int endIndex = 0;
             bool needToConvert = false;
             for (int i = 0; i < input.Length; i++)
@@ -44,7 +45,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 char c = input[i];
                 if (char.IsDigit(c))
                 {
-                    targetNumberString += c;
+                    targetNumberString.Append(c);
                     needToConvert = true;
                 }
                 else
@@ -58,7 +59,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return input;
             input = input.Substring(endIndex);
             
-            int targetNumberValue = Int32.Parse(targetNumberString);
+            int targetNumberValue = Int32.Parse(targetNumberString.ToString());
 
             return NumberToWords(targetNumberValue) + input.FirstToUpper();
         }
@@ -96,8 +97,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (words != "")
                     words += "and ";
 
-                var unitsMap = new[] { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
-                var tensMap = new[] { "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
+                string[] unitsMap = { "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen" };
+                string[] tensMap = { "zero", "ten", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety" };
 
                 if (number < 20)
                     words += unitsMap[number];

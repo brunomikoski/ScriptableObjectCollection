@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class CollectionEditorGUI
+    public static class CollectionEditorGUI
     {
         public const string DEFAULT_NONE_ITEM_TEXT = "None";
         public const string ARROW_UP_CHAR = "\u25B2";
@@ -50,7 +50,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (cachedItemNameStyle != null)
                     return cachedItemNameStyle;
                 
-                cachedItemNameStyle = new GUIStyle()
+                cachedItemNameStyle = new GUIStyle
                 {
                     fontStyle = FontStyle.Bold,
                     margin = new RectOffset(0, 0, 2, 2),

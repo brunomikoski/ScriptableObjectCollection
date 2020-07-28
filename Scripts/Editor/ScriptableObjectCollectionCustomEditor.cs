@@ -4,7 +4,6 @@ using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -15,11 +14,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string searchString = "";
         
         private List<CollectableScriptableObject> filteredItemList = new List<CollectableScriptableObject>();
-        private List<SerializedObject> filteredSerializedList = new List<SerializedObject>();
+        private readonly List<SerializedObject> filteredSerializedList = new List<SerializedObject>();
         private bool filteredItemListDirty = true;
         private SearchField searchField;
-
-        private Object settingsFoldoutObject = new Object();
         
         public void OnEnable()
         {

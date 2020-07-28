@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class TypeUtility
+    public static class TypeUtility
     {
         private static List<Type> cachedAvaliableTypes;
 

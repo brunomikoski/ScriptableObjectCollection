@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.3]
 ## Added
  - Added support for codacy code quality
- -  
 ## Changed
+ - Refactored settings 
+ - Removed settings from the Collection script to make it clear
+ - Added some a way to write inside packages as well.
  
 
 ## [1.1.2]

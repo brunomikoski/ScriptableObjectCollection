@@ -129,14 +129,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolderPath);
             
             string itemName;
-            int count = 1;
+            int count = Count;
             while (true)
             {
                 itemName = $"New{collectionType.Name}{Count + count}";
                 string testPath = Path.Combine(parentFolderPath, itemName);
 
-                if (!File.Exists(PathUtils.RelativeToAbsolutePath($"{testPath}.asset")))
+                if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
                     break;
+                
                 count++;
             }
             

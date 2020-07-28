@@ -16,7 +16,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolder);
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
 
-            if (File.Exists(PathUtils.RelativeToAbsolutePath(finalFilePath)))
+            if (File.Exists(Path.GetFullPath(finalFilePath)))
                 return false;
             
             using (StreamWriter writer = new StreamWriter(finalFilePath))
@@ -137,20 +137,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             string filename = $"{dehumanizeCollectionName.FirstToUpper()}Static";
             string nameSpace = collection.GetCollectionType().Namespace;
-            string finalFolder = ScriptableObjectCollectionSettings.Instance.StaticScriptsFolderPath;
+            string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
             
             string assemblyForStaticContent = CompilationPipeline.GetAssemblyNameFromScriptPath(finalFolder);
             MonoScript scriptableObjectScript = MonoScript.FromScriptableObject(collection);
             string assemblyForScriptFromScriptableObject =
                 CompilationPipeline.GetAssemblyNameFromScriptPath(AssetDatabase.GetAssetPath(scriptableObjectScript));
 
-            if (!string.Equals(assemblyForStaticContent, assemblyForScriptFromScriptableObject,
-                StringComparison.Ordinal))
+            if (!string.Equals(assemblyForStaticContent, assemblyForScriptFromScriptableObject,                 StringComparison.Ordinal))
             {
-                Debug.LogError(
-                    $"Cannot create file at path {PathUtils.FixPathForPlatform(Path.Combine(finalFolder, $"{filename}.cs"))}" +
-                    $" since would be in a different assembly, Collection Assembly {assemblyForScriptFromScriptableObject} Static File Assembly: {assemblyForStaticContent}");
-                return;
+                string path = EditorUtility.OpenFolderPanel("Static File Folder Location", "", "");
+
+                if (string.IsNullOrEmpty(path))
+                {
+                    Debug.LogError(
+                        $"Cannot create file at path {Path.Combine(finalFolder, $"{filename}.cs")}" +
+                        $" since would be in a different assembly, Collection Assembly {assemblyForScriptFromScriptableObject} Static File Assembly: {assemblyForStaticContent}");
+                    return;
+                }
+
+                finalFolder = PathUtility.GetRelativePath(path);
+                ScriptableObjectCollectionSettings.Instance.SetStaticFileFolderForCollection(collection, finalFolder);
             }
             
             AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);

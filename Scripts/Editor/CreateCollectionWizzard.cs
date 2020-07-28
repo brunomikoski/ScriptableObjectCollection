@@ -51,13 +51,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string cachedNameSpace;
         private string TargetNameSpace
         {
-            get
-            {
-                if (string.IsNullOrEmpty(cachedNameSpace))
-                    cachedNameSpace = ScriptableObjectCollectionSettings.Instance.NameSpace;
-
-                return cachedNameSpace;
-            }
+            get => cachedNameSpace;
             set => cachedNameSpace = value;
         }
 

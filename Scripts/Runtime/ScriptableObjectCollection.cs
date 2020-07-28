@@ -7,12 +7,6 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public enum StaticFileType
-    {
-        DirectAccess,
-        TryGet
-    }
-    
     public class ScriptableObjectCollection : ScriptableObject, IList
     {
         [SerializeField, HideInInspector]
@@ -29,14 +23,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private List<CollectableScriptableObject> items = new List<CollectableScriptableObject>();
 
-        [SerializeField] 
-        private bool automaticallyLoaded = true;
-        public bool AutomaticallyLoaded => automaticallyLoaded;
-
-        [SerializeField] 
-        private StaticFileType staticFileGenerationType = StaticFileType.DirectAccess;
-        public StaticFileType StaticFileGenerationType => staticFileGenerationType;
-        
         private bool isReadyListDirty = true;
         private IReadOnlyList<CollectableScriptableObject> readOnlyList = new List<CollectableScriptableObject>();
         public IReadOnlyList<CollectableScriptableObject> Items

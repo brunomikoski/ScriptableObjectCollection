@@ -68,7 +68,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collectionsSettings.FirstOrDefault(toSettings => toSettings.collection == targetCollection);
 
             if (settings == null)
-                collectionsSettings.Add(new CollectionToSettings() {collection = targetCollection, isAutomaticallyLoaded = isAutomaticallyLoaded});
+                collectionsSettings.Add(new CollectionToSettings {collection = targetCollection, isAutomaticallyLoaded = isAutomaticallyLoaded});
             else
                 settings.isAutomaticallyLoaded = isAutomaticallyLoaded;
 
@@ -81,7 +81,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collectionsSettings.FirstOrDefault(toSettings => toSettings.collection == targetCollection);
 
             if (settings == null)
-                collectionsSettings.Add(new CollectionToSettings() {collection = targetCollection, generatedStaticFileGeneratorType = staticCodeGeneratorType});
+                collectionsSettings.Add(new CollectionToSettings {collection = targetCollection, generatedStaticFileGeneratorType = staticCodeGeneratorType});
             else
                 settings.generatedStaticFileGeneratorType = staticCodeGeneratorType;
 

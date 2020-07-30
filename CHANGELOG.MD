@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.1.4]
+## Changed
+ - Fixed issue with package version
+
 ## [1.1.3]
 ## Added
  - Added support for codacy code quality
@@ -13,7 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Removed settings from the Collection script to make it clear
  - Added some a way to write inside packages as well.
  
-
 ## [1.1.2]
 ### Changed
  - Changed the Settings file to be the main place where data is stored, not using EditorPrefs anymore
@@ -21,7 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 - Fixed issue with the Add New Item missing the DelayCall on the Collection Editor Window
-
 
 ## [1.1.1]
 ### Added
@@ -33,7 +35,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 - Editor Group issues when adding new items throwing error
-
 
 ## [1.1.0]
 ### Added 
@@ -48,7 +49,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - General bug fixes and optimizations
  - Fixed issue with the dropdown on property drawer
  
-
 ## [1.0.1]
 ### Added 
  - Support for SubClasses support for adding new items 
@@ -61,6 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+[1.1.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.4
 [1.1.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.3
 [1.1.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.2
 [1.1.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.1

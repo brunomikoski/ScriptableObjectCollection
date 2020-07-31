@@ -9,7 +9,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public class ScriptableObjectCollection : ScriptableObject, IList
     {
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private string guid;
         public string GUID
         {
@@ -132,7 +132,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             int count = Count;
             while (true)
             {
-                itemName = $"New{collectionType.Name}{Count + count}";
+                itemName = $"New{collectionType.Name}{count}";
                 string testPath = Path.Combine(parentFolderPath, itemName);
 
                 if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
@@ -285,7 +285,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
         }
-
+        
+        
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
@@ -297,14 +298,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < guids.Length; i++)
             {
-                string guid = guids[i];
                 CollectableScriptableObject collectable =
                     UnityEditor.AssetDatabase.LoadAssetAtPath<CollectableScriptableObject>(
-                        UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+                        UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]));
+                
                 if (collectable == null)
                     continue;
 
-                if (Contains(collectable))
+                if (collectable.Collection != this)
+                    continue;
+
+                if (!PathUtility.IsObjectDeeperThanObject(collectable, this))
                     continue;
 
                 Add(collectable);
@@ -334,7 +338,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
-        where ObjectType : CollectableScriptableObject 
+        where ObjectType : CollectableScriptableObject
     {
         public new ObjectType this[int index]
         {

@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
-using UnityEditor.Compilation;
-using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -135,33 +133,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string dehumanizeCollectionName = collection.name.Sanitize();
 
-            string filename = $"{dehumanizeCollectionName.FirstToUpper()}Static";
+            string fileName = $"{dehumanizeCollectionName.FirstToUpper()}Static";
             string nameSpace = collection.GetCollectionType().Namespace;
             string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
             
-            string assemblyForStaticContent = CompilationPipeline.GetAssemblyNameFromScriptPath(finalFolder);
-            MonoScript scriptableObjectScript = MonoScript.FromScriptableObject(collection);
-            string assemblyForScriptFromScriptableObject =
-                CompilationPipeline.GetAssemblyNameFromScriptPath(AssetDatabase.GetAssetPath(scriptableObjectScript));
-
-            if (!string.Equals(assemblyForStaticContent, assemblyForScriptFromScriptableObject,                 StringComparison.Ordinal))
-            {
-                string path = EditorUtility.OpenFolderPanel("Static File Folder Location", "", "");
-
-                if (string.IsNullOrEmpty(path))
-                {
-                    Debug.LogError(
-                        $"Cannot create file at path {Path.Combine(finalFolder, $"{filename}.cs")}" +
-                        $" since would be in a different assembly, Collection Assembly {assemblyForScriptFromScriptableObject} Static File Assembly: {assemblyForStaticContent}");
-                    return;
-                }
-
-                finalFolder = PathUtility.GetRelativePath(path);
-                ScriptableObjectCollectionSettings.Instance.SetStaticFileFolderForCollection(collection, finalFolder);
-            }
-            
             AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);
-            using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{filename}.cs")))
+            using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.cs")))
             {
                 int indentation = 0;
                 
@@ -171,7 +148,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.AddRange(GetCollectionDirectives(collection));
 
                 AppendHeader(writer, ref indentation, nameSpace,
-                    dehumanizeCollectionName.FirstToUpper(), true, false, directives.Distinct().ToArray());
+                    collection.GetType().ToString(), true, false, directives.Distinct().ToArray());
 
                 GeneratedStaticFileType staticFileTypeForCollection = ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(collection);
                 if (staticFileTypeForCollection == GeneratedStaticFileType.DirectAccess)
@@ -199,7 +176,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteTryGetAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            AppendLine(writer, indentation, $"private static {collection.GetType().Name} values;");
+            string cachedValuesName = $"cached{collection.name.Sanitize().FirstToUpper()}Values";
+            string valuesName = $"{collection.name.Sanitize().FirstToUpper()}Values";
+            string tryGetValuesName = $"TryGet{valuesName}";
+
+            AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
@@ -210,13 +191,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AppendLine(writer, indentation);
             
-            AppendLine(writer, indentation, $"public static bool TryGetValues(out {collection.GetType().Name} result)");
+            AppendLine(writer, indentation, $"public static bool {tryGetValuesName}(out {collection.GetType().Name} result)");
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, "if (values != null)");
+            AppendLine(writer, indentation, $"if ({cachedValuesName} != null)");
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, "result = values;");
+            AppendLine(writer, indentation, $"result = {cachedValuesName};");
             AppendLine(writer, indentation, "return true;");
             indentation--;
             AppendLine(writer, indentation, "}");
@@ -224,13 +205,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AppendLine(writer, indentation, $"if (!CollectionsRegistry.Instance.TryGetCollectionByGUID(\"{collection.GUID}\", out ScriptableObjectCollection resultCollection))");
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, "result = values;");
+            AppendLine(writer, indentation, $"result = {cachedValuesName};");
             AppendLine(writer, indentation, "return false;");
             indentation--;
             AppendLine(writer, indentation, "}");
             AppendLine(writer, indentation);
-            AppendLine(writer, indentation, $"values = ({collection.GetType().Name}) resultCollection;");
-            AppendLine(writer, indentation, $"result = values;");
+            AppendLine(writer, indentation, $"{cachedValuesName} = ({collection.GetType().Name}) resultCollection;");
+            AppendLine(writer, indentation, $"result = {cachedValuesName};");
             AppendLine(writer, indentation, $"return true;");
             indentation--;
             AppendLine(writer, indentation, "}");
@@ -257,7 +238,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, "}");
                 AppendLine(writer, indentation);
                 
-                AppendLine(writer, indentation, $"if (!TryGetValues(out {collection.GetType().Name} collectionResult))");
+                AppendLine(writer, indentation, $"if (!{tryGetValuesName}(out {collection.GetType().Name} collectionResult))");
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, "result = null;");
@@ -290,7 +271,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            AppendLine(writer, indentation, $"private static {collection.GetType().Name} values;");
+            string cachedValuesName = $"cached{collection.name.Sanitize().FirstToUpper()}Values";
+            AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
@@ -301,19 +283,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AppendLine(writer, indentation);
 
+            string valuesName = $"{collection.name.Sanitize().FirstToUpper()}Values";
             AppendLine(writer, indentation,
-                $"public static {collection.GetType().Name} Values");
+                $"public static {collection.GetType().Name} {valuesName}");
             AppendLine(writer, indentation, "{");
             indentation++;
             AppendLine(writer, indentation, "get");
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, "if (values == null)");
+            AppendLine(writer, indentation, $"if ({cachedValuesName} == null)");
             indentation++;
             AppendLine(writer, indentation,
-                $"values = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(\"{collection.GUID}\");");
+                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(\"{collection.GUID}\");");
             indentation--;
-            AppendLine(writer, indentation, "return values;");
+            AppendLine(writer, indentation, $"return {cachedValuesName};");
             indentation--;
             AppendLine(writer, indentation, "}");
             indentation--;
@@ -339,7 +322,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({collectionItem.GetType().Name})Values.GetCollectableByGUID(\"{collectionItem.GUID}\");");
+                    $"{privateStaticName} = ({collectionItem.GetType().Name}){valuesName}.GetCollectableByGUID(\"{collectionItem.GUID}\");");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;

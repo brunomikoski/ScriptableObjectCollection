@@ -44,7 +44,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
         {
-            bool shouldRefreshRegistry = false;
             for (int i = 0; i < importedAssets.Length; i++)
             {
                 string importedAssetPath = importedAssets[i];
@@ -60,17 +59,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         if (collectableScriptableObject.Collection == null)
                         {
-                            if(typeToCollections.TryGetValue(type, out ScriptableObjectCollection collection))
+                            if (typeToCollections.TryGetValue(type, out ScriptableObjectCollection collection))
                             {
-                                collection.Add(collectableScriptableObject);
+                                if (!collection.Add(collectableScriptableObject))
+                                    collectableScriptableObject.SetCollection(collection);
                             }
                         }
                         else
                         {
-                            if (!collectableScriptableObject.Collection.Contains(collectableScriptableObject))
-                                collectableScriptableObject.Collection.Add(collectableScriptableObject);
-                            
-                            collectableScriptableObject.Collection.ValidateGUID();
+                            collectableScriptableObject.Collection.Add(collectableScriptableObject);
                         }
                     }
                 }
@@ -82,36 +79,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     if (collection == null)
                         continue;
-                    
+
                     if (!CollectionsRegistry.Instance.IsKnowCollectionGUID(collection.GUID))
-                        shouldRefreshRegistry = true;
+                    {
+                        RefreshRegistry();
+                        return;
+                    }
                 }
             }
-
-            for (int i = 0; i < deletedAssets.Length; i++)
-            {
-                string deletedAsset = deletedAssets[i];
-                string guid = AssetDatabase.AssetPathToGUID(deletedAsset);
-                if (CollectionsRegistry.Instance.IsKnowCollectionGUID(guid))
-                {
-                    RefreshRegistry();
-                    return;
-                }
-            }
-            
-            for (int i = 0; i < movedFromAssetPaths.Length; i++)
-            {
-                string movedAsset = movedAssets[i];
-                string guid = AssetDatabase.AssetPathToGUID(movedAsset);
-                if (CollectionsRegistry.Instance.IsKnowCollectionGUID(guid))
-                {
-                    RefreshRegistry();
-                    return;
-                }
-            }
-
-            if (shouldRefreshRegistry)
-                RefreshRegistry();
         }
 
         private static void RefreshRegistry()

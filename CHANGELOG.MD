@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5]
+## Changed
+ - Fix possible stackoverflow on PostProcessor
+ - Removed Assembly Definition Check (Was expensive and bad when working with packages)
+ - Fixed issue when reloading items from the same type from different collections been added to both
+ - Fixed Static genearation file using sanitized name and not class name, breaking the partial class
+ - Fixed Create Collection context menu using the selected folder as target for both scrips and scriptable objects
+ - Fixed some warnings
+ - Fixed weird pair next name issue
+ 
+ 
+ ## Added
+ - You can now set specific overwrite static files location on the `CollectionSettings` file
+ - Settings are now displayed on the Collection itself rather than on the registry
+ - 
 
 ## [1.1.4]
 ## Changed

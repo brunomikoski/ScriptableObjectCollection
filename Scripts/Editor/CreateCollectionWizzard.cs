@@ -20,11 +20,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (cachedScriptableObjectFolder != null) 
                     return cachedScriptableObjectFolder;
+
+                if (!string.IsNullOrEmpty(targetFolder))
+                {
+                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
+                    return cachedScriptableObjectFolder;
+                }
                 
-                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.CollectionAssetsFolderPath))
+                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.DefaultScriptableObjectsFolder))
                 {
                     cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                        ScriptableObjectCollectionSettings.Instance.CollectionAssetsFolderPath);
+                        ScriptableObjectCollectionSettings.Instance.DefaultScriptableObjectsFolder);
                 }
                 return cachedScriptableObjectFolder;
             }
@@ -38,10 +44,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (cachedScriptsFolder != null) 
                     return cachedScriptsFolder;
-                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.CollectionScriptsFolderPath))
+                
+                if (!string.IsNullOrEmpty(targetFolder))
+                {
+                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
+                    return cachedScriptsFolder;
+                }
+                
+                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.DefaultScriptsFolder))
                 {
                     cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                        ScriptableObjectCollectionSettings.Instance.CollectionScriptsFolderPath);
+                        ScriptableObjectCollectionSettings.Instance.DefaultScriptsFolder);
                 }
                 return cachedScriptsFolder;
             }
@@ -79,14 +92,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private string collectionName = "Collection";
         private string collectableName = "Collectable";
+        private static string targetFolder;
 
         public static CreateCollectionWizzard GetWindowInstance()
         {
             return GetWindow<CreateCollectionWizzard>("Creating New Collection");
         }
         
-        public new static void Show()
+        public static void Show(string targetPath)
         {
+            targetFolder = targetPath;
             CreateCollectionWizzard createCollectionWizzard = GetWindowInstance();
             createCollectionWizzard.ShowPopup();
         }

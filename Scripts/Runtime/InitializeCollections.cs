@@ -5,8 +5,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [DefaultExecutionOrder(-10000)]
     public class InitializeCollections : MonoBehaviour
     {
-        [SerializeField]
-        private ScriptableObjectCollection[] collections;
+        [SerializeField] 
+        private ScriptableObjectCollection[] collections = new ScriptableObjectCollection[0];
 
         private void Awake()
         {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -14,9 +15,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static Dictionary<Object, bool> objectToFoldOut = new Dictionary<Object, bool>();
 
         [MenuItem("Assets/Create/ScriptableObject Collection/New Collection", false, 100)]
-        private static void CreateNewItem(MenuCommand menuCommand)
+        private static void CreateNewItem()
         {
-            CreateCollectionWizzard.Show();
+            string targetPath = "";
+            if (Selection.objects.FirstOrDefault() is DefaultAsset folder)
+                targetPath = AssetDatabase.GetAssetPath(folder);
+            
+            CreateCollectionWizzard.Show(targetPath);
         }
         
         [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", false, 200)]

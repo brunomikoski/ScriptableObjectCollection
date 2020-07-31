@@ -21,35 +21,39 @@ namespace BrunoMikoski.ScriptableObjectCollections
             internal string staticGeneratedFileParentFolder;
 
             [SerializeField]
-            internal bool isAutomaticallyLoaded;
+            internal bool isAutomaticallyLoaded = true;
+
+            [SerializeField] 
+            internal bool overrideStaticFileLocation;
         }
         
 #if UNITY_EDITOR
         
+#pragma warning disable 0649
         [SerializeField]
-        private UnityEditor.DefaultAsset collectionAssetsFolder;
-        public string CollectionAssetsFolderPath => UnityEditor.AssetDatabase.GetAssetPath(collectionAssetsFolder);
+        private UnityEditor.DefaultAsset defaultScriptableObjectsFolder;
+        public string DefaultScriptableObjectsFolder => UnityEditor.AssetDatabase.GetAssetPath(defaultScriptableObjectsFolder);
 
         [SerializeField]
-        private UnityEditor.DefaultAsset collectionScriptsFolder;
-        public string CollectionScriptsFolderPath => UnityEditor.AssetDatabase.GetAssetPath(collectionScriptsFolder);
+        private UnityEditor.DefaultAsset defaultScriptsFolder;
+        public string DefaultScriptsFolder => UnityEditor.AssetDatabase.GetAssetPath(defaultScriptsFolder);
         
         [SerializeField]
-        private UnityEditor.DefaultAsset staticScriptsFolder;
-        public string StaticScriptsFolderPath => UnityEditor.AssetDatabase.GetAssetPath(staticScriptsFolder);
-
+        private UnityEditor.DefaultAsset defaultGeneratedCodeFolder;
+        public string DefaultGeneratedCodeFolder => UnityEditor.AssetDatabase.GetAssetPath(defaultGeneratedCodeFolder);
+#pragma warning restore 0649
 #endif
 
         [SerializeField]
-        private GeneratedStaticFileType defaultFileType = GeneratedStaticFileType.DirectAccess;
+        private GeneratedStaticFileType defaultGenerator = GeneratedStaticFileType.DirectAccess;
         
-        [SerializeField]
+        [SerializeField, HideInInspector]
         private List<CollectionToSettings> collectionsSettings = new List<CollectionToSettings>();
 
         public GeneratedStaticFileType GetStaticFileTypeForCollection(ScriptableObjectCollection collection)
         {
             if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
-                return defaultFileType;
+                return defaultGenerator;
 
             return settings.generatedStaticFileGeneratorType;
         }
@@ -61,15 +65,29 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return settings.isAutomaticallyLoaded;
         }
+        
+        public bool IsOverridingStaticFileLocation(ScriptableObjectCollection collection)
+        {
+            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
+                return false;
 
+            return settings.overrideStaticFileLocation;
+        }
+
+        public void SetOverridingStaticFileLocation(ScriptableObjectCollection collection, bool isOverriding)
+        {
+            CollectionToSettings settings = GetOrCreateSettingsForCollection(collection);
+            settings.overrideStaticFileLocation = isOverriding;
+            ObjectUtility.SetDirty(this);
+        }
         
         public string GetStaticFileFolderForCollection(ScriptableObjectCollection collection)
         {
             if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
-                return StaticScriptsFolderPath;
+                return DefaultGeneratedCodeFolder;
 
-            if (string.IsNullOrEmpty(settings.staticGeneratedFileParentFolder))
-                return StaticScriptsFolderPath;
+            if (!settings.overrideStaticFileLocation || string.IsNullOrEmpty(settings.staticGeneratedFileParentFolder))
+                return DefaultGeneratedCodeFolder;
 
             return settings.staticGeneratedFileParentFolder;
         }

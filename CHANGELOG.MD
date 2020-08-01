@@ -75,7 +75,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 ## [Unreleased]
+ - Add a setup wizzard for first time settings creation
 
+[1.1.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.5
 [1.1.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.4
 [1.1.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.3
 [1.1.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.2

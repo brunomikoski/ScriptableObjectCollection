@@ -148,7 +148,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.AddRange(GetCollectionDirectives(collection));
 
                 AppendHeader(writer, ref indentation, nameSpace,
-                    collection.GetType().ToString(), true, false, directives.Distinct().ToArray());
+                    collection.GetType().Name, true, false, directives.Distinct().ToArray());
 
                 GeneratedStaticFileType staticFileTypeForCollection = ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(collection);
                 if (staticFileTypeForCollection == GeneratedStaticFileType.DirectAccess)

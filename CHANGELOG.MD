@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.1.6]
+## Changed
+ - Crash while changing to debug mode while having the Collection inspector open
+ - Fix static generation code writing the full class name as the static class name
+
 ## [1.1.5]
 ## Changed
  - Fix possible stackoverflow on PostProcessor
@@ -13,12 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Fixed Create Collection context menu using the selected folder as target for both scrips and scriptable objects
  - Fixed some warnings
  - Fixed weird pair next name issue
- 
- 
+  
  ## Added
  - You can now set specific overwrite static files location on the `CollectionSettings` file
  - Settings are now displayed on the Collection itself rather than on the registry
- - 
 
 ## [1.1.4]
 ## Changed
@@ -77,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
  - Add a setup wizzard for first time settings creation
 
+[1.1.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.6
 [1.1.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.5
 [1.1.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.4
 [1.1.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.3

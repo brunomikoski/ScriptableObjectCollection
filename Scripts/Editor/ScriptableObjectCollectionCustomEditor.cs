@@ -42,7 +42,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             ObjectUtility.SetDirty(collection);
-            AssetDatabase.SaveAssets();
         }
 
         private void ValidateGUIDS()

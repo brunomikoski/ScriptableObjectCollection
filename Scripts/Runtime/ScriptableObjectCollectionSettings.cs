@@ -40,7 +40,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [SerializeField]
         private UnityEditor.DefaultAsset defaultGeneratedCodeFolder;
-        public string DefaultGeneratedCodeFolder => UnityEditor.AssetDatabase.GetAssetPath(defaultGeneratedCodeFolder);
+
+        private string DefaultGeneratedCodeFolder => UnityEditor.AssetDatabase.GetAssetPath(defaultGeneratedCodeFolder);
 #pragma warning restore 0649
 #endif
 
@@ -49,6 +50,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [SerializeField, HideInInspector]
         private List<CollectionToSettings> collectionsSettings = new List<CollectionToSettings>();
+
+        [SerializeField] 
+        private string defaultNamespace;
+        public string DefaultNamespace => defaultNamespace;
 
         public GeneratedStaticFileType GetStaticFileTypeForCollection(ScriptableObjectCollection collection)
         {

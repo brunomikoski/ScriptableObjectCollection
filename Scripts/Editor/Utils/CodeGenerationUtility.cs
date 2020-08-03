@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -133,9 +135,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string dehumanizeCollectionName = collection.name.Sanitize();
 
-            string fileName = $"{dehumanizeCollectionName.FirstToUpper()}Static";
+            string fileName = $"{collection.GetCollectionType().Name}Static";
             string nameSpace = collection.GetCollectionType().Namespace;
             string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
+
+            if (string.IsNullOrEmpty(finalFolder))
+            {
+                Debug.LogError("Static Code Generation folder not assigned, please assign it on the ScriptableObjectCollectionSettings");
+                EditorGUIUtility.PingObject(ScriptableObjectCollectionSettings.Instance);
+                Selection.objects = new Object[] {ScriptableObjectCollectionSettings.Instance};
+                return;
+            }
             
             AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);
             using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.cs")))
@@ -148,7 +158,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.AddRange(GetCollectionDirectives(collection));
 
                 AppendHeader(writer, ref indentation, nameSpace,
-                    collection.GetType().Name, true, false, directives.Distinct().ToArray());
+                    collection.GetCollectionType().Name, true, false, directives.Distinct().ToArray());
 
                 GeneratedStaticFileType staticFileTypeForCollection = ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(collection);
                 if (staticFileTypeForCollection == GeneratedStaticFileType.DirectAccess)
@@ -176,8 +186,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteTryGetAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            string cachedValuesName = $"cached{collection.name.Sanitize().FirstToUpper()}Values";
-            string valuesName = $"{collection.name.Sanitize().FirstToUpper()}Values";
+            string cachedValuesName = $"values";
+            string valuesName = $"Values";
             string tryGetValuesName = $"TryGet{valuesName}";
 
             AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
@@ -271,7 +281,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            string cachedValuesName = $"cached{collection.name.Sanitize().FirstToUpper()}Values";
+            string cachedValuesName = "values";
             AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
 
             for (int i = 0; i < collection.Items.Count; i++)
@@ -283,7 +293,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AppendLine(writer, indentation);
 
-            string valuesName = $"{collection.name.Sanitize().FirstToUpper()}Values";
+            string valuesName = $"Values";
             AppendLine(writer, indentation,
                 $"public static {collection.GetType().Name} {valuesName}");
             AppendLine(writer, indentation, "{");

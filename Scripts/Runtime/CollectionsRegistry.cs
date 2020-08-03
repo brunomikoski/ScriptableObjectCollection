@@ -37,8 +37,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectionGUIDs.Remove(targetCollection.GUID);
         }
 
+        private void ValidateItems()
+        {
+            for (int i = collections.Count - 1; i >= 0; i--)
+            {
+                if (collections[i] == null)
+                {
+                    collections.RemoveAt(i);
+                    collectionGUIDs.RemoveAt(i);
+                }
+            }
+        }
         private void ValidateCurrentGUIDs()
         {
+            ValidateItems();
             if (collectionGUIDs.Count != collections.Count)
             {
                 ReloadCollections();

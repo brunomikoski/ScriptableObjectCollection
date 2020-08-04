@@ -40,10 +40,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [SerializeField]
         private UnityEditor.DefaultAsset defaultGeneratedCodeFolder;
-
-        private string DefaultGeneratedCodeFolder => UnityEditor.AssetDatabase.GetAssetPath(defaultGeneratedCodeFolder);
 #pragma warning restore 0649
 #endif
+        
+        private string DefaultGeneratedCodeFolder
+        {
+            get
+            {
+#if UNITY_EDITOR                
+                return UnityEditor.AssetDatabase.GetAssetPath(defaultGeneratedCodeFolder);
+#endif
+                return string.Empty;
+            }
+        }
 
         [SerializeField]
         private GeneratedStaticFileType defaultGenerator = GeneratedStaticFileType.DirectAccess;

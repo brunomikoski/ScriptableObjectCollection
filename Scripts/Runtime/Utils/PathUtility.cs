@@ -1,4 +1,3 @@
-using UnityEditor;
 using UnityEngine;
 
 namespace System.IO
@@ -14,9 +13,12 @@ namespace System.IO
 
         public static bool IsObjectDeeperThanObject(Object childObject, Object parentObject)
         {
-            Uri childPath = new Uri(Path.GetFullPath(AssetDatabase.GetAssetPath((UnityEngine.Object) childObject)));
-            Uri parentPath = new Uri(Path.GetFullPath(AssetDatabase.GetAssetPath((UnityEngine.Object) parentObject)));
+#if UNITY_EDITOR
+            Uri childPath = new Uri(Path.GetFullPath(UnityEditor.AssetDatabase.GetAssetPath((UnityEngine.Object) childObject)));
+            Uri parentPath = new Uri(Path.GetFullPath(UnityEditor.AssetDatabase.GetAssetPath((UnityEngine.Object) parentObject)));
             return parentPath.IsBaseOf(childPath);
+#endif
+            return false;
         }
     }
 }

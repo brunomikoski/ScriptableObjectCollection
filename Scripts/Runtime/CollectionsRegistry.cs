@@ -13,6 +13,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField, HideInInspector]
         private List<string> collectionGUIDs = new List<string>();
         
+        public void UsedOnlyForAOTCodeGeneration()
+        {
+            LoadOrCreateInstance<CollectionsRegistry>();
+            // Include an exception so we can be sure to know if this method is ever called.
+            throw new InvalidOperationException("This method is used for AOT code generation only. Do not call it at runtime.");
+        }
+        
         public bool IsKnowCollectionGUID(string guid)
         {
             ValidateCurrentGUIDs();

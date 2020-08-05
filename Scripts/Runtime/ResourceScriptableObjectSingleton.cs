@@ -10,51 +10,45 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
         {
             get
             {
-                LoadOrCreateInstance();
+                if (instance == null)
+                    instance = LoadOrCreateInstance<T>();
                 return instance;
             }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static void LoadOrCreateInstance()
+        public static T LoadOrCreateInstance<T>() where T: ScriptableObject
         {
-            if (instance != null)
-                return;
-            
-            instance = FindObjectOfType<T>();
+            T newInstance = Resources.Load<T>(typeof(T).Name);
 
-            if (instance != null)
-                return;
-            
-            instance = Resources.Load<T>(typeof(T).Name);
-
-            if (instance != null)
-                return;
+            if (newInstance != null)
+                return newInstance;
 
 #if UNITY_EDITOR
             if (Application.isPlaying)
-                return;
+                return null;
             
             string registryGUID = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(T).Name}")
                 .FirstOrDefault();
 
             if (!string.IsNullOrEmpty(registryGUID))
             {
-                instance = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(
+                newInstance = (T) UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(
                     UnityEditor.AssetDatabase.GUIDToAssetPath(registryGUID));
             }
+
+            if (newInstance != null)
+                return newInstance;
             
-            if(instance != null)
-                return;
-            
-            
-            instance = CreateInstance<T>();
+            newInstance = CreateInstance<T>();
 
             AssetDatabaseUtils.CreatePathIfDontExist("Assets/Resources");
-            UnityEditor.AssetDatabase.CreateAsset(instance, $"Assets/Resources/{typeof(T).Name}.asset");
+            UnityEditor.AssetDatabase.CreateAsset(newInstance, $"Assets/Resources/{typeof(T).Name}.asset");
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
+            return newInstance;
 #endif
+            return null;
         }
     }
 }

@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0]
+## Changed
+ - Fixed issue with the wizzard that was not generating the target Scriptable Object
+
+## Added 
+- New type of indirect access to collectable items, this allows you use the regular editor reference, but without storing the reference, so without creating a relationship between the items, and can be lazy loaded when is needed, like addressables references for isntance.
+- Also added an option on the wizzard to automatically create the IndirectReference for every collectable item
 
 ## [1.1.9]
 ## Changed
@@ -100,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
  - Add a setup wizzard for first time settings creation
 
+[1.2.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.0
 [1.1.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.9
 [1.1.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.8
 [1.1.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.7

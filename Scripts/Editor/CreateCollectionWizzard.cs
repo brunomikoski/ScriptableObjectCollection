@@ -124,6 +124,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string collectionName = "Collection";
         private string collectableName = "Collectable";
         private static string targetFolder;
+        private bool generateIndirectAccess = true;
 
         public static CreateCollectionWizzard GetWindowInstance()
         {
@@ -151,6 +152,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         collectableName = EditorGUILayout.TextField("Collectable Name", collectableName);
 
                         collectionName = EditorGUILayout.TextField("Collection Name", collectionName);
+
+                        generateIndirectAccess = EditorGUILayout.Toggle("Generate Indirect Access", generateIndirectAccess);
                     }
                     using (new EditorGUILayout.VerticalScope("Box"))
                     {
@@ -206,12 +209,30 @@ namespace BrunoMikoski.ScriptableObjectCollections
             scriptsGenerated |= CreateCollectableScript();
             scriptsGenerated |= CreateCollectionScript();
 
+            if (generateIndirectAccess)
+                CreateIndirectAccess();
+            WaitingRecompileForContinue = true;
 
+            LastCollectionScriptableObjectPath = CreateCollectionObject();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
             if (!scriptsGenerated)
                 OnAfterScriptsReloading();
+        }
+
+        private void CreateIndirectAccess()
+        {
+            string folderPath = AssetDatabase.GetAssetPath(ScriptsFolder);
+            if (createFoldForThisCollectionScripts)
+                folderPath = Path.Combine(folderPath, $"{collectionName}");
+
+            CodeGenerationUtility.CreateNewEmptyScript($"{collectableName}IndirectReference", 
+                folderPath,
+                TargetNameSpace, 
+                string.Empty,
+                $"public sealed class {collectableName}IndirectReference : CollectableIndirectReference<{collectableName}>", 
+                new []{typeof(CollectableScriptableObject).Namespace, TargetNameSpace});
         }
 
         private string CreateCollectionObject()

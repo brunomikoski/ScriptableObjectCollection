@@ -65,7 +65,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return stringBuilder.ToString();
         }
 
-        public static void AppendHeader(StreamWriter writer, ref int identation, string nameSpace, string className,
+        public static void AppendHeader(StreamWriter writer, ref int identation, string nameSpace, string classAttributes, string className,
             bool isPartial, bool isStatic, params string[] directives)
         {
             writer.WriteLine("//  Automatically generated");
@@ -92,6 +92,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 identation++;
             }
 
+            if (!string.IsNullOrEmpty(classAttributes))
+                writer.WriteLine($"{GetIndentation(identation)}{classAttributes}");
+            
             string finalClassDeclaration = "";
             finalClassDeclaration += GetIndentation(identation);
             finalClassDeclaration += "public ";
@@ -109,6 +112,43 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             identation++;
         }
+        
+        
+        public static void AppendHeader(StreamWriter writer, ref int identation, string nameSpace, string classAttributes, string classDeclaration, params string[] directives)
+        {
+            writer.WriteLine("//  Automatically generated");
+            writer.WriteLine("//");
+            writer.WriteLine();
+            for (int i = 0; i < directives.Length; i++)
+            {
+                string directive = directives[i];
+
+                if (string.IsNullOrEmpty(directive))
+                    continue;
+                
+                writer.WriteLine($"using {directive};");
+            }
+
+            writer.WriteLine();
+
+            bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
+            if (hasNameSpace)
+            {
+                writer.WriteLine($"namespace {nameSpace}");
+                writer.WriteLine("{");
+
+                identation++;
+            }
+
+            if (!string.IsNullOrEmpty(classAttributes))
+                writer.WriteLine($"{GetIndentation(identation)}{classAttributes}");
+
+            writer.WriteLine($"{GetIndentation(identation)}{classDeclaration}");
+            writer.WriteLine(GetIndentation(identation) + "{");
+
+            identation++;
+        }
+        
 
         public static void AppendLine(StreamWriter writer, int identation, string input = "")
         {
@@ -157,7 +197,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.Add(collection.GetType().Namespace);
                 directives.AddRange(GetCollectionDirectives(collection));
 
-                AppendHeader(writer, ref indentation, nameSpace,
+                AppendHeader(writer, ref indentation, nameSpace,"",
                     collection.GetCollectionType().Name, true, false, directives.Distinct().ToArray());
 
                 GeneratedStaticFileType staticFileTypeForCollection = ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(collection);

@@ -145,7 +145,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collectableType = arrayOrListType;
             else
                 collectableType = fieldInfo.FieldType;
-
             
             if (!CollectionsRegistry.Instance.TryGetCollectionForType(collectableType,
                 out ScriptableObjectCollection resultCollection))

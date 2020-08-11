@@ -13,6 +13,7 @@ The ScriptableObjectCollection exists to help you deal with scriptable objects w
 
 ![wizard](/Documentation~/create-collection-wizzard.png)
 ![Static access to your items](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/code-access.gif)
+![DropDown for selecting Collectable Values](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/property-drawer.gif)
 
 Check the [FAQ](https://github.com/badawe/ScriptableObjectCollection/wiki/FAQ) with more examples and use examples.
 

@@ -16,12 +16,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         [SerializeField]
         protected string collectionGUID;
-        
-        public virtual void FromCollectable(CollectableScriptableObject collectableScriptableObject)
-        {
-            collectableGUID = collectableScriptableObject.GUID;
-            collectionGUID = collectableScriptableObject.Collection.GUID;
-        }
     }
     
     [Serializable]
@@ -55,9 +49,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public override void FromCollectable(CollectableScriptableObject collectableScriptableObject)
+        public void FromCollectable(CollectableScriptableObject collectableScriptableObject)
         {
-            base.FromCollectable(collectableScriptableObject);
+            collectableGUID = collectableScriptableObject.GUID;
+            collectionGUID = collectableScriptableObject.Collection.GUID;
 #if UNITY_EDITOR
             editorAsset = collectableScriptableObject as TObject;
 #endif

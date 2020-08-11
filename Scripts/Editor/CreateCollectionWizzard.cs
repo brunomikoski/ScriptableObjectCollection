@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Compilation;
@@ -227,12 +229,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (createFoldForThisCollectionScripts)
                 folderPath = Path.Combine(folderPath, $"{collectionName}");
 
-            CodeGenerationUtility.CreateNewEmptyScript($"{collectableName}IndirectReference", 
-                folderPath,
-                TargetNameSpace, 
-                "[Serializable]",
-                $"public sealed class {collectableName}IndirectReference : CollectableIndirectReference<{collectableName}>",
-                typeof(CollectableScriptableObject).Namespace, TargetNameSpace, "System");
+            string fileName = $"{collectableName}IndirectReference";
+
+            AssetDatabaseUtils.CreatePathIfDontExist(folderPath);
+            using (StreamWriter writer = new StreamWriter(Path.Combine(folderPath, $"{fileName}.cs")))
+            {
+                int indentation = 0;
+                List<string> directives = new List<string>();
+                directives.Add(typeof(CollectableScriptableObject).Namespace);
+                directives.Add(TargetNameSpace);
+                directives.Add("System");
+                directives.Add("UnityEngine");
+
+                CodeGenerationUtility.AppendHeader(writer, ref indentation, TargetNameSpace, "[Serializable]",
+                    $"public sealed class {collectableName}IndirectReference : CollectableIndirectReference<{collectableName}>",
+                    directives.Distinct().ToArray());
+
+                CodeGenerationUtility.AppendLine(writer, 0,
+                    $"#if UNITY_EDITOR");
+                
+                CodeGenerationUtility.AppendLine(writer, indentation,
+                    $"[SerializeField]");
+                
+                CodeGenerationUtility.AppendLine(writer, indentation,
+                    $"private {collectableName} editorAsset;");
+                
+                CodeGenerationUtility.AppendLine(writer, 0,
+                    $"#endif");
+                
+                indentation--;
+                CodeGenerationUtility.AppendFooter(writer, ref indentation, TargetNameSpace);
+            }
         }
 
         private string CreateCollectionObject()

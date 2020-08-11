@@ -129,6 +129,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
+        public bool TryGetCollectionByGUID<T>(string targetGUID, out ScriptableObjectCollection<T> resultCollection) where T : CollectableScriptableObject
+        {
+            if (TryGetCollectionByGUID(targetGUID, out ScriptableObjectCollection foundCollection))
+            {
+                resultCollection = foundCollection as ScriptableObjectCollection<T>;
+                return true;
+            }
+
+            resultCollection = null;
+            return false;
+        }
+        
         public void DeleteCollection(ScriptableObjectCollection collection)
         {
             if (Application.isPlaying)

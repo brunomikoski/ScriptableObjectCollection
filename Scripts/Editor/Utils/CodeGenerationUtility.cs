@@ -11,7 +11,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
-        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace, string createAssetMenuInput, string classDeclarationString, params string[] directives)
+        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace, string classAttributes, string classDeclarationString, params string[] directives)
         {
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolder);
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
@@ -37,8 +37,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     indentation++;
                 }
 
-                if (!string.IsNullOrEmpty(createAssetMenuInput))
-                    writer.WriteLine($"{GetIndentation(indentation)}{createAssetMenuInput}");
+                if (!string.IsNullOrEmpty(classAttributes))
+                    writer.WriteLine($"{GetIndentation(indentation)}{classAttributes}");
                 
                 writer.WriteLine($"{GetIndentation(indentation)}{classDeclarationString}");
                 writer.WriteLine(GetIndentation(indentation)+"{");

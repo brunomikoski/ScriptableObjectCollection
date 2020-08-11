@@ -230,9 +230,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CodeGenerationUtility.CreateNewEmptyScript($"{collectableName}IndirectReference", 
                 folderPath,
                 TargetNameSpace, 
-                string.Empty,
-                $"public sealed class {collectableName}IndirectReference : CollectableIndirectReference<{collectableName}>", 
-                new []{typeof(CollectableScriptableObject).Namespace, TargetNameSpace});
+                "[Serializable]",
+                $"public sealed class {collectableName}IndirectReference : CollectableIndirectReference<{collectableName}>",
+                typeof(CollectableScriptableObject).Namespace, TargetNameSpace, "System");
         }
 
         private string CreateCollectionObject()

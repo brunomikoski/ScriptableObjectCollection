@@ -4,7 +4,7 @@ using UnityEngine;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [Serializable]
-    public abstract class CollectableIndirectReference
+    public class CollectableIndirectReference
     {
 #pragma warning disable 0649
         [SerializeField]
@@ -16,6 +16,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         [SerializeField]
         protected string collectionGUID;
+        
+        public virtual void FromCollectable(CollectableScriptableObject collectableScriptableObject)
+        {
+            collectableGUID = collectableScriptableObject.GUID;
+            collectionGUID = collectableScriptableObject.Collection.GUID;
+        }
     }
     
     [Serializable]
@@ -27,13 +33,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private TObject editorAsset;
 #endif
         [NonSerialized]
-        private TObject cachedITem;
-        public new TObject Item
+        private TObject cachedRef;
+        public TObject Ref
         {
             get
             {
-                if (cachedITem != null)
-                    return cachedITem;
+                if (cachedRef != null)
+                    return cachedRef;
 
                 if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectableGUID,
                     out ScriptableObjectCollection<TObject> collection))
@@ -41,12 +47,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (collection.TryGetCollectableByGUID(collectionGUID,
                         out CollectableScriptableObject collectable))
                     {
-                        cachedITem = collectable as TObject;
+                        cachedRef = collectable as TObject;
                     }
                 }
 
-                return cachedITem;
+                return cachedRef;
             }
+        }
+
+        public override void FromCollectable(CollectableScriptableObject collectableScriptableObject)
+        {
+            base.FromCollectable(collectableScriptableObject);
+#if UNITY_EDITOR
+            editorAsset = collectableScriptableObject as TObject;
+#endif
         }
     }
 }

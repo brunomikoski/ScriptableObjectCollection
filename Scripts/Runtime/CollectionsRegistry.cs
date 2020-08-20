@@ -214,6 +214,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             ReloadCollections();
         }
+        
+#if UNITY_EDITOR
+        public void PrepareForPlayMode()
+        {
+            for (int i = 0; i < collections.Count; i++)
+                collections[i].PrepareForPlayMode();
+        }
+        
+        public void PrepareForEditorMode()
+        {
+            for (int i = 0; i < collections.Count; i++)
+                collections[i].PrepareForEditorMode();
+        }
+
+#endif
     }
 }
 

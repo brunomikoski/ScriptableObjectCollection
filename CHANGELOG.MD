@@ -5,6 +5,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.2.2]
+## Changed
+ - Fixed issue with the settings menu been displayed wrong
+ - Fixed an issue while converting numbers to literal numbers would not deal properly with initial special characters
+ 
+## Added
+ - Added system to be able to Add/Remove items from the collection at runtime (Like loading new items from addressables)
+ - Added runtime / editor time fix to deal with dynamicly changed collections
+
 ## [1.2.1]
 ## Changed
  - Fixed issues with indirect references
@@ -112,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
  - Add a setup wizzard for first time settings creation
 
+[1.2.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.2
 [1.2.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.1
 [1.2.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.0
 [1.1.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.9

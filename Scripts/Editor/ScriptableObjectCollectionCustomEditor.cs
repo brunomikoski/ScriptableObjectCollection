@@ -296,78 +296,77 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             using (new GUILayout.VerticalScope("Box"))
             {
-                showSettings = EditorGUILayout.BeginFoldoutHeaderGroup(showSettings, "Settings", EditorStyles.foldoutHeader);
+                EditorGUI.indentLevel++;
+                showSettings = EditorGUILayout.Foldout(showSettings, "Settings", true);
+                EditorGUI.indentLevel--;
+
+                if (showSettings)
                 {
-                    if (showSettings)
+                    EditorGUI.indentLevel++;
+
+                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                     {
-                        EditorGUI.indentLevel++;
+                        bool isAutomaticallyLoaded = EditorGUILayout.ToggleLeft("Automatically Loaded",
+                            ScriptableObjectCollectionSettings.Instance.IsCollectionAutomaticallyLoaded(
+                                collection));
 
-                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                        if (changeCheck.changed)
                         {
-                            bool isAutomaticallyLoaded = EditorGUILayout.ToggleLeft("Automatically Loaded",
-                                ScriptableObjectCollectionSettings.Instance.IsCollectionAutomaticallyLoaded(
-                                    collection));
-
-                            if (changeCheck.changed)
-                            {
-                                ScriptableObjectCollectionSettings.Instance.SetCollectionAutomaticallyLoaded(
-                                    collection,
-                                    isAutomaticallyLoaded);
-                            }
+                            ScriptableObjectCollectionSettings.Instance.SetCollectionAutomaticallyLoaded(
+                                collection,
+                                isAutomaticallyLoaded);
                         }
-
-                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                        {
-                            GeneratedStaticFileType staticCodeGeneratorType =
-                                (GeneratedStaticFileType) EditorGUILayout.EnumPopup("Static File Generator Type",
-                                    ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(
-                                        collection));
-
-                            if (changeCheck.changed)
-                            {
-                                ScriptableObjectCollectionSettings.Instance.SetStaticFileGeneratorTypeForCollection(
-                                    collection,
-                                    staticCodeGeneratorType);
-                            }
-                        }
-
-                        bool overwriteStaticFileLocation = false;
-                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                        {
-                            overwriteStaticFileLocation = EditorGUILayout.ToggleLeft(
-                                "Overwrite Static File Location",
-                                ScriptableObjectCollectionSettings.Instance.IsOverridingStaticFileLocation(collection));
-                            if (changeCheck.changed)
-                            {
-                                ScriptableObjectCollectionSettings.Instance.SetOverridingStaticFileLocation(
-                                    collection, overwriteStaticFileLocation);
-                            }
-                        }
-
-                        if (overwriteStaticFileLocation)
-                        {
-                            DefaultAsset targetFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                                ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(
-                                    collection));
-                            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                            {
-                                targetFolder = (DefaultAsset) EditorGUILayout.ObjectField("Target Folder",
-                                    targetFolder,
-                                    typeof(DefaultAsset), false);
-
-                                if (changeCheck.changed)
-                                {
-                                    ScriptableObjectCollectionSettings.Instance.SetStaticFileFolderForCollection(
-                                        collection,
-                                        AssetDatabase.GetAssetPath(targetFolder));
-                                }
-                            }
-                        }
-
-                        EditorGUI.indentLevel--;
                     }
 
-                    EditorGUILayout.EndFoldoutHeaderGroup();
+                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                    {
+                        GeneratedStaticFileType staticCodeGeneratorType =
+                            (GeneratedStaticFileType) EditorGUILayout.EnumPopup("Static File Generator Type",
+                                ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(
+                                    collection));
+
+                        if (changeCheck.changed)
+                        {
+                            ScriptableObjectCollectionSettings.Instance.SetStaticFileGeneratorTypeForCollection(
+                                collection,
+                                staticCodeGeneratorType);
+                        }
+                    }
+
+                    bool overwriteStaticFileLocation = false;
+                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                    {
+                        overwriteStaticFileLocation = EditorGUILayout.ToggleLeft(
+                            "Overwrite Static File Location",
+                            ScriptableObjectCollectionSettings.Instance.IsOverridingStaticFileLocation(collection));
+                        if (changeCheck.changed)
+                        {
+                            ScriptableObjectCollectionSettings.Instance.SetOverridingStaticFileLocation(
+                                collection, overwriteStaticFileLocation);
+                        }
+                    }
+
+                    if (overwriteStaticFileLocation)
+                    {
+                        DefaultAsset targetFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
+                            ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(
+                                collection));
+                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                        {
+                            targetFolder = (DefaultAsset) EditorGUILayout.ObjectField("Target Folder",
+                                targetFolder,
+                                typeof(DefaultAsset), false);
+
+                            if (changeCheck.changed)
+                            {
+                                ScriptableObjectCollectionSettings.Instance.SetStaticFileFolderForCollection(
+                                    collection,
+                                    AssetDatabase.GetAssetPath(targetFolder));
+                            }
+                        }
+                    }
+
+                    EditorGUI.indentLevel--;
                 }
             }
         }

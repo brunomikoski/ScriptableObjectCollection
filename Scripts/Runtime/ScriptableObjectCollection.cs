@@ -21,9 +21,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
         [SerializeField]
-        private List<CollectableScriptableObject> items = new List<CollectableScriptableObject>();
-
-        private bool isReadyListDirty = true;
+        private List<CollectableScriptableObject> editorSerializedItems;
+        
+        [SerializeField]
+        protected List<CollectableScriptableObject> items = new List<CollectableScriptableObject>();
+        
+        
         private IReadOnlyList<CollectableScriptableObject> readOnlyList = new List<CollectableScriptableObject>();
         public IReadOnlyList<CollectableScriptableObject> Items
         {
@@ -34,6 +37,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return readOnlyList;
             }
         }
+        
+        protected bool isReadyListDirty = true;
 
         private void SyncGUID()
         {
@@ -111,6 +116,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return false;
             
             items.Add(item);
+
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
             isReadyListDirty = true;
@@ -171,6 +177,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 baseType = baseType.BaseType;
             }
             return null;
+        }
+
+        public virtual void Sort()
+        {
+            items.Sort();
+            isReadyListDirty = true;
+            ObjectUtility.SetDirty(this);
         }
 
         public void Clear()
@@ -254,7 +267,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void ClearBadItems()
         {
-            items = items.Where(o => o != null).Distinct().ToList();
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                if (items[i].IsNull() || items[i] == null)
+                    items.RemoveAt(i);
+            }
             ObjectUtility.SetDirty(this);
             isReadyListDirty = true;
         }
@@ -276,9 +293,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (items[i] == items[j])
                         continue;
                     
-                    if (string.Equals(items[i].GUID, Items[j].GUID, StringComparison.Ordinal))
+                    if (string.Equals(items[i].GUID, items[j].GUID, StringComparison.Ordinal))
                     {
-                        Items[j].GenerateNewGUID();
+                        items[j].GenerateNewGUID();
                         Debug.LogWarning($"Found duplicated GUID, please regenerate code of collection {this.name}",
                             this);
                     }
@@ -335,17 +352,38 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectableScriptableObject = null;
             return false;
         }
+
+        internal void PrepareForPlayMode()
+        {
+            editorSerializedItems = new List<CollectableScriptableObject>(items);
+        }
+
+        internal void PrepareForEditorMode()
+        {
+            items = new List<CollectableScriptableObject>(editorSerializedItems);
+            ObjectUtility.SetDirty(this);
+        }
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : CollectableScriptableObject
     {
+        private IReadOnlyList<ObjectType> readOnlyList = new List<ObjectType>();
+        public new IReadOnlyList<ObjectType> Items
+        {
+            get
+            {
+                if (isReadyListDirty)
+                    readOnlyList = items.Cast<ObjectType>().ToList().AsReadOnly();
+                return readOnlyList;
+            }
+        }
+        
         public new ObjectType this[int index]
         {
             get => (ObjectType)base[index];
             set => base[index] = value;
         }
-        
         
         public ObjectType GetCollectableByGUID(string targetGUID)
         {
@@ -358,7 +396,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return null;
         }
-        
+
         public void Add(ObjectType item)
         {
             base.Add(item);

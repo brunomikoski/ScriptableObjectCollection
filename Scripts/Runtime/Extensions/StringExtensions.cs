@@ -37,6 +37,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static string StartingNumbersToWords(this string input)
         {
+            input = INVALID_CHARS_RGX.Replace(input, "");
             StringBuilder targetNumberString = new StringBuilder();
             int endIndex = 0;
             bool needToConvert = false;
@@ -50,7 +51,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
                 else
                 {
-                    endIndex = i - 1;
+                    endIndex = i;
                     break;
                 }
             }

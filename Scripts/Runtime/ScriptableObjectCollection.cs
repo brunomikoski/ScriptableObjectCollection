@@ -20,7 +20,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        [SerializeField]
+        [NonSerialized]
         private List<CollectableScriptableObject> editorSerializedItems;
         
         [SerializeField]
@@ -33,7 +33,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get
             {
                 if (isReadyListDirty)
+                {
                     readOnlyList = items.AsReadOnly();
+                    isReadyListDirty = false;
+                }
                 return readOnlyList;
             }
         }
@@ -374,7 +377,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get
             {
                 if (isReadyListDirty)
+                {
                     readOnlyList = items.Cast<ObjectType>().ToList().AsReadOnly();
+                    isReadyListDirty = false;
+                }
                 return readOnlyList;
             }
         }

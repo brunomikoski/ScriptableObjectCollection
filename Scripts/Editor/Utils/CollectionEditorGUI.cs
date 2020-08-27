@@ -6,8 +6,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public static class CollectionEditorGUI
     {
         public const string DEFAULT_NONE_ITEM_TEXT = "None";
-        public const string ARROW_UP_CHAR = "\u25B2";
-        public const string ARROW_DOWN_CHAR = "\u25bc";
+        public const string ARROW_UP_CHAR = "\u2191";
+        public const string ARROW_DOWN_CHAR = "\u2193";
         public const string ARROW_RIGHT_CHAR = "\u25BA";
         public const string X_CHAR = "\u00D7";
 

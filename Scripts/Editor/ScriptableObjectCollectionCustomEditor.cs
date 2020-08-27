@@ -126,10 +126,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             else
             {
                 GenericMenu optionsMenu = new GenericMenu();
-                AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
+                if (!collection.GetCollectionType().IsAbstract)
                 {
-                    EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
-                });
+                    AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
+                    {
+                        EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
+                    });
+                }
 
                 for (int i = 0; i < collectableSubclasses.Count; i++)
                 {

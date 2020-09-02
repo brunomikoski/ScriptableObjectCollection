@@ -25,6 +25,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             [SerializeField] 
             internal bool overrideStaticFileLocation;
+
+            [SerializeField]
+            internal bool generateCustomStaticFile;
+
+            [SerializeField]
+            internal string customStaticFileName;
         }
         
 #if UNITY_EDITOR
@@ -50,20 +56,34 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #if UNITY_EDITOR                
                 return UnityEditor.AssetDatabase.GetAssetPath(defaultGeneratedCodeFolder);
 #endif
+#pragma warning disable CS0162
                 return string.Empty;
+#pragma warning restore CS0162
             }
         }
 
         [SerializeField]
         private GeneratedStaticFileType defaultGenerator = GeneratedStaticFileType.DirectAccess;
         
-        [SerializeField, HideInInspector]
+        [SerializeField]
         private List<CollectionToSettings> collectionsSettings = new List<CollectionToSettings>();
 
         [SerializeField] 
-        private string defaultNamespace;
+        private string defaultNamespace = String.Empty;
         public string DefaultNamespace => defaultNamespace;
 
+        
+        public string GetGeneratedStaticFileName(ScriptableObjectCollection collection)
+        {
+            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
+                return collection.GetCollectionType().Name;
+
+            if (string.IsNullOrEmpty(settings.customStaticFileName))
+                return collection.GetCollectionType().Name;
+            
+            return settings.customStaticFileName;
+        }
+        
         public GeneratedStaticFileType GetStaticFileTypeForCollection(ScriptableObjectCollection collection)
         {
             if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
@@ -88,6 +108,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return settings.overrideStaticFileLocation;
         }
 
+        public bool IsGeneratingCustomStaticFile(ScriptableObjectCollection collection)
+        {
+            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
+                return false;
+
+            return settings.generateCustomStaticFile;
+        }
+
+        
         public void SetOverridingStaticFileLocation(ScriptableObjectCollection collection, bool isOverriding)
         {
             CollectionToSettings settings = GetOrCreateSettingsForCollection(collection);
@@ -126,6 +155,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             settings.staticGeneratedFileParentFolder = targetFolder;
             ObjectUtility.SetDirty(this);
         }
+        
+        public void SetGenerateCustomStaticFile(ScriptableObjectCollection targetCollection, bool isUsingCustom)
+        {
+            CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
+            settings.generateCustomStaticFile = isUsingCustom;
+            ObjectUtility.SetDirty(this);
+        }
+        
+        public void SetGenerateCustomStaticFileName(ScriptableObjectCollection targetCollection, string targetName)
+        {
+            CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
+            settings.customStaticFileName = targetName;
+            ObjectUtility.SetDirty(this);
+        }
 
         private bool TryGetSettingsForCollection(ScriptableObjectCollection targetCollection,
             out CollectionToSettings settings)
@@ -144,5 +187,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return settings;
         }
+
     }
 }

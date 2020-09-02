@@ -41,6 +41,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
+        [NonSerialized]
         protected bool isReadyListDirty = true;
 
         private void SyncGUID()

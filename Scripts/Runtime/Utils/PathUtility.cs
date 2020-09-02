@@ -18,7 +18,9 @@ namespace System.IO
             Uri parentPath = new Uri(Path.GetFullPath(UnityEditor.AssetDatabase.GetAssetPath((UnityEngine.Object) parentObject)));
             return parentPath.IsBaseOf(childPath);
 #endif
+#pragma warning disable CS0162
             return false;
+#pragma warning restore CS0162
         }
     }
 }

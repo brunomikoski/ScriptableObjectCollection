@@ -173,9 +173,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            string dehumanizeCollectionName = collection.name.Sanitize();
-
             string fileName = $"{collection.GetCollectionType().Name}Static";
+            bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
+            if (isGeneratingCustomStaticFile)
+                fileName = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
+            
             string nameSpace = collection.GetCollectionType().Namespace;
             string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
 
@@ -197,8 +199,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.Add(collection.GetType().Namespace);
                 directives.AddRange(GetCollectionDirectives(collection));
 
-                AppendHeader(writer, ref indentation, nameSpace,"",
-                    collection.GetCollectionType().Name, true, false, directives.Distinct().ToArray());
+                if (!isGeneratingCustomStaticFile)
+                {
+                    AppendHeader(writer, ref indentation, nameSpace,"",
+                        collection.GetCollectionType().Name, true, false, directives.Distinct().ToArray());
+                }
+                else
+                {
+                    AppendHeader(writer, ref indentation, nameSpace,"",
+                        fileName, false, false, directives.Distinct().ToArray());
+                }
 
                 GeneratedStaticFileType staticFileTypeForCollection = ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(collection);
                 if (staticFileTypeForCollection == GeneratedStaticFileType.DirectAccess)
@@ -226,8 +236,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteTryGetAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            string cachedValuesName = $"values";
-            string valuesName = $"Values";
+            string cachedValuesName = $"collection";
+            string valuesName = $"Collection";
             string tryGetValuesName = $"TryGet{valuesName}";
 
             AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
@@ -321,7 +331,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            string cachedValuesName = "values";
+            bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
+
+            string cachedValuesName = "collection";
             AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
 
             for (int i = 0; i < collection.Items.Count; i++)
@@ -333,9 +345,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AppendLine(writer, indentation);
 
-            string valuesName = $"Values";
-            AppendLine(writer, indentation,
-                $"public static {collection.GetType().Name} {valuesName}");
+            string valuesName = $"Collection";
+
+            if(!isGeneratingCustomStaticFile)
+            {
+                AppendLine(writer, indentation,
+                $"public new static {collection.GetType().Name} {valuesName}");
+            }
+            else
+            {
+                AppendLine(writer, indentation,
+                    $"public static {collection.GetType().Name} {valuesName}");
+            }
             AppendLine(writer, indentation, "{");
             indentation++;
             AppendLine(writer, indentation, "get");

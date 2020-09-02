@@ -11,13 +11,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             get
             {
                 if (instance == null)
-                    instance = LoadOrCreateInstance<T>();
+                    instance = LoadOrCreateInstance();
                 return instance;
             }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static T LoadOrCreateInstance<T>() where T: ScriptableObject
+        public static T LoadOrCreateInstance()
         {
             T newInstance = Resources.Load<T>(typeof(T).Name);
 
@@ -48,7 +48,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             UnityEditor.AssetDatabase.Refresh();
             return newInstance;
 #endif
+#pragma warning disable CS0162
             return null;
+#pragma warning restore CS0162
         }
     }
 }

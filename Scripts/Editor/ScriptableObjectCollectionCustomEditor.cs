@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
@@ -10,6 +11,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class ScriptableObjectCollectionCustomEditor : Editor
     {
+        [Flags]
+        private enum Warning
+        {
+            PartialStaticFileInDifferentAssembly = 1 << 0
+        }
+        
         private ScriptableObjectCollection collection;
         private string searchString = "";
         
@@ -18,6 +25,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool filteredItemListDirty = true;
         private SearchField searchField;
         private bool showSettings;
+        private Warning warnings;
 
         public void OnEnable()
         {
@@ -29,6 +37,29 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             FixCollectionItems();
             ValidateGUIDS();
+            CheckForWarnings();
+        }
+
+        private void CheckForWarnings()
+        {
+            bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
+            if (!isGeneratingCustomStaticFile)
+            {
+                MonoScript collectionMonoAsset = MonoScript.FromScriptableObject(collection);
+                string collectionScriptPath = AssetDatabase.GetAssetPath(collectionMonoAsset);
+                string collectionAssemblyPath = CompilationPipeline.GetAssemblyDefinitionFilePathFromScriptPath(collectionScriptPath);
+                if (!string.IsNullOrEmpty(collectionAssemblyPath))
+                {
+                    string generatedFilePath =  ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
+                    string staticAssembly =
+                        CompilationPipeline.GetAssemblyDefinitionFilePathFromScriptPath(generatedFilePath);
+
+                    if (!string.Equals(collectionAssemblyPath, staticAssembly, StringComparison.Ordinal))
+                    {
+                        warnings |= Warning.PartialStaticFileInDifferentAssembly;
+                    }
+                }
+            }
         }
 
         private void OnDisable()
@@ -70,8 +101,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 DrawItems();
                 DrawBottomMenu();
             }
-            DrawSettings(collection);
+            DrawSettings();
+            DrawWarnings();
        }
+
+        private void DrawWarnings()
+        {
+            if (warnings.HasFlag(Warning.PartialStaticFileInDifferentAssembly))
+            {
+                EditorGUILayout.HelpBox(
+                    "Static File Location is on a different assembly from the Collection script Assembly, " +
+                    "please set to use a Custom Static File on the Collection Settings to generate a unique non-partial file",
+                    MessageType.Error);
+            }
+        }
 
         private void UpdateFilteredItemList()
         {
@@ -82,7 +125,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             filteredSerializedList.Clear();
 
             if (string.IsNullOrEmpty(searchString))
+            {
                 filteredItemList = new List<CollectableScriptableObject>(collection.Items);
+            }
             else
             {
                 filteredItemList = collection.Items.Where(o =>
@@ -295,7 +340,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawSettings(ScriptableObjectCollection collection)
+        private void DrawSettings()
         {
             using (new GUILayout.VerticalScope("Box"))
             {
@@ -351,6 +396,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     if (overwriteStaticFileLocation)
                     {
+                        EditorGUI.indentLevel++;
+
                         DefaultAsset targetFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
                             ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(
                                 collection));
@@ -367,6 +414,39 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                     AssetDatabase.GetAssetPath(targetFolder));
                             }
                         }
+                        EditorGUI.indentLevel--;
+                    }
+
+                    bool generateCustomStaticFile =
+                        ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
+                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                    {
+                        generateCustomStaticFile = EditorGUILayout.ToggleLeft("Custom Static file", generateCustomStaticFile);
+                        
+                        if (changeCheck.changed)
+                        {
+                            ScriptableObjectCollectionSettings.Instance.SetGenerateCustomStaticFile(
+                                collection, generateCustomStaticFile);
+                        }
+                    }
+
+                    if (generateCustomStaticFile)
+                    {
+                        EditorGUI.indentLevel++;
+
+                        string customStaticFileName =
+                            ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
+                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                        {
+                            customStaticFileName = EditorGUILayout.TextField("Static Class Name", customStaticFileName);
+                        
+                            if (changeCheck.changed)
+                            {
+                                ScriptableObjectCollectionSettings.Instance.SetGenerateCustomStaticFileName(
+                                    collection, customStaticFileName);
+                            }
+                        }
+                        EditorGUI.indentLevel--;
                     }
 
                     EditorGUI.indentLevel--;

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Fixed issue where the collection view was not properly refreshing
  - Fixed general warnings on the project
  - Fixed double type usage on the ResourceScriptableObject
- - 
+ - Renamed the `Values` to `Collection` on the static generated file, it makes more sense to the new Custom Static Class access
  
  ## Added
  - Added a new Custom Static File to be able to generate static access files between different assemblies

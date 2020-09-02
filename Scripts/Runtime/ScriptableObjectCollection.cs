@@ -26,23 +26,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         protected List<CollectableScriptableObject> items = new List<CollectableScriptableObject>();
         
+        [NonSerialized]
+        private bool isReadyOnlyListDirty = true;
         
         private IReadOnlyList<CollectableScriptableObject> readOnlyList = new List<CollectableScriptableObject>();
         public IReadOnlyList<CollectableScriptableObject> Items
         {
             get
             {
-                if (isReadyListDirty)
+                if (isReadyOnlyListDirty)
                 {
                     readOnlyList = items.AsReadOnly();
-                    isReadyListDirty = false;
+                    
+                    isReadyOnlyListDirty = false;
                 }
                 return readOnlyList;
             }
         }
-        
-        [NonSerialized]
-        protected bool isReadyListDirty = true;
 
         private void SyncGUID()
         {
@@ -123,7 +123,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
             return true;
         }
 
@@ -158,7 +158,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             UnityEditor.AssetDatabase.CreateAsset(item, newFileName);
             UnityEditor.AssetDatabase.SaveAssets();
             UnityEditor.AssetDatabase.Refresh();
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
             return item;
         }
 #endif
@@ -186,7 +186,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public virtual void Sort()
         {
             items.Sort();
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
             ObjectUtility.SetDirty(this);
         }
 
@@ -194,7 +194,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             items.Clear();
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
         }
 
         public bool Contains(object value)
@@ -222,7 +222,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items.Insert(index, item);
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
         }
 
         public void Insert(int index, object value)
@@ -234,7 +234,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             bool result =  items.Remove(item);
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
 
             return result;
         }
@@ -248,7 +248,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             items.RemoveAt(index);
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
         }
 
         object IList.this[int index]
@@ -266,7 +266,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items[targetIndex] = items[newIndex];
             items[newIndex] = temp;
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
         }
 
         public void ClearBadItems()
@@ -277,7 +277,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     items.RemoveAt(i);
             }
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
         }
 
         public void ValidateGUID()
@@ -337,7 +337,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             items = items.Where(o => o != null).Distinct().ToList();
             ObjectUtility.SetDirty(this);
-            isReadyListDirty = true;
+            isReadyOnlyListDirty = true;
 #endif
         }
 
@@ -372,15 +372,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : CollectableScriptableObject
     {
+        
+        [NonSerialized]
+        private bool isReadyOnlyListDirty = true;
+
         private IReadOnlyList<ObjectType> readOnlyList = new List<ObjectType>();
         public new IReadOnlyList<ObjectType> Items
         {
             get
             {
-                if (isReadyListDirty)
+                if (isReadyOnlyListDirty)
                 {
                     readOnlyList = items.Cast<ObjectType>().ToList().AsReadOnly();
-                    isReadyListDirty = false;
+                    isReadyOnlyListDirty = false;
                 }
                 return readOnlyList;
             }
@@ -407,11 +411,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Add(ObjectType item)
         {
             base.Add(item);
+            isReadyOnlyListDirty = true;
         }
 
         public ObjectType Add(Type itemType = null)
         {
-            return base.Add(itemType) as ObjectType;
+            ObjectType collectableScriptableObject = base.Add(itemType) as ObjectType;
+            isReadyOnlyListDirty = true;
+            return collectableScriptableObject;
         }
 
         public bool Contains(ObjectType item)
@@ -432,11 +439,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Insert(int index, ObjectType item)
         {
             base.Insert(index, item);
+            isReadyOnlyListDirty = true;
         }
 
         public bool Remove(ObjectType item)
         {
-            return base.Remove(item);
+            bool remove = base.Remove(item);
+            isReadyOnlyListDirty = true;
+            return remove;
         }
         
         IEnumerator<ObjectType> IEnumerable<ObjectType>.GetEnumerator()

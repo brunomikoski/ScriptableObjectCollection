@@ -15,7 +15,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public void UsedOnlyForAOTCodeGeneration()
         {
-            LoadOrCreateInstance();
+            LoadOrCreateInstance<CollectionsRegistry>();
             // Include an exception so we can be sure to know if this method is ever called.
             throw new InvalidOperationException("This method is used for AOT code generation only. Do not call it at runtime.");
         }

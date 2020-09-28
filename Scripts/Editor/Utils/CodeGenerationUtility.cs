@@ -26,6 +26,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 foreach (string directive in directives)
                 {
+                    if (string.IsNullOrWhiteSpace(directive))
+                        continue;
+                    
                     writer.WriteLine($"using {directive};");
                 }
                 

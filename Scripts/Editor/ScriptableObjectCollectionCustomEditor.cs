@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Callbacks;
 using UnityEditor.Compilation;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -11,6 +12,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class ScriptableObjectCollectionCustomEditor : Editor
     {
+        public const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
+        
         [Flags]
         private enum Warning
         {
@@ -26,6 +29,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private SearchField searchField;
         private bool showSettings;
         private Warning warnings;
+
+
+        private static bool isWaitingForNewTypeBeCreated
+        {
+            get => EditorPrefs.GetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, false);
+            set => EditorPrefs.SetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, value);
+        }
 
         public void OnEnable()
         {
@@ -120,18 +130,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (!filteredItemListDirty)
                 return;
+
+            CheckForNullItemsOrType();
             
             filteredItemList.Clear();
             filteredSerializedList.Clear();
 
+            IEnumerable<CollectableScriptableObject> collectableScriptableObjects = collection.Items;
             if (string.IsNullOrEmpty(searchString))
             {
-                filteredItemList = new List<CollectableScriptableObject>(collection.Items);
+                filteredItemList = new List<CollectableScriptableObject>(collectableScriptableObjects);
             }
             else
             {
-                filteredItemList = collection.Items.Where(o =>
-                    o.name.IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) >= 0).ToList();
+                filteredItemList = collectableScriptableObjects.Where(o => o.name.IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                    .ToList();
             }
 
             for (int i = 0; i < filteredItemList.Count; i++)
@@ -140,6 +153,41 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             filteredItemListDirty = false;
+        }
+
+        private void CheckForNullItemsOrType()
+        {
+            bool needToRewrite = false;
+            
+            SerializedProperty items = serializedObject.FindProperty("items");
+
+            List<CollectableScriptableObject> validItems = new List<CollectableScriptableObject>();
+            for (int i = 0; i < items.arraySize; i++)
+            {
+                SerializedProperty item = items.GetArrayElementAtIndex(i);
+                if (item.propertyType != SerializedPropertyType.ObjectReference) 
+                    continue;
+
+                if (item.objectReferenceValue == null || item.objectReferenceInstanceIDValue == 0)
+                {
+                    Debug.LogError($"Removing item at position {i} since it has a null script",
+                        serializedObject.context);
+                    continue;
+                }
+                    
+                validItems.Add(item.objectReferenceValue as CollectableScriptableObject);
+                needToRewrite = true;
+            }
+
+            if (needToRewrite)
+            {
+                items.arraySize = validItems.Count;
+                for (int i = 0; i < validItems.Count; i++)
+                {
+                    items.GetArrayElementAtIndex(i).objectReferenceValue = validItems[i];
+                }
+                serializedObject.ApplyModifiedProperties();
+            }
         }
 
         private void DrawBottomMenu()
@@ -164,31 +212,53 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void AddNewItem()
         {
             List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectionType(), true);
-            if (collectableSubclasses.Count == 0)
-            {
-                EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
-            }
-            else
-            {
-                GenericMenu optionsMenu = new GenericMenu();
-                if (!collection.GetCollectionType().IsAbstract)
-                {
-                    AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
-                    {
-                        EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
-                    });
-                }
 
-                for (int i = 0; i < collectableSubclasses.Count; i++)
+            
+            GenericMenu optionsMenu = new GenericMenu();
+            if (!collection.GetCollectionType().IsAbstract)
+            {
+                AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
                 {
-                    Type collectableSubClass = collectableSubclasses[i];
-                    AddMenuOption(optionsMenu, collectableSubClass.Name, () =>
-                    {
-                        EditorApplication.delayCall += () => { AddNewItemOfType(collectableSubClass); };
-                    });
-                }
-                optionsMenu.ShowAsContext();
+                    EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
+                });
             }
+
+            for (int i = 0; i < collectableSubclasses.Count; i++)
+            {
+                Type collectableSubClass = collectableSubclasses[i];
+                AddMenuOption(optionsMenu, collectableSubClass.Name, () =>
+                {
+                    EditorApplication.delayCall += () => { AddNewItemOfType(collectableSubClass); };
+                });
+            }
+                
+            AddMenuOption(optionsMenu, $"Create new with base {collection.GetCollectionType().Name}", () =>
+            {
+                EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(collection.GetCollectionType()); };
+            });
+                
+            optionsMenu.ShowAsContext();
+        }
+
+        private void CreateAndAddNewItemOfType(Type collectableSubClass)
+        {
+            isWaitingForNewTypeBeCreated = true;
+            CreateNewCollectableType.Show(collectableSubClass);
+        }
+
+        private void OnAssemblyCompilationFinished(string arg1, CompilerMessage[] arg2)
+        {
+            if (!isWaitingForNewTypeBeCreated)
+                return;
+            
+            if (string.IsNullOrEmpty(CreateNewCollectableType.LastGeneratedCollectionScriptPath))
+                return;
+            
+            
+            string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(CreateNewCollectableType.LastGeneratedCollectionScriptPath);
+
+            Type targetType = Type.GetType($"{CreateNewCollectableType.LastCollectionFullName}, {assemblyName}");
+            AddNewItemOfType(targetType);
         }
 
         private void AddNewItemOfType(Type targetType)
@@ -235,6 +305,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void DrawItem(int index)
         {
             CollectableScriptableObject collectionItem = filteredItemList[index];
+
+            if (collectionItem == null)
+            {
+                filteredItemListDirty = true;
+                return;
+            }
             
             using (new EditorGUILayout.VerticalScope("Box"))
             {

@@ -6,6 +6,7 @@ using UnityEditor.Callbacks;
 using UnityEditor.Compilation;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -194,7 +195,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             using (new EditorGUILayout.HorizontalScope("Box"))
             {
-                if (GUILayout.Button("Add New", EditorStyles.miniButtonLeft))
+                if (GUILayout.Button("ADD", EditorStyles.miniButtonLeft))
                 {
                     AddNewItem();
                 }
@@ -213,7 +214,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectionType(), true);
 
-            
             GenericMenu optionsMenu = new GenericMenu();
             if (!collection.GetCollectionType().IsAbstract)
             {
@@ -242,25 +242,46 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateAndAddNewItemOfType(Type collectableSubClass)
         {
-            isWaitingForNewTypeBeCreated = true;
-            CreateNewCollectableType.Show(collectableSubClass);
+            CreateNewCollectableType.Show(collectableSubClass, success =>
+            {
+                if (success)
+                {
+                    isWaitingForNewTypeBeCreated = true;
+                }
+            });
         }
 
-        private void OnAssemblyCompilationFinished(string arg1, CompilerMessage[] arg2)
+        [DidReloadScripts]
+        public static void AfterStaticAssemblyReload()
         {
             if (!isWaitingForNewTypeBeCreated)
                 return;
-            
+
+            isWaitingForNewTypeBeCreated = false;
+
             if (string.IsNullOrEmpty(CreateNewCollectableType.LastGeneratedCollectionScriptPath))
                 return;
-            
-            
-            string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(CreateNewCollectableType.LastGeneratedCollectionScriptPath);
+
+            string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(CreateNewCollectableType
+                    .LastGeneratedCollectionScriptPath);
 
             Type targetType = Type.GetType($"{CreateNewCollectableType.LastCollectionFullName}, {assemblyName}");
-            AddNewItemOfType(targetType);
-        }
 
+            CreateNewCollectableType.LastCollectionFullName = string.Empty;
+            CreateNewCollectableType.LastGeneratedCollectionScriptPath = string.Empty;
+
+            if (CollectionsRegistry.Instance.TryGetCollectionForType(targetType,
+                out ScriptableObjectCollection collection))
+            {
+                Selection.activeObject = null;
+                collection.AddNew(targetType);
+                EditorApplication.delayCall += () =>
+                {
+                    Selection.activeObject = collection;
+                };
+            }
+        }
+ 
         private void AddNewItemOfType(Type targetType)
         {
             collection.AddNew(targetType);
@@ -338,7 +359,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (CollectionUtility.IsFoldoutOpen(collectionItem))
                 {
                     EditorGUI.indentLevel++;
-                    Editor editor = CollectionUtility.GetEditorForItem(collectionItem);
+                    Editor editor = CollectionUtility.GetOrCreateEditorForItem(collectionItem);
                     using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                     {
                         GUILayout.Space(10);

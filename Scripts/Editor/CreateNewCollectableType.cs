@@ -17,7 +17,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private DefaultAsset targetFolder;
         
         private static Type targetType;
-        
+        private static Action<bool> onCreationCallback;
+
         public static string LastGeneratedCollectionScriptPath
         {
             get => EditorPrefs.GetString(LAST_COLLECTABLE_SCRIPT_PATH, String.Empty);
@@ -30,13 +31,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => EditorPrefs.SetString(LAST_COLLECTABLE_FULL_NAME_KEY, value);
         }
 
-        public static void Show(Type baseType)
+        public static void Show(Type baseType, Action<bool> targetOnCreationCallback)
         {
+            onCreationCallback = targetOnCreationCallback;
             targetType = baseType;
             CreateNewCollectableType newCollectableWindow = GetWindow<CreateNewCollectableType>("Creating new collectable Fix");
+            newCollectableWindow.minSize = new Vector2(350, 120);
+            newCollectableWindow.maxSize = new Vector2(350, 120);
             newCollectableWindow.ShowPopup();
         }
         
+        private void OnDisable()
+        {
+            onCreationCallback?.Invoke(false);
+        }
+
         private void OnGUI()
         {
             using (new EditorGUILayout.VerticalScope("Box"))
@@ -65,7 +74,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         if (!string.IsNullOrEmpty(newClassName))
                             newClassName = newClassName.Sanitize();
                     }
-                    
+
+                    GUILayout.Space(20);
+
                     using (new EditorGUI.DisabledScope(!AreSettingsValid()))
                     {
                         Color color = GUI.color;
@@ -94,6 +105,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             
                             LastGeneratedCollectionScriptPath = Path.Combine(parentFolder, $"{newClassName}.cs");
                             Close();
+                            onCreationCallback.Invoke(true);
                         }
 
                         GUI.color = color;

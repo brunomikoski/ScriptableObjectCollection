@@ -109,7 +109,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUI.indentLevel++;
                         using (new EditorGUILayout.VerticalScope("Box"))
                         {
-                            Editor editor = CollectionUtility.GetEditorForItem(collectableItem);
+                            Editor editor = CollectionUtility.GetOrCreateEditorForItem(collectableItem);
                             using (EditorGUI.ChangeCheckScope changedCheck = new EditorGUI.ChangeCheckScope())
                             {
                                 GUILayout.Space(10);

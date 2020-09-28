@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -6,8 +7,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         public static AssetDeleteResult OnWillDeleteAsset(string targetAssetPath, RemoveAssetOptions removeAssetOptions)
         {
-            if (AssetDatabase.LoadMainAssetAtPath(targetAssetPath).GetType()
-                .IsSubclassOf(typeof(CollectableScriptableObject)))
+            Object mainAssetAtPath = AssetDatabase.LoadMainAssetAtPath(targetAssetPath);
+            if (mainAssetAtPath == null)
+                return AssetDeleteResult.DidNotDelete;
+            
+            Type type = mainAssetAtPath.GetType();
+            
+            if (type.IsSubclassOf(typeof(CollectableScriptableObject)))
             {
                 CollectableScriptableObject collectable =
                     AssetDatabase.LoadAssetAtPath<CollectableScriptableObject>(targetAssetPath);
@@ -16,8 +22,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return AssetDeleteResult.DidNotDelete;
             }
             
-            if (AssetDatabase.LoadMainAssetAtPath(targetAssetPath).GetType()
-                .IsSubclassOf(typeof(ScriptableObjectCollection)))
+            if (type.IsSubclassOf(typeof(ScriptableObjectCollection)))
             {
                 ScriptableObjectCollection collection =
                     AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(targetAssetPath);

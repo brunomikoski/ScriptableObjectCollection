@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
-using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CollectionUtility
     {
-        private static Dictionary<CollectableScriptableObject, Editor> itemToEditor =
-            new Dictionary<CollectableScriptableObject, Editor>();
+        private static Dictionary<Object, Editor> itemToEditor =
+            new Dictionary<Object, Editor>();
 
         private static Dictionary<Object, bool> objectToFoldOut = new Dictionary<Object, bool>();
 
@@ -30,7 +28,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObjectCollectionSettings.LoadOrCreateInstance<ScriptableObjectCollection>();
         }
         
-        public static Editor GetEditorForItem(CollectableScriptableObject collectionItem)
+        public static Editor GetOrCreateEditorForItem(Object collectionItem)
         {
             if (itemToEditor.TryGetValue(collectionItem, out Editor customEditor))
                 return customEditor;

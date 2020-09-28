@@ -137,7 +137,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string assetPath = Path.GetDirectoryName(UnityEditor.AssetDatabase.GetAssetPath(this));
             string parentFolderPath = Path.Combine(assetPath, "Items");
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolderPath);
-            
+
             string itemName;
             int count = Count;
             while (true)

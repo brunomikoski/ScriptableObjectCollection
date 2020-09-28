@@ -4,6 +4,8 @@ namespace UnityEngine
     {
         public static void SetDirty(Object targetObject)
         {
+            if (targetObject == null)
+                return;
             if (Application.isPlaying)
                 return;
             

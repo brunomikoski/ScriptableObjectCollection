@@ -102,7 +102,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection collection = collections[i];
-                if (collection.GetCollectionType() == targetCollectionType)
+                if (collection.GetCollectionType() == targetCollectionType 
+                    || targetCollectionType.BaseType == collection.GetCollectionType())
                 {
                     scriptableObjectCollection = collection;
                     return true;

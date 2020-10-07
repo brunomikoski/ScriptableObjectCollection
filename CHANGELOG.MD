@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
  - Fixed issue when duplicating assets caused a crash
  - Fixed issue when deleting Scripts from base Collectables
- 
+ - Fixed issue of null type when creating a new collectable with base type 
 ### Added
  - Added new inspector to create new base types from the Editor.
 

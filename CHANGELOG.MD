@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8]
+### Changed
+ - Fixed issue when trying to create a new type from abstract using the new Collectable editor.
+ 
 ## [1.2.7]
 ### Changed
  - Fixed issue when duplicating assets caused a crash
@@ -141,6 +145,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### [Unreleased]
  - Proper setup for automatic creation of necessary collections 
 
+[1.2.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.8
 [1.2.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.7
 [1.2.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.6
 [1.2.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.5

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -59,11 +60,29 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     newClassName = EditorGUILayout.TextField("Type Name", newClassName);
                     if (this.targetFolder == null)
                     {
-                        ScriptableObject instance = CreateInstance(targetType);
-                        MonoScript path = MonoScript.FromScriptableObject(instance);
+                        string path = String.Empty;
+                        if (!targetType.IsAbstract)
+                        {
+                            ScriptableObject instance = CreateInstance(targetType);
+                            MonoScript scriptObj = MonoScript.FromScriptableObject(instance);
+                            path = AssetDatabase.GetAssetPath(scriptObj);
+                        }
+                        else
+                        {
+                            if (CollectionsRegistry.Instance.TryGetCollectionForType(targetType,
+                                out ScriptableObjectCollection collection))
+                            {
+                                MonoScript scriptObj = MonoScript.FromScriptableObject(collection);
+                                path = AssetDatabase.GetAssetPath(scriptObj);
+                            }
+                        }
+
+                        if (string.IsNullOrEmpty(path))
+                            path = "Assets/";
+                        
                         this.targetFolder =
                             AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                                Path.GetDirectoryName(AssetDatabase.GetAssetPath(path)));
+                                Path.GetDirectoryName(path));
                     }
 
                     targetFolder = (DefaultAsset) EditorGUILayout.ObjectField("Script Folder",

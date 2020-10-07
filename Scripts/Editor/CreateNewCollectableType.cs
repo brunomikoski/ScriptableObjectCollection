@@ -48,6 +48,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnGUI()
         {
+            if (targetType == null)
+            {
+                onCreationCallback?.Invoke(false);
+                Close();
+                return;
+            }
+            
             using (new EditorGUILayout.VerticalScope("Box"))
             {
                 using (new EditorGUILayout.VerticalScope("Box"))

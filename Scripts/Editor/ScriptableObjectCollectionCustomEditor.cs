@@ -259,16 +259,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             isWaitingForNewTypeBeCreated = false;
 
-            if (string.IsNullOrEmpty(CreateNewCollectableType.LastGeneratedCollectionScriptPath))
+            string lastGeneratedCollectionScriptPath = CreateNewCollectableType.LastGeneratedCollectionScriptPath;
+            string lastCollectionFullName = CreateNewCollectableType.LastCollectionFullName;
+
+            if (string.IsNullOrEmpty(lastGeneratedCollectionScriptPath))
                 return;
-
-            string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(CreateNewCollectableType
-                    .LastGeneratedCollectionScriptPath);
-
-            Type targetType = Type.GetType($"{CreateNewCollectableType.LastCollectionFullName}, {assemblyName}");
-
+            
             CreateNewCollectableType.LastCollectionFullName = string.Empty;
             CreateNewCollectableType.LastGeneratedCollectionScriptPath = string.Empty;
+
+            string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(lastGeneratedCollectionScriptPath);
+
+            Type targetType = Type.GetType($"{lastCollectionFullName}, {assemblyName}");
 
             if (CollectionsRegistry.Instance.TryGetCollectionForType(targetType,
                 out ScriptableObjectCollection collection))

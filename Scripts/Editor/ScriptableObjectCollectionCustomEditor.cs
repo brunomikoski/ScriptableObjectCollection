@@ -232,7 +232,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 });
             }
                 
-            AddMenuOption(optionsMenu, $"Create new with base {collection.GetCollectionType().Name}", () =>
+            AddMenuOption(optionsMenu, $"Create new Type : {collection.GetCollectionType().Name}", () =>
             {
                 EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(collection.GetCollectionType()); };
             });

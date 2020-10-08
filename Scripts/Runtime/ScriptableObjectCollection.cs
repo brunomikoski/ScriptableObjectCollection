@@ -128,7 +128,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
 #if UNITY_EDITOR
-        public CollectableScriptableObject AddNew(Type collectionType)
+        
+        public CollectableScriptableObject AddNew(Type collectionType, string assetName = "")
         {
             if (Application.isPlaying)
                 throw new NotSupportedException();
@@ -138,17 +139,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string parentFolderPath = Path.Combine(assetPath, "Items");
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolderPath);
 
-            string itemName;
-            int count = Count;
-            while (true)
-            {
-                itemName = $"New{collectionType.Name}{count}";
-                string testPath = Path.Combine(parentFolderPath, itemName);
+            string itemName = assetName;
 
-                if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
-                    break;
+            if (string.IsNullOrEmpty(itemName))
+            {
+                int count = Count;
+                while (true)
+                {
+                    itemName = $"New{collectionType.Name}{count}";
+                    string testPath = Path.Combine(parentFolderPath, itemName);
+
+                    if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
+                        break;
                 
-                count++;
+                    count++;
+                }
             }
             
             item.name = itemName;
@@ -395,6 +400,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => (ObjectType)base[index];
             set => base[index] = value;
         }
+        
+#if UNITY_EDITOR
+        public ObjectType AddNew(string targetName)
+        {
+            return (ObjectType) AddNew(GetCollectionType(), targetName);
+        } 
+#endif
+        
+        public ObjectType AddNew() 
+        {
+            return (ObjectType)AddNew(GetCollectionType());
+        } 
         
         public ObjectType GetCollectableByGUID(string targetGUID)
         {

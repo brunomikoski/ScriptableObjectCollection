@@ -215,7 +215,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 CreateIndirectAccess();
             WaitingRecompileForContinue = true;
 
-            LastCollectionScriptableObjectPath = CreateCollectionObject();
+            ScriptableObjectCollection instance = ScriptableObjectCollectionUtils.CreateScriptableObjectOfType<ScriptableObjectCollection>(ScriptableObjectFolder, createFoldForThisCollection, collectionName);
+            LastCollectionScriptableObjectPath = AssetDatabase.GetAssetPath(instance);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -260,22 +261,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation--;
                 CodeGenerationUtility.AppendFooter(writer, ref indentation, TargetNameSpace);
             }
-        }
-
-        private string CreateCollectionObject()
-        {
-            ScriptableObjectCollection targetCollection = CreateInstance<ScriptableObjectCollection>();
-            targetCollection.name = collectionName;
-
-            string targetFolderPath = AssetDatabase.GetAssetPath(ScriptableObjectFolder);
-            if (createFoldForThisCollection)
-                targetFolderPath = Path.Combine(targetFolderPath, $"{collectionName}");
-            
-            AssetDatabaseUtils.CreatePathIfDontExist(Path.Combine(targetFolderPath, "Items"));
-
-            string collectionAssetPath = Path.Combine(targetFolderPath, $"{collectionName}.asset");
-            AssetDatabase.CreateAsset(targetCollection, collectionAssetPath);
-            return collectionAssetPath;
         }
 
         private bool CreateCollectableScript()

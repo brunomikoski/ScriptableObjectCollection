@@ -97,6 +97,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return null;
         }
         
+        public bool TryGetCollection<T>(out T resultCollection) where T: ScriptableObjectCollection
+        {
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (scriptableObjectCollection is T collectionT)
+                {
+                    resultCollection = collectionT;
+                    return true;
+                }
+            }
+
+            resultCollection = null;
+            return false;
+        }
+
+        
         public bool TryGetCollectionForType(Type targetCollectionType, out ScriptableObjectCollection scriptableObjectCollection)
         {
             for (int i = 0; i < collections.Count; i++)

@@ -339,9 +339,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    CollectionUtility.SetFoldoutOpen(collectionItem,
-                        EditorGUILayout.Toggle(GUIContent.none, CollectionUtility.IsFoldoutOpen(collectionItem), EditorStyles.foldout,
-                            GUILayout.Width(13)));
+                    CollectionUtility.SetFoldoutOpen(EditorGUILayout.Toggle(GUIContent.none,
+                        CollectionUtility.IsFoldoutOpen(collectionItem, target), EditorStyles.foldout,
+                        GUILayout.Width(13)), collectionItem, target);
 
                     using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                     {
@@ -358,7 +358,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     DrawDeleteButton(collectionItem);
                 }
                 
-                if (CollectionUtility.IsFoldoutOpen(collectionItem))
+                if (CollectionUtility.IsFoldoutOpen(collectionItem, target))
                 {
                     EditorGUI.indentLevel++;
                     Editor editor = CollectionUtility.GetOrCreateEditorForItem(collectionItem);

@@ -237,6 +237,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collectableSubclasses.Count; i++)
             {
                 Type collectableSubClass = collectableSubclasses[i];
+
+                if (collectableSubClass.IsSealed)
+                    continue;
                 
                 AddMenuOption(optionsMenu, $"Create New/class $NEW : {collectableSubClass.Name}", () =>
                 {

@@ -150,6 +150,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < filteredItemList.Count; i++)
             {
+                if (filteredItemList[i] == null)
+                    continue;
+                
                 filteredSerializedList.Add(new SerializedObject(filteredItemList[i]));
             }
 
@@ -214,28 +217,32 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectionType(), true);
 
+            collectableSubclasses.Add(collection.GetCollectionType());
             GenericMenu optionsMenu = new GenericMenu();
-            if (!collection.GetCollectionType().IsAbstract)
-            {
-                AddMenuOption(optionsMenu,  collection.GetCollectionType().Name, () =>
-                {
-                    EditorApplication.delayCall += () => { AddNewItemOfType(collection.GetCollectionType()); };
-                });
-            }
 
             for (int i = 0; i < collectableSubclasses.Count; i++)
             {
                 Type collectableSubClass = collectableSubclasses[i];
+                if (collectableSubClass.IsAbstract)
+                    continue;
+                
                 AddMenuOption(optionsMenu, collectableSubClass.Name, () =>
                 {
                     EditorApplication.delayCall += () => { AddNewItemOfType(collectableSubClass); };
                 });
             }
                 
-            AddMenuOption(optionsMenu, $"Create new Type : {collection.GetCollectionType().Name}", () =>
+            optionsMenu.AddSeparator("");
+            
+            for (int i = 0; i < collectableSubclasses.Count; i++)
             {
-                EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(collection.GetCollectionType()); };
-            });
+                Type collectableSubClass = collectableSubclasses[i];
+                
+                AddMenuOption(optionsMenu, $"Create New/class $NEW : {collectableSubClass.Name}", () =>
+                {
+                    EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(collectableSubClass); };
+                });
+            }
                 
             optionsMenu.ShowAsContext();
         }

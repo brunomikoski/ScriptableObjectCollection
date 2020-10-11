@@ -377,21 +377,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : CollectableScriptableObject
     {
-        
-        [NonSerialized]
-        private bool isReadyOnlyListDirty = true;
-
-        private IReadOnlyList<ObjectType> readOnlyList = new List<ObjectType>();
-        public new IReadOnlyList<ObjectType> Items
+        private static ScriptableObjectCollection<ObjectType> instance;
+        public static ScriptableObjectCollection<ObjectType> Values
         {
             get
             {
-                if (isReadyOnlyListDirty)
+                if (instance == null)
                 {
-                    readOnlyList = items.Cast<ObjectType>().ToList().AsReadOnly();
-                    isReadyOnlyListDirty = false;
+                    if (CollectionsRegistry.Instance.TryGetCollectionForType(out ScriptableObjectCollection<ObjectType> result))
+                    {
+                        instance = result;
+                    }
                 }
-                return readOnlyList;
+                
+                return instance;
             }
         }
         
@@ -428,13 +427,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Add(ObjectType item)
         {
             base.Add(item);
-            isReadyOnlyListDirty = true;
         }
 
         public ObjectType Add(Type itemType = null)
         {
             ObjectType collectableScriptableObject = base.Add(itemType) as ObjectType;
-            isReadyOnlyListDirty = true;
             return collectableScriptableObject;
         }
 
@@ -456,13 +453,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Insert(int index, ObjectType item)
         {
             base.Insert(index, item);
-            isReadyOnlyListDirty = true;
         }
 
         public bool Remove(ObjectType item)
         {
             bool remove = base.Remove(item);
-            isReadyOnlyListDirty = true;
             return remove;
         }
         

@@ -86,6 +86,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        
         public ScriptableObjectCollection GetCollectionByGUID(string guid)
         {
             for (int i = 0; i < collections.Count; i++)
@@ -113,18 +114,31 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        
-        public bool TryGetCollectionForType(Type targetCollectionType, out ScriptableObjectCollection scriptableObjectCollection)
+
+        public bool TryGetCollectionForType(Type targetType, 
+            out ScriptableObjectCollection scriptableObjectCollection)
         {
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection collection = collections[i];
-                if (collection.GetCollectionType() == targetCollectionType 
-                    || targetCollectionType.BaseType == collection.GetCollectionType())
+                if(collection.GetCollectionType() == targetType
+                   || targetType.BaseType == collection.GetCollectionType())
                 {
                     scriptableObjectCollection = collection;
                     return true;
                 }
+            }
+            
+            scriptableObjectCollection = null;
+            return false;
+        }
+
+        public bool TryGetCollectionForType<TargetType>(out ScriptableObjectCollection<TargetType> scriptableObjectCollection) where TargetType : CollectableScriptableObject
+        {
+            if (TryGetCollectionForType(typeof(TargetType), out ScriptableObjectCollection resultCollection))
+            {
+                scriptableObjectCollection = (ScriptableObjectCollection<TargetType>) resultCollection;
+                return true;
             }
 
             scriptableObjectCollection = null;
@@ -247,6 +261,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
 #endif
+
     }
 }
 

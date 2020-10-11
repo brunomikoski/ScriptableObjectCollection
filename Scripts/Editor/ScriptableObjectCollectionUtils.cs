@@ -6,21 +6,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class ScriptableObjectCollectionUtils
     {
-        public static T CreateScriptableObjectOfType<T>(DefaultAsset parentFolder, bool createFoldForThisCollection,
+        public static T CreateScriptableObjectOfType<T>(DefaultAsset parentFolder, bool createFolderForThisCollection,
             string targetName) where T : ScriptableObject
         {
             return CreateScriptableObjectOfType<T>(AssetDatabase.GetAssetPath(parentFolder),
-                createFoldForThisCollection, targetName);
+                createFolderForThisCollection, targetName);
         }
 
-        public static T CreateScriptableObjectOfType<T>(string parentFolderPath, bool createFoldForThisCollection,
+        public static T CreateScriptableObjectOfType<T>(string parentFolderPath, bool createFolderForThisCollection,
             string targetName) where T : ScriptableObject
         {
             T targetCollection = ScriptableObject.CreateInstance<T>();
             targetCollection.name = targetName;
 
             string targetFolderPath = parentFolderPath;
-            if (createFoldForThisCollection)
+            if (createFolderForThisCollection)
                 targetFolderPath = Path.Combine(targetFolderPath, $"{targetName}");
 
             AssetDatabaseUtils.CreatePathIfDontExist(Path.Combine(targetFolderPath, "Items"));

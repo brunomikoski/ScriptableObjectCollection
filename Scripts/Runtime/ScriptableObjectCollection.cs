@@ -401,6 +401,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
         
 #if UNITY_EDITOR
+        
+        public ObjectType GetOrAddNew(Type collectionType, string targetName)
+        {
+            ObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
+            if (item != null)
+                return item;
+
+            return (ObjectType) AddNew(collectionType, targetName);
+        }
+        
+        public ObjectType GetOrAddNew(string targetName)
+        {
+            ObjectType item = Items.First(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
+            if (item != null)
+                return item;
+
+            return AddNew(targetName);
+        }
+        
         public ObjectType AddNew(string targetName)
         {
             return (ObjectType) AddNew(GetCollectionType(), targetName);

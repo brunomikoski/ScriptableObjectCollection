@@ -98,7 +98,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return null;
         }
         
-        public bool TryGetCollection<T>(out T resultCollection) where T: ScriptableObjectCollection
+        public bool TryGetCollectionOfType<T>(out T resultCollection) where T: ScriptableObjectCollection
         {
             for (int i = 0; i < collections.Count; i++)
             {

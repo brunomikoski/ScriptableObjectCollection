@@ -401,6 +401,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
         
 #if UNITY_EDITOR
+
+        public T GetOrAddNew<T>(string targetName = null) where T : ObjectType
+        {
+            if (!string.IsNullOrEmpty(targetName))
+            {
+                T item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as T;
+                if (item != null)
+                    return item;
+            }
+
+            return (T) AddNew(typeof(T), targetName);
+        }
         
         public ObjectType GetOrAddNew(Type collectionType, string targetName)
         {
@@ -424,12 +436,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return (ObjectType) AddNew(GetCollectionType(), targetName);
         } 
-#endif
         
         public ObjectType AddNew() 
         {
             return (ObjectType)AddNew(GetCollectionType());
         } 
+#endif
         
         public ObjectType GetCollectableByGUID(string targetGUID)
         {

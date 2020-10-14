@@ -37,7 +37,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (ignoreCache || !typeToSubclasses.TryGetValue(targetType, out List<Type> results))
             {
-                results = AvailableTypes.Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(targetType)).ToList();
+                results = AvailableTypes.Where(t => t.IsClass && t.IsSubclassOf(targetType)).ToList();
                 if(!ignoreCache)
                     typeToSubclasses.Add(targetType, results);
             }

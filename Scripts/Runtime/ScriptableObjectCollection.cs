@@ -128,7 +128,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
 #if UNITY_EDITOR
-        public CollectableScriptableObject AddNew(Type collectionType)
+        
+        public CollectableScriptableObject AddNew(Type collectionType, string assetName = "")
         {
             if (Application.isPlaying)
                 throw new NotSupportedException();
@@ -138,17 +139,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string parentFolderPath = Path.Combine(assetPath, "Items");
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolderPath);
 
-            string itemName;
-            int count = Count;
-            while (true)
-            {
-                itemName = $"New{collectionType.Name}{count}";
-                string testPath = Path.Combine(parentFolderPath, itemName);
+            string itemName = assetName;
 
-                if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
-                    break;
+            if (string.IsNullOrEmpty(itemName))
+            {
+                int count = Count;
+                while (true)
+                {
+                    itemName = $"New{collectionType.Name}{count}";
+                    string testPath = Path.Combine(parentFolderPath, itemName);
+
+                    if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
+                        break;
                 
-                count++;
+                    count++;
+                }
             }
             
             item.name = itemName;
@@ -372,21 +377,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : CollectableScriptableObject
     {
-        
-        [NonSerialized]
-        private bool isReadyOnlyListDirty = true;
-
-        private IReadOnlyList<ObjectType> readOnlyList = new List<ObjectType>();
-        public new IReadOnlyList<ObjectType> Items
+        private static ScriptableObjectCollection<ObjectType> instance;
+        public static ScriptableObjectCollection<ObjectType> Values
         {
             get
             {
-                if (isReadyOnlyListDirty)
+                if (instance == null)
                 {
-                    readOnlyList = items.Cast<ObjectType>().ToList().AsReadOnly();
-                    isReadyOnlyListDirty = false;
+                    if (CollectionsRegistry.Instance.TryGetCollectionForType(out ScriptableObjectCollection<ObjectType> result))
+                    {
+                        instance = result;
+                    }
                 }
-                return readOnlyList;
+                
+                return instance;
             }
         }
         
@@ -395,6 +399,49 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => (ObjectType)base[index];
             set => base[index] = value;
         }
+        
+#if UNITY_EDITOR
+
+        public T GetOrAddNew<T>(string targetName = null) where T : ObjectType
+        {
+            if (!string.IsNullOrEmpty(targetName))
+            {
+                T item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as T;
+                if (item != null)
+                    return item;
+            }
+
+            return (T) AddNew(typeof(T), targetName);
+        }
+        
+        public ObjectType GetOrAddNew(Type collectionType, string targetName)
+        {
+            ObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
+            if (item != null)
+                return item;
+
+            return (ObjectType) AddNew(collectionType, targetName);
+        }
+        
+        public ObjectType GetOrAddNew(string targetName)
+        {
+            ObjectType item = Items.First(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
+            if (item != null)
+                return item;
+
+            return AddNew(targetName);
+        }
+        
+        public ObjectType AddNew(string targetName)
+        {
+            return (ObjectType) AddNew(GetCollectionType(), targetName);
+        } 
+        
+        public ObjectType AddNew() 
+        {
+            return (ObjectType)AddNew(GetCollectionType());
+        } 
+#endif
         
         public ObjectType GetCollectableByGUID(string targetGUID)
         {
@@ -411,13 +458,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Add(ObjectType item)
         {
             base.Add(item);
-            isReadyOnlyListDirty = true;
         }
 
         public ObjectType Add(Type itemType = null)
         {
             ObjectType collectableScriptableObject = base.Add(itemType) as ObjectType;
-            isReadyOnlyListDirty = true;
             return collectableScriptableObject;
         }
 
@@ -439,13 +484,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Insert(int index, ObjectType item)
         {
             base.Insert(index, item);
-            isReadyOnlyListDirty = true;
         }
 
         public bool Remove(ObjectType item)
         {
             bool remove = base.Remove(item);
-            isReadyOnlyListDirty = true;
             return remove;
         }
         

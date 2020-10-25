@@ -33,8 +33,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private GUIContent[] GUIContents;
         
         private CollectableScriptableObject collectableItem;
-
-        private Object foldoutObject;
+        private Object currentObject;
 
         ~CollectableScriptableObjectPropertyDrawer()
         {
@@ -104,7 +103,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (collectableItem != null)
                 {
-                    if (CollectionUtility.IsFoldoutOpen(foldoutObject))
+                    if (CollectionUtility.IsFoldoutOpen(collectableItem, currentObject))
                     {
                         EditorGUI.indentLevel++;
                         using (new EditorGUILayout.VerticalScope("Box"))
@@ -162,7 +161,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             optionsNames = displayOptions.ToArray();
             GUIContents = optionsNames.Select(s => new GUIContent(s)).ToArray();
 
-            foldoutObject = property.serializedObject.targetObject;
+            currentObject = property.serializedObject.targetObject;
             initialized = true;
         }
 
@@ -230,12 +229,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
 
             GUIContent guiContent = CollectionEditorGUI.EditGUIContent;
-            if (CollectionUtility.IsFoldoutOpen(foldoutObject))
+            if (CollectionUtility.IsFoldoutOpen(collectableItem, currentObject))
                 guiContent = CollectionEditorGUI.CloseGUIContent;
 
             if (GUI.Button(buttonRect, guiContent))
             {
-                CollectionUtility.SetFoldoutOpen(foldoutObject, !CollectionUtility.IsFoldoutOpen(foldoutObject));
+                CollectionUtility.SetFoldoutOpen(!CollectionUtility.IsFoldoutOpen(collectableItem, currentObject), collectableItem, currentObject);
                 ObjectUtility.SetDirty(collectableItem);
             }
         }

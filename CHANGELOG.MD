@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.9]
+### Changed
+ - Fixed issue with the Foldout issue, now showing multiple inherited collectables should work fine
+ - Improved the ADD New on the collection and what is displayed, and the the creation of new types is on a subfolder.
+ - Added static access to the `ScriptableObjectCollection<>.Values`
+ - Renamed the generated Static value back to the `.Values` to keep in line with the static access. so you can now access by `Collection.Values` or `Collectable.Values`
+ 
+### Added
+ - Support to create Collections / Collectables based on a Utils script, useful for another packages creating the necessary Collection.
+ 
 ## [1.2.8]
 ### Changed
  - Fixed issue when trying to create a new type from abstract using the new Collectable editor.
@@ -143,9 +153,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 ### [Unreleased]
- - Proper setup for automatic creation of necessary collections 
 
-[1.2.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.8
+[1.2.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.9
+[1.2.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.8
 [1.2.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.7
 [1.2.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.6
 [1.2.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.5

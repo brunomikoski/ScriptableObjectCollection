@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField, HideInInspector]
         private ScriptableObjectCollection collection;
         public ScriptableObjectCollection Collection => collection;
-
+        
         public void SetCollection(ScriptableObjectCollection collection)
         {
             this.collection = collection;

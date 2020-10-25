@@ -10,7 +10,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static Dictionary<Object, Editor> itemToEditor =
             new Dictionary<Object, Editor>();
 
-        private static Dictionary<Object, bool> objectToFoldOut = new Dictionary<Object, bool>();
+        private static Dictionary<int, bool> objectToFoldOut = new Dictionary<int, bool>();
 
         [MenuItem("Assets/Create/ScriptableObject Collection/New Collection", false, 100)]
         private static void CreateNewItem()
@@ -28,6 +28,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObjectCollectionSettings.LoadOrCreateInstance<ScriptableObjectCollection>();
         }
         
+        
+        private static int GetHasCount(Object[] objects)
+        {
+            int hasValue = 0;
+            for (int i = 0; i < objects.Length; i++)
+            {
+                Object targetObj = objects[i];
+
+                if (targetObj == null)
+                    continue;
+
+                hasValue += targetObj.GetHashCode();
+            }
+
+            return hasValue;
+        }
+        
         public static Editor GetOrCreateEditorForItem(Object collectionItem)
         {
             if (itemToEditor.TryGetValue(collectionItem, out Editor customEditor))
@@ -37,28 +54,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
             itemToEditor.Add(collectionItem, customEditor);
             return customEditor;
         }
-        
-        public static bool IsFoldoutOpen(Object targetObject)
+
+        public static bool IsFoldoutOpen(params Object[] objects)
         {
-            if (targetObject.IsNull())
+            int hashCount = GetHasCount(objects);
+           
+            if (hashCount == 0)
                 return false;
-            
-            bool value;
-            if(!objectToFoldOut.TryGetValue(targetObject, out value))
-                objectToFoldOut.Add(targetObject, value);
+
+            if(!objectToFoldOut.TryGetValue(hashCount, out bool value))
+                objectToFoldOut.Add(hashCount, value);
 
             return value;
         }
 
-        public static void SetFoldoutOpen(Object targetObject, bool value)
+        public static void SetFoldoutOpen(bool value, params Object[] objects)
         {
-            if (!objectToFoldOut.ContainsKey(targetObject))
-                objectToFoldOut.Add(targetObject, value);
-            else
-                objectToFoldOut[targetObject] = value;
-        }
+            int hashCount = GetHasCount(objects);
 
-       
+            objectToFoldOut[hashCount] = value;
+        }
     }
 }
 

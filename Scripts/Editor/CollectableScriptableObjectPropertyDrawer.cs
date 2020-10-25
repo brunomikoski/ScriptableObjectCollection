@@ -93,7 +93,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         EditorGUI.showMixedValue = property.hasMultipleDifferentValues;
 
-                        DrawDropDown(popupRect, property);
+                        DrawSearchablePopup(popupRect, property);
 
                         break;
                     }
@@ -166,29 +166,47 @@ namespace BrunoMikoski.ScriptableObjectCollections
             initialized = true;
         }
 
-        private void DrawDropDown(Rect position, SerializedProperty property)
+        private void DrawSearchablePopup(Rect position, SerializedProperty property)
         {
-            using (EditorGUI.ChangeCheckScope changedCheck = new EditorGUI.ChangeCheckScope())
+            int selectedIndex = 0;
+
+            if (collectableItem != null)
+                selectedIndex = Array.IndexOf(options, collectableItem) + 1;
+            
+            if (GUI.Button(position, GUIContents[selectedIndex], EditorStyles.popup))
             {
-                int selectedIndex = 0;
-
-                if (collectableItem != null)
-                    selectedIndex = Array.IndexOf(options, collectableItem) + 1;
-
-
-                int newSelectedIndex = EditorGUI.Popup(position, selectedIndex,
-                    GUIContents, EditorStyles.popup);
-
-                newSelectedIndex -= 1;
-
-                collectableItem = newSelectedIndex >= 0 ? options[newSelectedIndex] : null;
-                if (changedCheck.changed)
+                SearchablePopup.Show(position, selectedIndex, optionsNames, newSelectedIndex =>
                 {
+                    collectableItem = newSelectedIndex > 0 ? options[newSelectedIndex-1] : null;
                     property.objectReferenceValue = collectableItem;
                     property.serializedObject.ApplyModifiedProperties();
-                }
+                });
             }
         }
+        
+        // private void DrawDropDown(Rect position, SerializedProperty property)
+        // {
+        //     using (EditorGUI.ChangeCheckScope changedCheck = new EditorGUI.ChangeCheckScope())
+        //     {
+        //         int selectedIndex = 0;
+        //
+        //         if (collectableItem != null)
+        //             selectedIndex = Array.IndexOf(options, collectableItem) + 1;
+        //
+        //
+        //         int newSelectedIndex = EditorGUI.Popup(position, selectedIndex,
+        //             GUIContents, EditorStyles.popup);
+        //
+        //         newSelectedIndex -= 1;
+        //
+        //         collectableItem = newSelectedIndex >= 0 ? options[newSelectedIndex] : null;
+        //         if (changedCheck.changed)
+        //         {
+        //             property.objectReferenceValue = collectableItem;
+        //             property.serializedObject.ApplyModifiedProperties();
+        //         }
+        //     }
+        // }
         
         public static void DrawGotoButton(ScriptableObjectCollection enumValues, ref Rect popupRect)
         {

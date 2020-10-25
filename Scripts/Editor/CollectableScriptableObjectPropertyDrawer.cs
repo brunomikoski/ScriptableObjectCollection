@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -34,6 +35,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private CollectableScriptableObject collectableItem;
         private Object currentObject;
+
+        private CollectableDropdown dropDown;
 
         ~CollectableScriptableObjectPropertyDrawer()
         {
@@ -155,7 +158,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collection = resultCollection;
 
             options = collection.Items.ToArray();
-            List<string> displayOptions = collection.Items.Select(o => o.name).ToList();
+            List<string> displayOptions = GetDisplayOptions();
             displayOptions.Insert(0, CollectionEditorGUI.DEFAULT_NONE_ITEM_TEXT);
             
             optionsNames = displayOptions.ToArray();
@@ -163,6 +166,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             currentObject = property.serializedObject.targetObject;
             initialized = true;
+            
+            dropDown = new CollectableDropdown(new AdvancedDropdownState(), collection);
+        }
+
+        private List<string> GetDisplayOptions()
+        {
+            return collection.Items.Select(o => o.name).ToList();
         }
 
         private void DrawSearchablePopup(Rect position, SerializedProperty property)
@@ -174,38 +184,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if (GUI.Button(position, GUIContents[selectedIndex], EditorStyles.popup))
             {
-                SearchablePopup.Show(position, selectedIndex, optionsNames, newSelectedIndex =>
+                dropDown.Show(position, o =>
                 {
-                    collectableItem = newSelectedIndex > 0 ? options[newSelectedIndex-1] : null;
-                    property.objectReferenceValue = collectableItem;
+                    property.objectReferenceValue = o;
                     property.serializedObject.ApplyModifiedProperties();
                 });
             }
         }
-        
-        // private void DrawDropDown(Rect position, SerializedProperty property)
-        // {
-        //     using (EditorGUI.ChangeCheckScope changedCheck = new EditorGUI.ChangeCheckScope())
-        //     {
-        //         int selectedIndex = 0;
-        //
-        //         if (collectableItem != null)
-        //             selectedIndex = Array.IndexOf(options, collectableItem) + 1;
-        //
-        //
-        //         int newSelectedIndex = EditorGUI.Popup(position, selectedIndex,
-        //             GUIContents, EditorStyles.popup);
-        //
-        //         newSelectedIndex -= 1;
-        //
-        //         collectableItem = newSelectedIndex >= 0 ? options[newSelectedIndex] : null;
-        //         if (changedCheck.changed)
-        //         {
-        //             property.objectReferenceValue = collectableItem;
-        //             property.serializedObject.ApplyModifiedProperties();
-        //         }
-        //     }
-        // }
         
         public static void DrawGotoButton(ScriptableObjectCollection enumValues, ref Rect popupRect)
         {

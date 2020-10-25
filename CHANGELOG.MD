@@ -6,8 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0]
 ### Added
- - New Searchable Popup from https://github.com/arimger/Unity-Editor-Toolbox to help when looking for too many items.
-
+ - Advanced dropdown for better searching on big collections;
 
 ## [1.2.9]
 ### Changed

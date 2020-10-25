@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0]
+### Added
+ - New Searchable Popup from https://github.com/arimger/Unity-Editor-Toolbox to help when looking for too many items.
+
+
 ## [1.2.9]
 ### Changed
  - Fixed issue with the Foldout issue, now showing multiple inherited collectables should work fine
@@ -154,6 +159,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### [Unreleased]
 
+[1.3.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.3.0
 [1.2.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.9
 [1.2.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.8
 [1.2.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.2.7

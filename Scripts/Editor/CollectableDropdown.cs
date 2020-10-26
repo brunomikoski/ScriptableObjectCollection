@@ -22,9 +22,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AdvancedDropdownItem root = new AdvancedDropdownItem(collectableType.Name);
 
             root.AddChild(new AdvancedDropdownItem("None"));
-            for (int i = 0; i < collection.Items.Count; i++)
+            for (int i = 0; i < collection.Count; i++)
             {
-                CollectableScriptableObject collectionItem = collection.Items[i];
+                CollectableScriptableObject collectionItem = collection[i];
                 if (collectionItem.GetType() == collectableType)
                     root.AddChild(new CollectableDropdownItem(collectionItem));
                 else

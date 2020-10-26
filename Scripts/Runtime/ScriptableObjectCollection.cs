@@ -377,23 +377,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : CollectableScriptableObject
     {
-        private static ScriptableObjectCollection<ObjectType> instance;
-        public static ScriptableObjectCollection<ObjectType> Values
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    if (CollectionsRegistry.Instance.TryGetCollectionForType(out ScriptableObjectCollection<ObjectType> result))
-                    {
-                        instance = result;
-                    }
-                }
-                
-                return instance;
-            }
-        }
-        
         public new ObjectType this[int index]
         {
             get => (ObjectType)base[index];

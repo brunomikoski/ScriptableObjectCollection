@@ -1,6 +1,6 @@
 # Scriptable Object Collection
 
-
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/brunomikoski/ScriptableObjectCollection/blob/develop/LICENSE)
 [![openupm](https://img.shields.io/npm/v/com.brunomikoski.scriptableobjectcollection?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.brunomikoski.scriptableobjectcollection/) [![Codacy Badge](https://app.codacy.com/project/badge/Grade/177397001d74494a9ec54031a428c8dc)](https://www.codacy.com/manual/badawe/ScriptableObjectCollection?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=badawe/ScriptableObjectCollection&amp;utm_campaign=Badge_Grade)
 
 [![](https://img.shields.io/github/followers/brunomikoski?label=Follow&style=social)](https://github.com/brunomikoski) [![](https://img.shields.io/twitter/follow/brunomikoski?style=social)](https://twitter.com/brunomikoski)

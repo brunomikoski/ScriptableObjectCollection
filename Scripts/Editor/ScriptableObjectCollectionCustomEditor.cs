@@ -173,11 +173,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 if (item.objectReferenceValue == null || item.objectReferenceInstanceIDValue == 0)
-                {
-                    Debug.LogError($"Removing item at position {i} since it has a null script",
-                        serializedObject.context);
                     continue;
-                }
                     
                 validItems.Add(item.objectReferenceValue as CollectableScriptableObject);
                 needToRewrite = true;

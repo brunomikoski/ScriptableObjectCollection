@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [1.3.1]
+### Added
+- Added basic copy/paste functionality between colelctables
+
 ### Changed
  - Removed multiple `AssetDatabase.SaveAssets();` to improve general performance when adding / removing objects
  - Fixed indirect reference issues with the new Advanced Dropdown search
@@ -163,7 +166,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 ### [Unreleased]
- - Added ability to copy/paste collectable data 
 
 [1.3.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.3.1
 [1.3.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.3.0

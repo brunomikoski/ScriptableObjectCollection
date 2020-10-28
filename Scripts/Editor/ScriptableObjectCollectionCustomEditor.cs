@@ -382,6 +382,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                 filteredSerializedList[index].ApplyModifiedProperties();
                         }
                     }
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (GUILayout.Button("Copy", EditorStyles.toolbarButton))
+                        {
+                            CopyCollectableUtils.SetSource(collectionItem);
+                        }
+
+                        using (new EditorGUI.DisabledScope(!CopyCollectableUtils.CanPasteToTarget(collectionItem)))
+                        {
+                            if (GUILayout.Button("Paste", EditorStyles.toolbarButton))
+                            {
+                                CopyCollectableUtils.ApplySourceToStart(collectionItem);
+                            }
+                        }
+                    }
                     EditorGUI.indentLevel--;
                 }
             }

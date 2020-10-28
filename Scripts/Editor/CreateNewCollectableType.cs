@@ -76,7 +76,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         }
                         else
                         {
-                            if (CollectionsRegistry.Instance.TryGetCollectionForType(targetType,
+                            if (CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(targetType,
                                 out ScriptableObjectCollection collection))
                             {
                                 MonoScript scriptObj = MonoScript.FromScriptableObject(collection);

@@ -115,7 +115,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
 
-        public bool TryGetCollectionForType(Type targetType, 
+        public bool TryGetCollectionFromCollectableType(Type targetType, 
             out ScriptableObjectCollection scriptableObjectCollection)
         {
             for (int i = 0; i < collections.Count; i++)
@@ -133,9 +133,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        public bool TryGetCollectionForType<TargetType>(out ScriptableObjectCollection<TargetType> scriptableObjectCollection) where TargetType : CollectableScriptableObject
+        public bool TryGetCollectionFromCollectableType<TargetType>(out ScriptableObjectCollection<TargetType> scriptableObjectCollection) where TargetType : CollectableScriptableObject
         {
-            if (TryGetCollectionForType(typeof(TargetType), out ScriptableObjectCollection resultCollection))
+            if (TryGetCollectionFromCollectableType(typeof(TargetType), out ScriptableObjectCollection resultCollection))
             {
                 scriptableObjectCollection = (ScriptableObjectCollection<TargetType>) resultCollection;
                 return true;

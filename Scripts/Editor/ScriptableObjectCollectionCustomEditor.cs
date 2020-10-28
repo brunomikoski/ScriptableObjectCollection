@@ -173,11 +173,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 if (item.objectReferenceValue == null || item.objectReferenceInstanceIDValue == 0)
-                {
-                    Debug.LogError($"Removing item at position {i} since it has a null script",
-                        serializedObject.context);
                     continue;
-                }
                     
                 validItems.Add(item.objectReferenceValue as CollectableScriptableObject);
                 needToRewrite = true;
@@ -282,7 +278,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             Type targetType = Type.GetType($"{lastCollectionFullName}, {assemblyName}");
 
-            if (CollectionsRegistry.Instance.TryGetCollectionForType(targetType,
+            if (CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(targetType,
                 out ScriptableObjectCollection collection))
             {
                 Selection.activeObject = null;
@@ -384,6 +380,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                 filteredItemListDirty = true;
                             else
                                 filteredSerializedList[index].ApplyModifiedProperties();
+                        }
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (GUILayout.Button("Copy", EditorStyles.toolbarButton))
+                        {
+                            CopyCollectableUtils.SetSource(collectionItem);
+                        }
+
+                        using (new EditorGUI.DisabledScope(!CopyCollectableUtils.CanPasteToTarget(collectionItem)))
+                        {
+                            if (GUILayout.Button("Paste", EditorStyles.toolbarButton))
+                            {
+                                CopyCollectableUtils.ApplySourceToStart(collectionItem);
+                            }
                         }
                     }
                     EditorGUI.indentLevel--;

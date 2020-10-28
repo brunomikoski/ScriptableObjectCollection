@@ -161,8 +161,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             this.Add(item);
             UnityEditor.AssetDatabase.CreateAsset(item, newFileName);
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
+            ObjectUtility.SetDirty(this);
             isReadyOnlyListDirty = true;
             return item;
         }

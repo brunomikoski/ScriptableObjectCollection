@@ -282,7 +282,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             Type targetType = Type.GetType($"{lastCollectionFullName}, {assemblyName}");
 
-            if (CollectionsRegistry.Instance.TryGetCollectionForType(targetType,
+            if (CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(targetType,
                 out ScriptableObjectCollection collection))
             {
                 Selection.activeObject = null;

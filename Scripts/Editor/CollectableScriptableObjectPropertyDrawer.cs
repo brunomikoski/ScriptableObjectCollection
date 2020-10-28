@@ -148,7 +148,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             else
                 collectableType = fieldInfo.FieldType;
             
-            if (!CollectionsRegistry.Instance.TryGetCollectionForType(collectableType,
+            if (!CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(collectableType,
                 out ScriptableObjectCollection resultCollection))
             {
                 optionsAttribute.DrawType = DrawType.AsReference;

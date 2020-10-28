@@ -6,11 +6,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [Serializable]
     public abstract class CollectableIndirectReference
     {
-#pragma warning disable 0649
-        [SerializeField]
-        private string name;
-#pragma warning restore 0649
- 
         [SerializeField]
         protected string collectableGUID;
 

@@ -411,8 +411,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collection.RemoveAt(index);
                 AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(item));
                 ObjectUtility.SetDirty(collection);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
                 filteredItemListDirty = true;
             }
 

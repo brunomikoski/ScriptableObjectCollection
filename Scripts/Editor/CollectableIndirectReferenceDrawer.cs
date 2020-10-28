@@ -15,7 +15,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private SerializedProperty collectableGUIDProperty;
         private SerializedProperty collectionGUIDProperty;
 
-        private CollectableScriptableObject collectableScriptableObject;
         private CollectableScriptableObject cachedReference;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -24,24 +23,40 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectableGUIDProperty = property.FindPropertyRelative(COLLECTABLE_GUID_PROPERTY_PATH);
             collectionGUIDProperty = property.FindPropertyRelative(COLLECTION_GUID_PROPERTY_PATh);
 
-            if (cachedReference == null 
-                && !string.IsNullOrEmpty(collectableGUIDProperty.stringValue) 
-                && !string.IsNullOrEmpty(collectionGUIDProperty.stringValue))
+            if (objectAssetProperty.objectReferenceValue != null)
             {
-                if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUIDProperty.stringValue,
-                    out ScriptableObjectCollection collection))
+                if (string.IsNullOrEmpty(collectableGUIDProperty.stringValue)
+                    || string.IsNullOrEmpty(collectionGUIDProperty.stringValue))
                 {
-                    if (collection.TryGetCollectableByGUID(collectableGUIDProperty.stringValue,
-                        out CollectableScriptableObject collectable))
+                    CollectableScriptableObject collectable = objectAssetProperty.objectReferenceValue as CollectableScriptableObject;
+                    collectableGUIDProperty.stringValue = collectable.GUID;
+                    collectionGUIDProperty.stringValue = collectable.Collection.GUID;
+                    objectAssetProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(collectableGUIDProperty.stringValue)
+                    && !string.IsNullOrEmpty(collectionGUIDProperty.stringValue))
+                {
+                    if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUIDProperty.stringValue,
+                        out ScriptableObjectCollection collection))
                     {
-                        cachedReference = collectable;
+                        if (collection.TryGetCollectableByGUID(collectableGUIDProperty.stringValue,
+                            out CollectableScriptableObject collectable))
+                        {
+                            objectAssetProperty.objectReferenceValue = collectable;
+                            objectAssetProperty.serializedObject.ApplyModifiedProperties();
+                        }
                     }
                 }
             }
-            
+
+            if (cachedReference == null && objectAssetProperty.objectReferenceValue != null)
+                cachedReference = objectAssetProperty.objectReferenceValue as CollectableScriptableObject;
             
             EditorGUI.PropertyField(position, objectAssetProperty, label, true);
-            if (objectAssetProperty.exposedReferenceValue != cachedReference)
+            if (objectAssetProperty.objectReferenceValue != cachedReference)
             {
                 string collectableGUID = string.Empty;
                 string collectionGUID = string.Empty;
@@ -61,6 +76,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collectableGUIDProperty.stringValue = collectableGUID;
                 collectionGUIDProperty.stringValue = collectionGUID;
                 objectAssetProperty.serializedObject.ApplyModifiedProperties();
+                EditorUtility.SetDirty(objectAssetProperty.serializedObject.targetObject);
             }
         }
 

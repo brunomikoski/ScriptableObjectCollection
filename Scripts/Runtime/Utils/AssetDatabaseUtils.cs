@@ -24,8 +24,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             targetObject.name = newName;
             UnityEditor.AssetDatabase.RenameAsset(UnityEditor.AssetDatabase.GetAssetPath(targetObject), newName);
             ObjectUtility.SetDirty(targetObject);
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
 #endif
         }
     }

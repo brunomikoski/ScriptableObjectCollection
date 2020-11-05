@@ -12,10 +12,10 @@ The ScriptableObjectCollection exists to help you deal with scriptable objects w
 
 
 ![wizard](/Documentation~/create-collection-wizzard.png)
-![Static access to your items](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/code-access.gif)
-![DropDown for selecting Collectable Values](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/property-drawer.gif)
+![Static access to your items](https://github.com/brunomikoski/ScriptableObjectCollection/blob/master/Documentation~/code-access.gif)
+![DropDown for selecting Collectable Values](https://github.com/brunomikoski/ScriptableObjectCollection/blob/master/Documentation~/property-drawer.gif)
 
-Check the [FAQ](https://github.com/badawe/ScriptableObjectCollection/wiki/FAQ) with more examples and use examples.
+Check the [FAQ](https://github.com/brunomikoski/ScriptableObjectCollection/wiki/FAQ) with more examples and use examples.
 
 
 ## Features
@@ -36,7 +36,7 @@ Check the [FAQ](https://github.com/badawe/ScriptableObjectCollection/wiki/FAQ) w
  4. After you are done, click on Generate Code on the collection to generate the Static access to those objects
 
 
-## [FAQ](https://github.com/badawe/ScriptableObjectCollection/wiki/FAQ)
+## [FAQ](https://github.com/brunomikoski/ScriptableObjectCollection/wiki/FAQ)
  
  
 ## System Requirements
@@ -55,12 +55,12 @@ openupm add com.brunomikoski.scriptableobjectcollection
 ### Manifest
 You can also install via git URL by adding this entry in your **manifest.json**
 ```
-"com.brunomikoski.scriptableobjectcollection": "https://github.com/badawe/ScriptableObjectCollection.git"
+"com.brunomikoski.scriptableobjectcollection": "https://github.com/brunomikoski/ScriptableObjectCollection.git"
 ```
 
 ### Unity Package Manager
 ```
-from Window->Package Manager, click on the + sign and Add from git: https://github.com/badawe/ScriptableObjectCollection.git
+from Window->Package Manager, click on the + sign and Add from git: https://github.com/brunomikoski/ScriptableObjectCollection.git
 ```
 
 ## License TL:DR

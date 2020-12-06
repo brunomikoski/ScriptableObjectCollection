@@ -21,7 +21,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         protected override AdvancedDropdownItem BuildRoot()
         {
-            Type collectableType = collection.GetCollectionType();
+            Type collectableType = collection.GetCollectableType();
             AdvancedDropdownItem root = new AdvancedDropdownItem(collectableType.Name);
 
             root.AddChild(new AdvancedDropdownItem("None"));
@@ -61,7 +61,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
-                CollectableScriptableObject collectable = collection.AddNew(collection.GetCollectionType());
+                CollectableScriptableObject collectable = collection.AddNew(collection.GetCollectableType());
                 callback?.Invoke(collectable);
                 Selection.objects = new Object[] {collection};
                 ScriptableObjectCollectionCustomEditor.LastAddedEnum = collectable;

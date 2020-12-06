@@ -27,7 +27,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         if(collection == null)
                             continue;
 
-                        cachedTypeToCollections.Add(collection.GetCollectionType(), collection);
+                        cachedTypeToCollections.Add(collection.GetCollectableType(), collection);
                     }
                 }
 

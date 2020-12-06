@@ -347,7 +347,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             Selection.objects = new[] {collectionScriptableObject.targetObject};
             EditorGUIUtility.PingObject(collectionScriptableObject.targetObject);
-            GetWindowInstance().Close();
+
+            CreateCollectionWizzard openWindowInstance = GetWindow<CreateCollectionWizzard>();
+            openWindowInstance.Close();
         }
     }
 }

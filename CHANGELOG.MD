@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [1.3.2]
+### Added
+ - Automatically selection of the newly created item, for renaming
+ - Added keyword validation for names
+ - Added ability to create new items from the selection dropdown.
+
 ### Changed
  - Fixed issue when trying to play without the `CollectionRegistry` created 
 

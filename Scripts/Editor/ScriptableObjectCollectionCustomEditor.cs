@@ -30,7 +30,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private SearchField searchField;
         private bool showSettings;
         private Warning warnings;
-
+        public static CollectableScriptableObject LastAddedEnum;
 
         private static bool isWaitingForNewTypeBeCreated
         {
@@ -282,7 +282,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 out ScriptableObjectCollection collection))
             {
                 Selection.activeObject = null;
-                collection.AddNew(targetType);
+                LastAddedEnum =  collection.AddNew(targetType);
                 EditorApplication.delayCall += () =>
                 {
                     Selection.activeObject = collection;
@@ -292,7 +292,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
  
         private void AddNewItemOfType(Type targetType)
         {
-            collection.AddNew(targetType);
+            LastAddedEnum = collection.AddNew(targetType);
             filteredItemListDirty = true;
         }
 
@@ -351,11 +351,29 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                     {
+                        GUI.SetNextControlName(collectionItem.GUID);
+
                         string newName = EditorGUILayout.DelayedTextField(collectionItem.name, CollectionEditorGUI.ItemNameStyle,
                             GUILayout.ExpandWidth(true));
 
+                        if (LastAddedEnum == collectionItem)
+                        {
+                            EditorGUI.FocusTextInControl(collectionItem.GUID);
+                            LastAddedEnum = null;
+                        }
+                        
                         if (changeCheck.changed)
-                            AssetDatabaseUtils.RenameAsset(collectionItem, newName);
+                        {
+                            if (newName.IsReservedKeyword())
+                            {
+                                Debug.LogError($"{newName} is a reserved C# keyword, will cause issues with " +
+                                               $"code generation, reverting to previous name");
+                            }
+                            else
+                            {
+                                AssetDatabaseUtils.RenameAsset(collectionItem, newName);
+                            }
+                        }
                     }
 
                     DrawSelectItem(collectionItem);

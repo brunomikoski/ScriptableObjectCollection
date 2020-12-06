@@ -211,9 +211,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void AddNewItem()
         {
-            List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectionType(), true);
+            List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectableType(), true);
 
-            collectableSubclasses.Add(collection.GetCollectionType());
+            collectableSubclasses.Add(collection.GetCollectableType());
             GenericMenu optionsMenu = new GenericMenu();
 
             for (int i = 0; i < collectableSubclasses.Count; i++)
@@ -500,21 +500,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             ScriptableObjectCollectionSettings.Instance.SetCollectionAutomaticallyLoaded(
                                 collection,
                                 isAutomaticallyLoaded);
-                        }
-                    }
-
-                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                    {
-                        GeneratedStaticFileType staticCodeGeneratorType =
-                            (GeneratedStaticFileType) EditorGUILayout.EnumPopup("Static File Generator Type",
-                                ScriptableObjectCollectionSettings.Instance.GetStaticFileTypeForCollection(
-                                    collection));
-
-                        if (changeCheck.changed)
-                        {
-                            ScriptableObjectCollectionSettings.Instance.SetStaticFileGeneratorTypeForCollection(
-                                collection,
-                                staticCodeGeneratorType);
                         }
                     }
 

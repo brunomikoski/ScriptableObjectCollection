@@ -171,7 +171,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 #endif
 
-        public Type GetCollectionType()
+        public Type GetCollectableType()
         {
             Type enumType = GetGenericEnumType();
             if (enumType == null) return null;
@@ -319,7 +319,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
-            Type collectionType = GetCollectionType();
+            Type collectionType = GetCollectableType();
             if (collectionType == null)
                 return;
             
@@ -380,12 +380,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : CollectableScriptableObject
     {
+        private static ScriptableObjectCollection<ObjectType> instance;
+        public static ScriptableObjectCollection<ObjectType> Values
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    if (CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(out ScriptableObjectCollection<ObjectType> result))
+                        instance = result;
+                }
+                
+                return instance;
+            }
+        }
+
         public new ObjectType this[int index]
         {
             get => (ObjectType)base[index];
             set => base[index] = value;
         }
-        
+
 #if UNITY_EDITOR
 
         public T GetOrAddNew<T>(string targetName = null) where T : ObjectType
@@ -420,12 +435,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public ObjectType AddNew(string targetName)
         {
-            return (ObjectType) AddNew(GetCollectionType(), targetName);
+            return (ObjectType) AddNew(GetCollectableType(), targetName);
         } 
         
         public ObjectType AddNew() 
         {
-            return (ObjectType)AddNew(GetCollectionType());
+            return (ObjectType)AddNew(GetCollectableType());
         } 
 #endif
         

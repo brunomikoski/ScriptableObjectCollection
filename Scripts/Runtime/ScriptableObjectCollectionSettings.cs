@@ -15,9 +15,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             internal ScriptableObjectCollection collection;
             
             [SerializeField]
-            internal GeneratedStaticFileType generatedStaticFileGeneratorType;
-
-            [SerializeField]
             internal string staticGeneratedFileParentFolder;
 
             [SerializeField]
@@ -61,9 +58,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #pragma warning restore CS0162
             }
         }
-
-        [SerializeField]
-        private GeneratedStaticFileType defaultGenerator = GeneratedStaticFileType.DirectAccess;
         
         [SerializeField]
         private List<CollectionToSettings> collectionsSettings = new List<CollectionToSettings>();
@@ -76,20 +70,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public string GetGeneratedStaticFileName(ScriptableObjectCollection collection)
         {
             if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
-                return collection.GetCollectionType().Name;
+                return collection.GetCollectableType().Name;
 
             if (string.IsNullOrEmpty(settings.customStaticFileName))
-                return collection.GetCollectionType().Name;
+                return collection.GetCollectableType().Name;
             
             return settings.customStaticFileName;
-        }
-        
-        public GeneratedStaticFileType GetStaticFileTypeForCollection(ScriptableObjectCollection collection)
-        {
-            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
-                return defaultGenerator;
-
-            return settings.generatedStaticFileGeneratorType;
         }
 
         public bool IsCollectionAutomaticallyLoaded(ScriptableObjectCollection collection)
@@ -139,13 +125,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
             settings.isAutomaticallyLoaded = isAutomaticallyLoaded;
-            ObjectUtility.SetDirty(this);
-        }
-
-        public void SetStaticFileGeneratorTypeForCollection(ScriptableObjectCollection targetCollection, GeneratedStaticFileType staticCodeGeneratorType)
-        {
-            CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
-            settings.generatedStaticFileGeneratorType = staticCodeGeneratorType;
             ObjectUtility.SetDirty(this);
         }
 

@@ -14,6 +14,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static void OnPlayModeChanged(PlayModeStateChange playModeState)
         {
+            if (CollectionsRegistry.Instance == null)
+                return;
+            
             if (playModeState == PlayModeStateChange.EnteredPlayMode)
                 CollectionsRegistry.Instance.PrepareForPlayMode();
             else if(playModeState == PlayModeStateChange.ExitingPlayMode)

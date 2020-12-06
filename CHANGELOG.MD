@@ -176,6 +176,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 ### [Unreleased]
+### Changed
+ - Changed Create Collection Wizzard to behave like a modal window that can loose focus.
+
 
 [1.3.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.3.2
 [1.3.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.3.1

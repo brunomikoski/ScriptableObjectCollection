@@ -127,17 +127,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string collectableName = "Collectable";
         private static string targetFolder;
         private bool generateIndirectAccess = true;
+        
+        private static CreateCollectionWizzard windowInstance;
 
         public static CreateCollectionWizzard GetWindowInstance()
         {
-            return GetWindow<CreateCollectionWizzard>("Creating New Collection");
+            if (windowInstance == null)
+            {
+                windowInstance =  CreateInstance<CreateCollectionWizzard>();
+                windowInstance.titleContent = new GUIContent("Create New Collection");
+            }
+
+            return windowInstance;
         }
         
         public static void Show(string targetPath)
         {
             targetFolder = targetPath;
-            CreateCollectionWizzard createCollectionWizzard = GetWindowInstance();
-            createCollectionWizzard.ShowPopup();
+            GetWindowInstance().ShowUtility();
         }
 
         private void OnGUI()

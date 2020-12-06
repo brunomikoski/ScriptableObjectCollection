@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     public sealed class CollectableDropdown : AdvancedDropdown
     {
+        private const string CREATE_NEW_TEXT = "+ Create New";
         private ScriptableObjectCollection collection;
         private Action<CollectableScriptableObject> callback;
 
@@ -33,6 +36,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     parent.AddChild(new CollectableDropdownItem(collectionItem));
                 }
             }
+
+            root.AddChild(new AdvancedDropdownItem(CREATE_NEW_TEXT));
             return root;
         }
 
@@ -53,6 +58,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected override void ItemSelected(AdvancedDropdownItem item)
         {
             base.ItemSelected(item);
+
+            if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
+            {
+                CollectableScriptableObject collectable = collection.AddNew(collection.GetCollectionType());
+                callback?.Invoke(collectable);
+                Selection.objects = new Object[] {collection};
+                ScriptableObjectCollectionCustomEditor.LastAddedEnum = collectable;
+                return;
+            }
+            
             if (item is CollectableDropdownItem collectableDropdownItem)
                 callback?.Invoke(collectableDropdownItem.Collectable);
             else

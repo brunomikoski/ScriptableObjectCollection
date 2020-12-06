@@ -14,6 +14,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
         static readonly Regex FIRST_CHAR_FOLLOWED_BY_UPPER_CASES_ONLY = new Regex("(?<=[A-Z])[A-Z0-9]+$");
         static readonly Regex LOWER_CASE_NEXT_TO_NUMBER = new Regex("(?<=[0-9])[a-z]");
         static readonly Regex UPPER_CASE_INSIDE = new Regex("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))");
+        
+        private static string[] RESERVED_KEYWORDS =
+        {
+            "abstract", "as", "base", " bool", " break", "byte", "case", "catch", "char", "checked", "class", "const",
+            "continue", "decimal", "default", "delegate", "do", "double", "else", "enum", "event", "explicit", "extern",
+            "false", "finally", "fixed", "float", "for", "foreach", "goto", "if", "implicit", "in", "int", "interface",
+            "internal", "is", "lock", "long", "namespace", "new", "null", "object", "operator", "out", "override",
+            "params", "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
+            "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true", "try", "typeof",
+            "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void", "volatile", "while", "add",
+            "alias", "ascending", "async", "await", "by", "descending", "dynamic", "equals", "from", "get", "global",
+            "group", "into", "join", "let", "nameof", "notnull", "on", "orderby", "partial", "partial", "remove",
+            "select", "set", "unmanaged", "value", "var", "when", "where", "where", "with", "yield","values"
+        };
 
         public static string Sanitize(this string input)
         {
@@ -122,6 +136,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static string FirstToUpper(this string input)
         {
             return char.ToUpper(input[0]) + input.Substring(1);
+        }
+        
+        public static bool IsReservedKeyword(this string targetName)
+        {
+            for (int i = 0; i < RESERVED_KEYWORDS.Length; i++)
+            {
+                string reservedKeyword = RESERVED_KEYWORDS[i];
+                if (reservedKeyword.Equals(targetName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

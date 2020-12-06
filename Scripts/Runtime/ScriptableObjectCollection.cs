@@ -157,6 +157,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             item.name = itemName;
+
+            if(itemName.IsReservedKeyword())
+                Debug.LogError($"{itemName} is a reserved keyword name, will cause issues with code generation, please rename it");
+
             string newFileName = Path.Combine(parentFolderPath, item.name + ".asset");
             
             this.Add(item);

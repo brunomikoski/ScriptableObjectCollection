@@ -152,7 +152,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUILayout.Space();
 
                         collectableName = EditorGUILayout.TextField("Collectable Name", collectableName);
-
                         collectionName = EditorGUILayout.TextField("Collection Name", collectionName);
 
                         generateIndirectAccess = EditorGUILayout.Toggle("Generate Indirect Access", generateIndirectAccess);

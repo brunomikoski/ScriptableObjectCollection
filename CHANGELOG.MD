@@ -185,7 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 ### [Unreleased]
-
+- Added automatically open of the selected collectable   when using the goto button on the CollectableProperty Drawer
 
 
 [1.3.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.3.2

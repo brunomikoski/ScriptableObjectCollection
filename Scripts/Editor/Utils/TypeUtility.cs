@@ -13,8 +13,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static List<Type> GetTypesFromAssemblies()
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(x => x != null);
-            return assemblies.SelectMany(x => x.GetTypes()).ToList();
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .Where(x => x != null)
+                .SelectMany(x => x.GetTypes())
+                .ToList();
         }
 
         private static Dictionary<Type, List<Type>> typeToSubclasses = new Dictionary<Type, List<Type>>();

@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField, HideInInspector]
         private ScriptableObjectCollection collection;
         public ScriptableObjectCollection Collection => collection;
-        
+
         public void SetCollection(ScriptableObjectCollection collection)
         {
             this.collection = collection;
@@ -40,7 +40,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return ReferenceEquals(this, other);
         }
 
-        public static bool operator==(CollectableScriptableObject left, CollectableScriptableObject right)
+        public static bool operator ==(CollectableScriptableObject left, CollectableScriptableObject right)
         {
             if (ReferenceEquals(left, right))
                 return true;
@@ -61,9 +61,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void SyncGUID()
         {
-            if (!string.IsNullOrEmpty(guid)) 
+            if (!string.IsNullOrEmpty(guid))
                 return;
-            
+
             guid = Guid.NewGuid().ToString();
 #if UNITY_EDITOR
             string assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
@@ -73,9 +73,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ObjectUtility.SetDirty(this);
             }
 #endif
-            
         }
-        
+
         public override int GetHashCode()
         {
             return GUID.GetHashCode();

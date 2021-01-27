@@ -264,6 +264,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 CodeGenerationUtility.AppendLine(writer, 0,
                     $"#endif");
                 
+                CodeGenerationUtility.AppendLine(writer, indentation,
+                    $"public {collectableName}IndirectReference() {{}}");
+                
+                CodeGenerationUtility.AppendLine(writer, indentation,
+                    $"public {collectableName}IndirectReference({collectableName} collectableScriptableObject) : base(collectableScriptableObject) {{}}");
+
                 indentation--;
                 CodeGenerationUtility.AppendFooter(writer, ref indentation, TargetNameSpace);
             }

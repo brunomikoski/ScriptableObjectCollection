@@ -11,8 +11,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         [SerializeField]
         protected string collectionGUID;
-    }                                                                      
-    
+    }
+
     [Serializable]
     public abstract class CollectableIndirectReference<TObject> : CollectableIndirectReference
         where TObject : CollectableScriptableObject
@@ -38,6 +38,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 return cachedRef;
             }
+            set => FromCollectable(value);
+        }
+
+        public CollectableIndirectReference()
+        {
+        }
+
+        public CollectableIndirectReference(TObject collectableScriptableObject)
+        {
+            FromCollectable(collectableScriptableObject);
         }
 
         public void FromCollectable(CollectableScriptableObject collectableScriptableObject)

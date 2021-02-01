@@ -11,13 +11,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             get
             {
                 if (instance == null)
-                    instance = LoadOrCreateInstance<T>();
+                    instance = LoadOrCreateInstance();
                 return instance;
             }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static T LoadOrCreateInstance<T>() where T : ScriptableObject
+        public static T LoadOrCreateInstance()
         {
             T newInstance = Resources.Load<T>(typeof(T).Name);
 

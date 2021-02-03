@@ -401,6 +401,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => base[index] = value;
         }
 
+        public IEnumerator<ObjectType> GetEnumerator()
+        {
+            using (IEnumerator<CollectableScriptableObject> itemEnum = base.GetEnumerator())
+            {
+                while (itemEnum.MoveNext())
+                {
+                    if (itemEnum.Current.IsNull())
+                        continue;
+                    ObjectType obj = itemEnum.Current as ObjectType;
+                    if (obj == null)
+                        continue;
+                    yield return obj;
+                }
+            }
+        }
+
 #if UNITY_EDITOR
 
         public T GetOrAddNew<T>(string targetName = null) where T : ObjectType

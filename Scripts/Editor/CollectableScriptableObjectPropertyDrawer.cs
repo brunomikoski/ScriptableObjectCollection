@@ -76,7 +76,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectableItem != null)
             {
                 DrawEditFoldoutButton(ref popupRect);
-                DrawGotoButton(collection, ref popupRect);
+                DrawGotoButton(ref popupRect);
             }
 
             using (new EditorGUI.PropertyScope(position, label, property))
@@ -192,7 +192,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        public static void DrawGotoButton(ScriptableObjectCollection enumValues, ref Rect popupRect)
+        public void DrawGotoButton(ref Rect popupRect)
         {
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
@@ -201,7 +201,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
-                Selection.activeObject = enumValues;
+                Selection.activeObject = collection;
+                CollectionUtility.SetFoldoutOpen(true, collectableItem, collection);
             }
         }
 

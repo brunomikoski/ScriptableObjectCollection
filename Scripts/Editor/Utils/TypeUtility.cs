@@ -7,28 +7,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class TypeUtility
     {
-        private static List<Type> cachedAvaliableTypes;
+        private static List<Type> cachedAvailableTypes;
 
-        private static List<Type> AvailableTypes
+        private static List<Type> AvailableTypes => cachedAvailableTypes ?? (cachedAvailableTypes = GetTypesFromAssemblies());
+
+        private static List<Type> GetTypesFromAssemblies()
         {
-            get
-            {
-                if (cachedAvaliableTypes != null)
-                    return cachedAvaliableTypes;
-                
-                cachedAvaliableTypes = new List<Type>();
-                Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                for (int i = 0; i < assemblies.Length; i++)
-                {
-                    Assembly assembly = assemblies[i];
-                    if (assembly == null)
-                        continue;
-                    
-                    cachedAvaliableTypes.AddRange(assembly.GetTypes());
-                }
-
-                return cachedAvaliableTypes;
-            }
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .Where(x => x != null)
+                .SelectMany(x => x.GetTypes())
+                .ToList();
         }
 
         private static Dictionary<Type, List<Type>> typeToSubclasses = new Dictionary<Type, List<Type>>();

@@ -167,5 +167,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return settings;
         }
 
+        
     }
 }

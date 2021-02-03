@@ -25,10 +25,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", false, 200)]
         private static void CreateSettings()
         {
-            ScriptableObjectCollectionSettings.LoadOrCreateInstance<ScriptableObjectCollection>();
+            ScriptableObjectCollectionSettings.LoadOrCreateInstance<ScriptableObjectCollectionSettings>();
         }
-        
-        
+
+        [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", true, 200)]
+        private static bool CreateSettings_Validation()
+        {
+            return !ScriptableObjectCollectionSettings.Exist();
+        }
+
         private static int GetHasCount(Object[] objects)
         {
             int hasValue = 0;

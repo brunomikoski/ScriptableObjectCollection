@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1]
+
+### Changed
+- Fixed issue when using the Create Settings menu
+- Added automatically open of the selected collectable when using the goto button on the CollectableProperty Drawer
+- Added type specific GetEnumerator for the Collection
+
 ## [1.4.0]
 ### Added
 - Added quick access to the .Values from the collection, to be used without code generation, you can now use `CustomCollection.Values` to gett all your items

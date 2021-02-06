@@ -401,7 +401,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => base[index] = value;
         }
 
-        public IEnumerator<ObjectType> GetEnumerator()
+        public new IEnumerator<ObjectType> GetEnumerator()
         {
             using (IEnumerator<CollectableScriptableObject> itemEnum = base.GetEnumerator())
             {

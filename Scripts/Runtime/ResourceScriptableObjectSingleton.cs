@@ -17,20 +17,19 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static T LoadOrCreateInstance<T>() where T : ScriptableObject
+        public static T2 LoadOrCreateInstance<T2>() where T2 : ScriptableObject
         {
-            if (!TryToLoadInstance(out T resultInstance))
+            if (!TryToLoadInstance(out T2 resultInstance))
             {
 #if UNITY_EDITOR
-                resultInstance = CreateInstance<T>();
+                resultInstance = CreateInstance<T2>();
 
                 AssetDatabaseUtils.CreatePathIfDontExist("Assets/Resources");
-                UnityEditor.AssetDatabase.CreateAsset(resultInstance, $"Assets/Resources/{typeof(T).Name}.asset");
+                UnityEditor.AssetDatabase.CreateAsset(resultInstance, $"Assets/Resources/{typeof(T2).Name}.asset");
                 UnityEditor.AssetDatabase.SaveAssets();
                 UnityEditor.AssetDatabase.Refresh();
                 return resultInstance;
 #endif         
-                return null;
             }
 
             return resultInstance;
@@ -41,9 +40,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             return TryToLoadInstance<T>(out _);
         }
 
-        private static bool TryToLoadInstance<T>(out T result) where T : ScriptableObject
+        private static bool TryToLoadInstance<T3>(out T3 result) where T3 : ScriptableObject
         {
-            T newInstance = Resources.Load<T>(typeof(T).Name);
+            T3 newInstance = Resources.Load<T3>(typeof(T3).Name);
 
             if (newInstance != null)
             {
@@ -52,12 +51,12 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             }
 
 #if UNITY_EDITOR
-            string registryGUID = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(T).Name}")
+            string registryGUID = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(T3).Name}")
                 .FirstOrDefault();
 
             if (!string.IsNullOrEmpty(registryGUID))
             {
-                newInstance = (T) UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(
+                newInstance = (T3) UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObject>(
                     UnityEditor.AssetDatabase.GUIDToAssetPath(registryGUID));
             }
 
@@ -70,6 +69,5 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             result = null;
             return false;
         }
-        
     }
 }

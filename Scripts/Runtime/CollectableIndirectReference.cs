@@ -11,6 +11,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         [SerializeField]
         protected string collectionGUID;
+
+        public bool IsValid()
+        {
+            return !string.IsNullOrEmpty(collectableGUID) && !string.IsNullOrEmpty(collectionGUID);
+        }
     }                                                                      
     
     [Serializable]

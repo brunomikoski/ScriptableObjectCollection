@@ -55,9 +55,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     fontStyle = FontStyle.Bold,
                     margin = new RectOffset(0, 0, 2, 2),
                     alignment = TextAnchor.MiddleLeft,
-                    normal = {textColor = EditorStyles.label.normal.textColor}
+                    normal = {textColor = EditorStyles.label.normal.textColor},
                 };
                 return cachedItemNameStyle;
+            }
+        }
+        private static GUIStyle cachedSubTypeNameStyle;
+
+        public static GUIStyle SubtypeNameStyle
+        {
+            get
+            {
+                if (cachedSubTypeNameStyle != null)
+                    return cachedSubTypeNameStyle;
+
+                cachedSubTypeNameStyle = new GUIStyle
+                {
+                    fontStyle = FontStyle.Italic,
+                    alignment = TextAnchor.MiddleRight,
+                    normal = {textColor = EditorStyles.label.normal.textColor}
+                };
+                return cachedSubTypeNameStyle;
             }
         }
     }

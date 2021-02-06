@@ -194,6 +194,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `IsValid` to IndirectReferences to check if has valid data before being used
 - Refactored `ResourceScriptableObjectSingleton` to fix some warnings
 - Fixed the `GetEnumerator` from `Collection` warning
+- Add small display on the collection to show the base class if is not the default of the collection
 
 
 [1.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.4.1

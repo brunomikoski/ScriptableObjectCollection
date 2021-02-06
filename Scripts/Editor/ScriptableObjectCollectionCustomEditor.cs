@@ -353,8 +353,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         GUI.SetNextControlName(collectionItem.GUID);
 
-                        string newName = EditorGUILayout.DelayedTextField(collectionItem.name, CollectionEditorGUI.ItemNameStyle,
-                            GUILayout.ExpandWidth(true));
+                        string newName = EditorGUILayout.DelayedTextField(
+                            collectionItem.name,
+                            CollectionEditorGUI.ItemNameStyle, GUILayout.ExpandWidth(true)
+                        );
 
                         if (LastAddedEnum == collectionItem)
                         {
@@ -372,6 +374,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             else
                             {
                                 AssetDatabaseUtils.RenameAsset(collectionItem, newName);
+                            }
+                        }
+                        else
+                        {
+                            Type collectionType = collectionItem.GetType();
+                            Type collectionBaseType = collectionItem.GetType().BaseType;
+                            if (collectionBaseType != null && collection.GetCollectableType().IsAssignableFrom(collectionBaseType))
+                            {
+                                GUI.enabled = false;
+                                EditorGUILayout.LabelField($"{collectionType.Name}", CollectionEditorGUI.SubtypeNameStyle);
+                                GUI.enabled = true;
                             }
                         }
                     }

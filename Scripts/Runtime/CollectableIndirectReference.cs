@@ -8,7 +8,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [SerializeField]
         protected string collectableGUID;
-
+        
         [SerializeField]
         protected string collectionGUID;
     }
@@ -19,12 +19,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [NonSerialized]
         private TObject cachedRef;
+        
+        /// <summary>
+        /// Alternative to [XmlIgnore] [JsonIgnore]
+        /// </summary>
+        /// <returns>false, because of a circular reference and the SO is not serializable</returns>
+        public bool ShouldSerializeRef() => false;
+
         public TObject Ref
         {
             get
             {
                 if (cachedRef != null)
+                {
                     return cachedRef;
+                }
 
                 if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID,
                     out ScriptableObjectCollection<TObject> collection))
@@ -39,6 +48,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return cachedRef;
             }
             set => FromCollectable(value);
+        }
+
+        /// <summary>
+        /// Used for serializing, as the protected fields only work for Unity's serializer
+        /// </summary>
+        public string PairedGUID
+        {
+            get => collectionGUID + ":" + collectableGUID;
+            set
+            {
+                var split = value.Split(':');
+                if (split.Length == 2)
+                {
+                    collectionGUID = split[0];
+                    collectableGUID = split[1];
+                }
+            }
         }
 
         public CollectableIndirectReference()

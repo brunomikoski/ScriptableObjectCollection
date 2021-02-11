@@ -19,15 +19,39 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static T LoadOrCreateInstance()
         {
+            if (!TryToLoadInstance(out T resultInstance))
+            {
+#if UNITY_EDITOR
+                resultInstance = CreateInstance<T>();
+
+                AssetDatabaseUtils.CreatePathIfDontExist("Assets/Resources");
+                UnityEditor.AssetDatabase.CreateAsset(resultInstance, $"Assets/Resources/{typeof(T).Name}.asset");
+                UnityEditor.AssetDatabase.SaveAssets();
+                UnityEditor.AssetDatabase.Refresh();
+                return resultInstance;
+#endif         
+                return null;
+            }
+
+            return resultInstance;
+        }
+
+        public static bool Exist()
+        {
+            return TryToLoadInstance<T>(out _);
+        }
+
+        private static bool TryToLoadInstance<T>(out T result) where T : ScriptableObject
+        {
             T newInstance = Resources.Load<T>(typeof(T).Name);
 
             if (newInstance != null)
-                return newInstance;
+            {
+                result = newInstance;
+                return true;
+            }
 
 #if UNITY_EDITOR
-            if (Application.isPlaying)
-                return null;
-            
             string registryGUID = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(T).Name}")
                 .FirstOrDefault();
 
@@ -38,19 +62,14 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             }
 
             if (newInstance != null)
-                return newInstance ;
-            
-            newInstance = CreateInstance<T>();
-
-            AssetDatabaseUtils.CreatePathIfDontExist("Assets/Resources");
-            UnityEditor.AssetDatabase.CreateAsset(newInstance, $"Assets/Resources/{typeof(T).Name}.asset");
-            UnityEditor.AssetDatabase.SaveAssets();
-            UnityEditor.AssetDatabase.Refresh();
-            return newInstance;
+            {
+                result = newInstance;
+                return true;
+            }
 #endif
-#pragma warning disable CS0162
-            return null;
-#pragma warning restore CS0162
+            result = null;
+            return false;
         }
+        
     }
 }

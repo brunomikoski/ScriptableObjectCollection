@@ -25,7 +25,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", false, 200)]
         private static void CreateSettings()
         {
-            ScriptableObjectCollectionSettings.LoadOrCreateInstance<ScriptableObjectCollectionSettings>();
+            ScriptableObjectCollectionSettings.LoadOrCreateInstance();
         }
 
         [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", true, 200)]

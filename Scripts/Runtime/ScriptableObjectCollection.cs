@@ -442,7 +442,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public ObjectType GetOrAddNew(string targetName)
         {
-            ObjectType item = Items.First(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
+            ObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
             if (item != null)
                 return item;
 

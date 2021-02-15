@@ -398,7 +398,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (CollectionUtility.IsFoldoutOpen(collectionItem, target))
                 {
                     EditorGUI.indentLevel++;
-                    Editor editor = CollectionUtility.GetOrCreateEditorForItem(collectionItem);
+                    Editor editor = EditorsCache.GetOrCreateEditorForItem(collectionItem);
                     using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                     {
                         GUILayout.Space(10);

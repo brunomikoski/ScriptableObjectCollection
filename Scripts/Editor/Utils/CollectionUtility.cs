@@ -7,8 +7,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CollectionUtility
     {
-        private static Dictionary<Object, Editor> itemToEditor =
-            new Dictionary<Object, Editor>();
+        
 
         private static Dictionary<int, bool> objectToFoldOut = new Dictionary<int, bool>();
 
@@ -48,16 +47,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             return hasValue;
-        }
-        
-        public static Editor GetOrCreateEditorForItem(Object collectionItem)
-        {
-            if (itemToEditor.TryGetValue(collectionItem, out Editor customEditor))
-                return customEditor;
-            
-            Editor.CreateCachedEditor(collectionItem, null, ref customEditor);
-            itemToEditor.Add(collectionItem, customEditor);
-            return customEditor;
         }
 
         public static bool IsFoldoutOpen(params Object[] objects)

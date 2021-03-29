@@ -4,7 +4,7 @@ using UnityEngine;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomPropertyDrawer(typeof(CollectionItemIndirectReference), true)]
-    public sealed class CollectableItemIndirectReferenceDrawer : PropertyDrawer
+    public sealed class CollectionItemIndirectReferenceDrawer : PropertyDrawer
     {
         private const string OBJECT_ASSET_PROPERTY_PATH = "editorAsset";
         private const string COLLECTION_ITEM_GUID_PROPERTY_PATH = "collectionItemGUID";
@@ -28,9 +28,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (string.IsNullOrEmpty(collectionItemGUIDProperty.stringValue)
                     || string.IsNullOrEmpty(collectionGUIDProperty.stringValue))
                 {
-                    ScriptableObjectCollectionItem collectable = objectAssetProperty.objectReferenceValue as ScriptableObjectCollectionItem;
-                    collectionItemGUIDProperty.stringValue = collectable.GUID;
-                    collectionGUIDProperty.stringValue = collectable.Collection.GUID;
+                    ScriptableObjectCollectionItem collectionItem = objectAssetProperty.objectReferenceValue as ScriptableObjectCollectionItem;
+                    collectionItemGUIDProperty.stringValue = collectionItem.GUID;
+                    collectionGUIDProperty.stringValue = collectionItem.Collection.GUID;
                     objectAssetProperty.serializedObject.ApplyModifiedProperties();
                 }
             }
@@ -42,10 +42,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUIDProperty.stringValue,
                         out ScriptableObjectCollection collection))
                     {
-                        if (collection.TryGetCollectableByGUID(collectionItemGUIDProperty.stringValue,
-                            out ScriptableObjectCollectionItem collectable))
+                        if (collection.TryGetItemByGUID(collectionItemGUIDProperty.stringValue,
+                            out ScriptableObjectCollectionItem collectionItem))
                         {
-                            objectAssetProperty.objectReferenceValue = collectable;
+                            objectAssetProperty.objectReferenceValue = collectionItem;
                             objectAssetProperty.serializedObject.ApplyModifiedProperties();
                         }
                     }
@@ -58,22 +58,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             EditorGUI.PropertyField(position, objectAssetProperty, label, true);
             if (objectAssetProperty.objectReferenceValue != cachedReference)
             {
-                string collectableGUID = string.Empty;
+                string collectionItemGUID = string.Empty;
                 string collectionGUID = string.Empty;
             
                 if (objectAssetProperty.objectReferenceValue != null &&
-                    objectAssetProperty.objectReferenceValue is ScriptableObjectCollectionItem collectable)
+                    objectAssetProperty.objectReferenceValue is ScriptableObjectCollectionItem collectionItem)
                 {
-                    collectableGUID = collectable.GUID;
-                    collectionGUID = collectable.Collection.GUID;
-                    cachedReference = collectable;
+                    collectionItemGUID = collectionItem.GUID;
+                    collectionGUID = collectionItem.Collection.GUID;
+                    cachedReference = collectionItem;
                 }
                 else
                 {
                     cachedReference = null;
                 }
             
-                collectionItemGUIDProperty.stringValue = collectableGUID;
+                collectionItemGUIDProperty.stringValue = collectionItemGUID;
                 collectionGUIDProperty.stringValue = collectionGUID;
                 objectAssetProperty.serializedObject.ApplyModifiedProperties();
                 EditorUtility.SetDirty(objectAssetProperty.serializedObject.targetObject);

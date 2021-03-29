@@ -68,7 +68,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (string.IsNullOrEmpty(itemGUID))
                     return fsResult.Fail("item guid is null or empty");
 
-                if (!collection.TryGetCollectableByGUID(itemGUID, out ScriptableObjectCollectionItem collectable))
+                if (!collection.TryGetItemByGUID(itemGUID, out ScriptableObjectCollectionItem collectable))
                 {
                     return fsResult.Fail(
                         $"Cannot find collectable with guid {itemGUID} inside collection {collection}");

@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
-    public class CollectableItemObjectPropertyDrawer : PropertyDrawer
+    public class CollectionItemItemObjectPropertyDrawer : PropertyDrawer
     {
         private static readonly CollectionItemEditorOptionsAttribute defaultAttribute
             = new CollectionItemEditorOptionsAttribute(DrawType.Dropdown);
@@ -38,7 +38,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private CollectionItemDropdown dropDown;
 
-        ~CollectableItemObjectPropertyDrawer()
+        ~CollectionItemItemObjectPropertyDrawer()
         {
             if(item.IsNull())
                 return;
@@ -141,14 +141,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (initialized)
                 return;
             
-            Type collectableType;
+            Type itemType;
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             if (arrayOrListType != null)
-                collectableType = arrayOrListType;
+                itemType = arrayOrListType;
             else
-                collectableType = fieldInfo.FieldType;
+                itemType = fieldInfo.FieldType;
             
-            if (!CollectionsRegistry.Instance.TryGetCollectionFromItemType(collectableType,
+            if (!CollectionsRegistry.Instance.TryGetCollectionFromItemType(itemType,
                 out ScriptableObjectCollection resultCollection))
             {
                 optionsAttribute.DrawType = DrawType.AsReference;

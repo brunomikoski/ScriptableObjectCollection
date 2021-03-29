@@ -137,14 +137,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             filteredItemList.Clear();
             filteredSerializedList.Clear();
 
-            IEnumerable<ScriptableObjectCollectionItem> collectableScriptableObjects = collection.Items;
+            IEnumerable<ScriptableObjectCollectionItem> items = collection.Items;
             if (string.IsNullOrEmpty(searchString))
             {
-                filteredItemList = new List<ScriptableObjectCollectionItem>(collectableScriptableObjects);
+                filteredItemList = new List<ScriptableObjectCollectionItem>(items);
             }
             else
             {
-                filteredItemList = collectableScriptableObjects.Where(o => o.name.IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) >= 0)
+                filteredItemList = items.Where(o => o.name.IndexOf(searchString, StringComparison.CurrentCultureIgnoreCase) >= 0)
                     .ToList();
             }
 
@@ -211,44 +211,44 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void AddNewItem()
         {
-            List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetItemType(), true);
+            List<Type> itemsSubclasses = TypeUtility.GetAllSubclasses(collection.GetItemType(), true);
 
-            collectableSubclasses.Add(collection.GetItemType());
+            itemsSubclasses.Add(collection.GetItemType());
             GenericMenu optionsMenu = new GenericMenu();
 
-            for (int i = 0; i < collectableSubclasses.Count; i++)
+            for (int i = 0; i < itemsSubclasses.Count; i++)
             {
-                Type collectableSubClass = collectableSubclasses[i];
-                if (collectableSubClass.IsAbstract)
+                Type itemSubClass = itemsSubclasses[i];
+                if (itemSubClass.IsAbstract)
                     continue;
                 
-                AddMenuOption(optionsMenu, collectableSubClass.Name, () =>
+                AddMenuOption(optionsMenu, itemSubClass.Name, () =>
                 {
-                    EditorApplication.delayCall += () => { AddNewItemOfType(collectableSubClass); };
+                    EditorApplication.delayCall += () => { AddNewItemOfType(itemSubClass); };
                 });
             }
                 
             optionsMenu.AddSeparator("");
             
-            for (int i = 0; i < collectableSubclasses.Count; i++)
+            for (int i = 0; i < itemsSubclasses.Count; i++)
             {
-                Type collectableSubClass = collectableSubclasses[i];
+                Type itemSubClass = itemsSubclasses[i];
 
-                if (collectableSubClass.IsSealed)
+                if (itemSubClass.IsSealed)
                     continue;
                 
-                AddMenuOption(optionsMenu, $"Create New/class $NEW : {collectableSubClass.Name}", () =>
+                AddMenuOption(optionsMenu, $"Create New/class $NEW : {itemSubClass.Name}", () =>
                 {
-                    EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(collectableSubClass); };
+                    EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(itemSubClass); };
                 });
             }
                 
             optionsMenu.ShowAsContext();
         }
 
-        private void CreateAndAddNewItemOfType(Type collectableSubClass)
+        private void CreateAndAddNewItemOfType(Type itemSubClass)
         {
-            CreateNewCollectionItemFromBaseWizzard.Show(collectableSubClass, success =>
+            CreateNewCollectionItemFromBaseWizzard.Show(itemSubClass, success =>
             {
                 if (success)
                 {
@@ -418,14 +418,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         if (GUILayout.Button("Copy", EditorStyles.toolbarButton))
                         {
-                            CopyCollectableUtils.SetSource(collectionItem);
+                            CopyCollectionItemUtils.SetSource(collectionItem);
                         }
 
-                        using (new EditorGUI.DisabledScope(!CopyCollectableUtils.CanPasteToTarget(collectionItem)))
+                        using (new EditorGUI.DisabledScope(!CopyCollectionItemUtils.CanPasteToTarget(collectionItem)))
                         {
                             if (GUILayout.Button("Paste", EditorStyles.toolbarButton))
                             {
-                                CopyCollectableUtils.ApplySourceToStart(collectionItem);
+                                CopyCollectionItemUtils.ApplySourceToStart(collectionItem);
                             }
                         }
                     }
@@ -460,9 +460,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             GUI.backgroundColor = previousColor;
         }
 
-        private void DrawMoveItemDownButton(ScriptableObjectCollectionItem collectable)
+        private void DrawMoveItemDownButton(ScriptableObjectCollectionItem collectionItem)
         {
-            int index = collection.IndexOf(collectable);
+            int index = collection.IndexOf(collectionItem);
             EditorGUI.BeginDisabledGroup(index >= collection.Count - 1);
             {
                 if (GUILayout.Button(CollectionEditorGUI.ARROW_DOWN_CHAR, EditorStyles.miniButtonLeft, GUILayout.Width(30), CollectionEditorGUI.DEFAULT_HEIGHT))
@@ -475,9 +475,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawMoveItemUpButton(ScriptableObjectCollectionItem collectable)
+        private void DrawMoveItemUpButton(ScriptableObjectCollectionItem collectionItem)
         {
-            int index = collection.IndexOf(collectable);
+            int index = collection.IndexOf(collectionItem);
             EditorGUI.BeginDisabledGroup(index <= 0);
             {
                 if (GUILayout.Button(CollectionEditorGUI.ARROW_UP_CHAR, EditorStyles.miniButtonRight, GUILayout.Width(30), CollectionEditorGUI.DEFAULT_HEIGHT))

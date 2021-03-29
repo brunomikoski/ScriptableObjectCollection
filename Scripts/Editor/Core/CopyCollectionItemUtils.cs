@@ -2,7 +2,7 @@
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public static class CopyCollectableUtils
+    public static class CopyCollectionItemUtils
     {
         private static ScriptableObjectCollectionItem source;
 

@@ -61,15 +61,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
-                ScriptableObjectCollectionItem collectable = collection.AddNew(collection.GetItemType());
-                callback?.Invoke(collectable);
+                ScriptableObjectCollectionItem collectionItem = collection.AddNew(collection.GetItemType());
+                callback?.Invoke(collectionItem);
                 Selection.objects = new Object[] {collection};
-                CollectionCustomEditor.LastAddedEnum = collectable;
+                CollectionCustomEditor.LastAddedEnum = collectionItem;
                 return;
             }
             
-            if (item is CollectionItemDropdownItem collectableDropdownItem)
-                callback?.Invoke(collectableDropdownItem.CollectionItem);
+            if (item is CollectionItemDropdownItem dropdownItem)
+                callback?.Invoke(dropdownItem.CollectionItem);
             else
                 callback?.Invoke(null);
         }

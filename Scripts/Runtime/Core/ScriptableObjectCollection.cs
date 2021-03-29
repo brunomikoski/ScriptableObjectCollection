@@ -173,12 +173,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public Type GetItemType()
         {
-            Type enumType = GetGenericEnumType();
+            Type enumType = GetGenericItemType();
             if (enumType == null) return null;
             return enumType.GetGenericArguments().First();
         }
-        
-        public Type GetGenericEnumType()
+
+        private Type GetGenericItemType()
         {
             Type baseType = GetType().BaseType;
 
@@ -327,20 +327,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < guids.Length; i++)
             {
-                ScriptableObjectCollectionItem collectable =
+                ScriptableObjectCollectionItem item =
                     UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(
                         UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]));
                 
-                if (collectable == null)
+                if (item == null)
                     continue;
 
-                if (collectable.Collection != this)
+                if (item.Collection != this)
                     continue;
 
-                if (!PathUtility.IsObjectDeeperThanObject(collectable, this))
+                if (!PathUtility.IsObjectDeeperThanObject(item, this))
                     continue;
 
-                Add(collectable);
+                Add(item);
             }
 
             items = items.Where(o => o != null).Distinct().ToList();
@@ -349,14 +349,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
+        [Obsolete("Use TryGetItemByGUID instead")]
         public bool TryGetCollectableByGUID(string itemGUID, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
+        {
+            return TryGetItemByGUID(itemGUID, out scriptableObjectCollectionItem);
+        }
+
+        public bool TryGetItemByGUID(string itemGUID, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
         {
             for (int i = 0; i < items.Count; i++)
             {
-                ScriptableObjectCollectionItem collectable = items[i];
-                if (string.Equals(collectable.GUID, itemGUID, StringComparison.Ordinal))
+                ScriptableObjectCollectionItem item = items[i];
+                if (string.Equals(item.GUID, itemGUID, StringComparison.Ordinal))
                 {
-                    scriptableObjectCollectionItem = collectable;
+                    scriptableObjectCollectionItem = item;
                     return true;
                 }
             }
@@ -459,14 +465,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return (ObjectType)AddNew(GetItemType());
         } 
 #endif
+
+        [Obsolete("Use GetItemByGUID instead")]
+        public ObjectType GetCollectableByGUID(string targetGUID)
+        {
+            return GetItemByGUID(targetGUID);   
+        }
         
         public ObjectType GetItemByGUID(string targetGUID)
         {
             for (int i = 0; i < Items.Count; i++)
             {
-                ScriptableObjectCollectionItem collectable = Items[i];
-                if (string.Equals(collectable.GUID, targetGUID, StringComparison.Ordinal))
-                    return (ObjectType) collectable;
+                ScriptableObjectCollectionItem item = Items[i];
+                if (string.Equals(item.GUID, targetGUID, StringComparison.Ordinal))
+                    return (ObjectType) item;
             }
 
             return null;
@@ -479,8 +491,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public ObjectType Add(Type itemType = null)
         {
-            ObjectType collectableScriptableObject = base.Add(itemType) as ObjectType;
-            return collectableScriptableObject;
+            ObjectType item = base.Add(itemType) as ObjectType;
+            return item;
         }
 
         public bool Contains(ObjectType item)

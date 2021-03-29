@@ -11,8 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `IsValid` to IndirectReferences to check if has valid data before being used
 - Refactored `ResourceScriptableObjectSingleton` to fix some warnings
 - Fixed the `GetEnumerator` from `Collection` warning
-- Add small display on the collection to show the base class if is not the default of the collection
+- 
 
+### Added
+- A new information on the Collection custom editor to show the base class if is different from the collection type
+-
+
+### Removed
+- Removed the CreateAssetMenu from the generated code by wizzard, since multiple collections of the same type can cause issues. 
 
 ## [1.4.1]
 ### Changed

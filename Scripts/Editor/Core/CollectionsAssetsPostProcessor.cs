@@ -27,7 +27,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         if(collection == null)
                             continue;
 
-                        cachedTypeToCollections.Add(collection.GetCollectableType(), collection);
+                        cachedTypeToCollections.Add(collection.GetItemType(), collection);
                     }
                 }
 
@@ -50,24 +50,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 Type type = AssetDatabase.GetMainAssetTypeAtPath(importedAssetPath);
 
-                if (typeof(CollectableScriptableObject).IsAssignableFrom(type))
+                if (typeof(ScriptableObjectCollectionItem).IsAssignableFrom(type))
                 {
-                    CollectableScriptableObject collectableScriptableObject =
-                        AssetDatabase.LoadAssetAtPath<CollectableScriptableObject>(importedAssetPath);
+                    ScriptableObjectCollectionItem scriptableObjectCollectionItem =
+                        AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(importedAssetPath);
 
-                    if (collectableScriptableObject != null)
+                    if (scriptableObjectCollectionItem != null)
                     {
-                        if (collectableScriptableObject.Collection == null)
+                        if (scriptableObjectCollectionItem.Collection == null)
                         {
                             if (typeToCollections.TryGetValue(type, out ScriptableObjectCollection collection))
                             {
-                                if (!collection.Add(collectableScriptableObject))
-                                    collectableScriptableObject.SetCollection(collection);
+                                if (!collection.Add(scriptableObjectCollectionItem))
+                                    scriptableObjectCollectionItem.SetCollection(collection);
                             }
                         }
                         else
                         {
-                            collectableScriptableObject.Collection.Add(collectableScriptableObject);
+                            scriptableObjectCollectionItem.Collection.Add(scriptableObjectCollectionItem);
                         }
                     }
                 }

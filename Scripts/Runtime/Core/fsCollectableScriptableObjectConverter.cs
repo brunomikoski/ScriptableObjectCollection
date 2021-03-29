@@ -11,7 +11,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             public override bool CanProcess(Type type)
             {
-                return typeof(CollectableScriptableObject).IsAssignableFrom(type);
+                return typeof(ScriptableObjectCollectionItem).IsAssignableFrom(type);
             }
 
             public override bool RequestCycleSupport(Type storageType)
@@ -31,7 +31,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             public override fsResult TrySerialize(object instance, out fsData serialized, Type storageType)
             {
-                CollectableScriptableObject item = instance as CollectableScriptableObject;
+                ScriptableObjectCollectionItem item = instance as ScriptableObjectCollectionItem;
 
                 serialized = fsData.CreateDictionary();
 
@@ -68,7 +68,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (string.IsNullOrEmpty(itemGUID))
                     return fsResult.Fail("item guid is null or empty");
 
-                if (!collection.TryGetCollectableByGUID(itemGUID, out CollectableScriptableObject collectable))
+                if (!collection.TryGetCollectableByGUID(itemGUID, out ScriptableObjectCollectionItem collectable))
                 {
                     return fsResult.Fail(
                         $"Cannot find collectable with guid {itemGUID} inside collection {collection}");

@@ -8,15 +8,15 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    [CustomPropertyDrawer(typeof(CollectableScriptableObject), true)]
-    public class CollectableScriptableObjectPropertyDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
+    public class CollectableItemObjectPropertyDrawer : PropertyDrawer
     {
-        private static readonly CollectableEditorOptionsAttribute defaultAttribute
-            = new CollectableEditorOptionsAttribute(DrawType.Dropdown);
+        private static readonly CollectionItemEditorOptionsAttribute defaultAttribute
+            = new CollectionItemEditorOptionsAttribute(DrawType.Dropdown);
 
-        private CollectableEditorOptionsAttribute cachedOptionsAttribute;
+        private CollectionItemEditorOptionsAttribute cachedOptionsAttribute;
 
-        private CollectableEditorOptionsAttribute optionsAttribute
+        private CollectionItemEditorOptionsAttribute optionsAttribute
         {
             get
             {
@@ -29,31 +29,31 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool initialized;
         private ScriptableObjectCollection collection;
         
-        private CollectableScriptableObject[] options;
+        private ScriptableObjectCollectionItem[] options;
         private string[] optionsNames;
         private GUIContent[] GUIContents;
         
-        private CollectableScriptableObject collectableItem;
+        private ScriptableObjectCollectionItem item;
         private Object currentObject;
 
-        private CollectableDropdown dropDown;
+        private CollectionItemDropdown dropDown;
 
-        ~CollectableScriptableObjectPropertyDrawer()
+        ~CollectableItemObjectPropertyDrawer()
         {
-            if(collectableItem.IsNull())
+            if(item.IsNull())
                 return;
 
-            ObjectUtility.SetDirty(collectableItem);
+            ObjectUtility.SetDirty(item);
         }
         
-        private CollectableEditorOptionsAttribute GetOptionsAttribute()
+        private CollectionItemEditorOptionsAttribute GetOptionsAttribute()
         {
             if (fieldInfo == null)
                 return defaultAttribute;
             object[] attributes
-                = fieldInfo.GetCustomAttributes(typeof(CollectableEditorOptionsAttribute), false);
+                = fieldInfo.GetCustomAttributes(typeof(CollectionItemEditorOptionsAttribute), false);
             if (attributes.Length > 0)
-                return attributes[0] as CollectableEditorOptionsAttribute;
+                return attributes[0] as CollectionItemEditorOptionsAttribute;
             return defaultAttribute;
         }
         
@@ -61,7 +61,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Initialize(property);
             
-            collectableItem = property.objectReferenceValue as CollectableScriptableObject;
+            item = property.objectReferenceValue as ScriptableObjectCollectionItem;
 
             if (optionsAttribute.DrawType == DrawType.AsReference)
             {
@@ -73,7 +73,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Rect popupRect = position;
             popupRect.height = 15;
 
-            if (collectableItem != null)
+            if (item != null)
             {
                 DrawEditFoldoutButton(ref popupRect);
                 DrawGotoButton(ref popupRect);
@@ -104,14 +104,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         throw new ArgumentOutOfRangeException("DrawType: " + optionsAttribute.DrawType);
                 }
 
-                if (collectableItem != null)
+                if (item != null)
                 {
-                    if (CollectionUtility.IsFoldoutOpen(collectableItem, currentObject))
+                    if (CollectionUtility.IsFoldoutOpen(item, currentObject))
                     {
                         EditorGUI.indentLevel++;
                         using (new EditorGUILayout.VerticalScope("Box"))
                         {
-                            Editor editor = EditorsCache.GetOrCreateEditorForItem(collectableItem);
+                            Editor editor = EditorsCache.GetOrCreateEditorForItem(item);
                             using (EditorGUI.ChangeCheckScope changedCheck = new EditorGUI.ChangeCheckScope())
                             {
                                 GUILayout.Space(10);
@@ -148,7 +148,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             else
                 collectableType = fieldInfo.FieldType;
             
-            if (!CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(collectableType,
+            if (!CollectionsRegistry.Instance.TryGetCollectionFromItemType(collectableType,
                 out ScriptableObjectCollection resultCollection))
             {
                 optionsAttribute.DrawType = DrawType.AsReference;
@@ -167,7 +167,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             currentObject = property.serializedObject.targetObject;
             initialized = true;
             
-            dropDown = new CollectableDropdown(new AdvancedDropdownState(), collection);
+            dropDown = new CollectionItemDropdown(new AdvancedDropdownState(), collection);
         }
 
         private List<string> GetDisplayOptions()
@@ -179,8 +179,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             int selectedIndex = 0;
 
-            if (collectableItem != null)
-                selectedIndex = Array.IndexOf(options, collectableItem) + 1;
+            if (item != null)
+                selectedIndex = Array.IndexOf(options, item) + 1;
             
             if (GUI.Button(position, GUIContents[selectedIndex], EditorStyles.popup))
             {
@@ -202,7 +202,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
                 Selection.activeObject = collection;
-                CollectionUtility.SetFoldoutOpen(true, collectableItem, collection);
+                CollectionUtility.SetFoldoutOpen(true, item, collection);
             }
         }
 
@@ -215,13 +215,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
 
             GUIContent guiContent = CollectionEditorGUI.EditGUIContent;
-            if (CollectionUtility.IsFoldoutOpen(collectableItem, currentObject))
+            if (CollectionUtility.IsFoldoutOpen(item, currentObject))
                 guiContent = CollectionEditorGUI.CloseGUIContent;
 
             if (GUI.Button(buttonRect, guiContent))
             {
-                CollectionUtility.SetFoldoutOpen(!CollectionUtility.IsFoldoutOpen(collectableItem, currentObject), collectableItem, currentObject);
-                ObjectUtility.SetDirty(collectableItem);
+                CollectionUtility.SetFoldoutOpen(!CollectionUtility.IsFoldoutOpen(item, currentObject), item, currentObject);
+                ObjectUtility.SetDirty(item);
             }
         }
     }

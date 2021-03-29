@@ -8,10 +8,10 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public sealed class CreateNewCollectableType : EditorWindow
+    public sealed class CreateNewCollectionItemFromBaseWizzard : EditorWindow
     {
-        private const string LAST_COLLECTABLE_SCRIPT_PATH = "CollectableScriptPathKey";
-        private const string LAST_COLLECTABLE_FULL_NAME_KEY = "NewCollectableFullNameKey";
+        private const string LAST_COLLECTION_ITEM_SCRIPT_PATH = "CollectionItemScriptPathKey";
+        private const string LAST_COLLECTION_ITEM_FULL_NAME_KEY = "NewCollectionItemFullNameKey";
 
         
         private string newClassName;
@@ -22,24 +22,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static string LastGeneratedCollectionScriptPath
         {
-            get => EditorPrefs.GetString(LAST_COLLECTABLE_SCRIPT_PATH, String.Empty);
-            set => EditorPrefs.SetString(LAST_COLLECTABLE_SCRIPT_PATH, value);
+            get => EditorPrefs.GetString(LAST_COLLECTION_ITEM_SCRIPT_PATH, String.Empty);
+            set => EditorPrefs.SetString(LAST_COLLECTION_ITEM_SCRIPT_PATH, value);
         }
         
         public static string LastCollectionFullName
         {
-            get => EditorPrefs.GetString(LAST_COLLECTABLE_FULL_NAME_KEY, String.Empty);
-            set => EditorPrefs.SetString(LAST_COLLECTABLE_FULL_NAME_KEY, value);
+            get => EditorPrefs.GetString(LAST_COLLECTION_ITEM_FULL_NAME_KEY, String.Empty);
+            set => EditorPrefs.SetString(LAST_COLLECTION_ITEM_FULL_NAME_KEY, value);
         }
 
         public static void Show(Type baseType, Action<bool> targetOnCreationCallback)
         {
             onCreationCallback = targetOnCreationCallback;
             targetType = baseType;
-            CreateNewCollectableType newCollectableWindow = GetWindow<CreateNewCollectableType>("Creating new collectable Fix");
-            newCollectableWindow.minSize = new Vector2(350, 120);
-            newCollectableWindow.maxSize = new Vector2(350, 120);
-            newCollectableWindow.ShowPopup();
+            CreateNewCollectionItemFromBaseWizzard newCollectionItemFromBaseWindow = GetWindow<CreateNewCollectionItemFromBaseWizzard>("Creating new derived item");
+            newCollectionItemFromBaseWindow.minSize = new Vector2(350, 120);
+            newCollectionItemFromBaseWindow.maxSize = new Vector2(350, 120);
+            newCollectionItemFromBaseWindow.ShowPopup();
         }
         
         private void OnDisable()
@@ -76,7 +76,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         }
                         else
                         {
-                            if (CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(targetType,
+                            if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(targetType,
                                 out ScriptableObjectCollection collection))
                             {
                                 MonoScript scriptObj = MonoScript.FromScriptableObject(collection);

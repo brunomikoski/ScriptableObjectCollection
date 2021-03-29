@@ -9,7 +9,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     }
     
     [AttributeUsage(AttributeTargets.Field)]
-    public class CollectableEditorOptionsAttribute :Attribute
+    public class CollectionItemEditorOptionsAttribute :Attribute
     {
         private DrawType drawType = DrawType.Dropdown;
         public DrawType DrawType
@@ -18,7 +18,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => drawType = value;
         }
 
-        public CollectableEditorOptionsAttribute(DrawType drawType)
+        public CollectionItemEditorOptionsAttribute(DrawType drawType)
         {
             this.drawType = drawType;
         }

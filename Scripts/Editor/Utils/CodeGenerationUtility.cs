@@ -176,12 +176,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            string fileName = $"{collection.GetCollectableType().Name}Static";
+            string fileName = $"{collection.GetItemType().Name}Static";
             bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
             if (isGeneratingCustomStaticFile)
                 fileName = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
             
-            string nameSpace = collection.GetCollectableType().Namespace;
+            string nameSpace = collection.GetItemType().Namespace;
             string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
 
             if (string.IsNullOrEmpty(finalFolder))
@@ -207,7 +207,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (!isGeneratingCustomStaticFile)
                 {
                     AppendHeader(writer, ref indentation, nameSpace,"",
-                        collection.GetCollectableType().Name, true, false, directives.Distinct().ToArray());
+                        collection.GetItemType().Name, true, false, directives.Distinct().ToArray());
                 }
                 else
                 {
@@ -246,7 +246,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
-                CollectableScriptableObject collectionItem = collection.Items[i];
+                ScriptableObjectCollectionItem collectionItem = collection.Items[i];
                 AppendLine(writer, indentation,
                     $"private static {collectionItem.GetType().Name} {collectionItem.name.Sanitize().FirstToLower()};");
             }
@@ -279,7 +279,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             for (int i = 0; i < collection.Items.Count; i++)
             {
-                CollectableScriptableObject collectionItem = collection.Items[i];
+                ScriptableObjectCollectionItem collectionItem = collection.Items[i];
                 string collectionNameFirstUpper = collectionItem.name.Sanitize().FirstToUpper();
                 string privateStaticName = collectionItem.name.Sanitize().FirstToLower();
 
@@ -294,7 +294,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({collectionItem.GetType().Name}){valuesName}.GetCollectableByGUID(\"{collectionItem.GUID}\");");
+                    $"{privateStaticName} = ({collectionItem.GetType().Name}){valuesName}.GetItemByGUID(\"{collectionItem.GUID}\");");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;
@@ -305,7 +305,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             
-            AppendLine(writer, indentation, $"public static IEnumerable<T> GetValues<T>() where T : {collection.GetCollectableType().Name}");
+            AppendLine(writer, indentation, $"public static IEnumerable<T> GetValues<T>() where T : {collection.GetItemType().Name}");
             AppendLine(writer, indentation, "{");
             indentation++;
             AppendLine(writer, indentation, $"return Values.Where(item => item is T).Cast<T>();");

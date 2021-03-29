@@ -70,10 +70,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public string GetGeneratedStaticFileName(ScriptableObjectCollection collection)
         {
             if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
-                return collection.GetCollectableType().Name;
+                return collection.GetItemType().Name;
 
             if (string.IsNullOrEmpty(settings.customStaticFileName))
-                return collection.GetCollectableType().Name;
+                return collection.GetItemType().Name;
             
             return settings.customStaticFileName;
         }

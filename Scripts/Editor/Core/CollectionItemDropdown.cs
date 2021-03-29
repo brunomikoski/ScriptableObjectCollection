@@ -7,13 +7,13 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public sealed class CollectableDropdown : AdvancedDropdown
+    public sealed class CollectionItemDropdown : AdvancedDropdown
     {
         private const string CREATE_NEW_TEXT = "+ Create New";
         private ScriptableObjectCollection collection;
-        private Action<CollectableScriptableObject> callback;
+        private Action<ScriptableObjectCollectionItem> callback;
 
-        public CollectableDropdown(AdvancedDropdownState state, ScriptableObjectCollection collection) : base(state)
+        public CollectionItemDropdown(AdvancedDropdownState state, ScriptableObjectCollection collection) : base(state)
         {
             this.collection = collection;
             this.minimumSize = new Vector2(200, 300);
@@ -21,19 +21,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         protected override AdvancedDropdownItem BuildRoot()
         {
-            Type collectableType = collection.GetCollectableType();
-            AdvancedDropdownItem root = new AdvancedDropdownItem(collectableType.Name);
+            Type collectionItemType = collection.GetItemType();
+            AdvancedDropdownItem root = new AdvancedDropdownItem(collectionItemType.Name);
 
             root.AddChild(new AdvancedDropdownItem("None"));
             for (int i = 0; i < collection.Count; i++)
             {
-                CollectableScriptableObject collectionItem = collection[i];
-                if (collectionItem.GetType() == collectableType)
-                    root.AddChild(new CollectableDropdownItem(collectionItem));
+                ScriptableObjectCollectionItem collectionItem = collection[i];
+                if (collectionItem.GetType() == collectionItemType)
+                    root.AddChild(new CollectionItemDropdownItem(collectionItem));
                 else
                 {
                     AdvancedDropdownItem parent = GetOrCreateDropdownItemForType(root, collectionItem);
-                    parent.AddChild(new CollectableDropdownItem(collectionItem));
+                    parent.AddChild(new CollectionItemDropdownItem(collectionItem));
                 }
             }
 
@@ -42,7 +42,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
         private AdvancedDropdownItem GetOrCreateDropdownItemForType(AdvancedDropdownItem root,
-            CollectableScriptableObject collectionItem)
+            ScriptableObjectCollectionItem collectionItem)
         {
             AdvancedDropdownItem item = root.children.FirstOrDefault(dropdownItem =>
                 dropdownItem.name.Equals(collectionItem.GetType().Name, StringComparison.Ordinal));
@@ -61,20 +61,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
-                CollectableScriptableObject collectable = collection.AddNew(collection.GetCollectableType());
+                ScriptableObjectCollectionItem collectable = collection.AddNew(collection.GetItemType());
                 callback?.Invoke(collectable);
                 Selection.objects = new Object[] {collection};
-                ScriptableObjectCollectionCustomEditor.LastAddedEnum = collectable;
+                CollectionCustomEditor.LastAddedEnum = collectable;
                 return;
             }
             
-            if (item is CollectableDropdownItem collectableDropdownItem)
-                callback?.Invoke(collectableDropdownItem.Collectable);
+            if (item is CollectionItemDropdownItem collectableDropdownItem)
+                callback?.Invoke(collectableDropdownItem.CollectionItem);
             else
                 callback?.Invoke(null);
         }
 
-        public void Show(Rect rect, Action<CollectableScriptableObject> onSelectedCallback)
+        public void Show(Rect rect, Action<ScriptableObjectCollectionItem> onSelectedCallback)
         {
             callback = onSelectedCallback;
             base.Show(rect);

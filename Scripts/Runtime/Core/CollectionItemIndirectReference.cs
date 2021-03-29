@@ -4,7 +4,7 @@ using UnityEngine;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [Serializable]
-    public abstract class CollectableIndirectReference
+    public abstract class CollectionItemIndirectReference
     {
         [SerializeField]
         protected string collectableGUID;
@@ -14,8 +14,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     }
 
     [Serializable]
-    public abstract class CollectableIndirectReference<TObject> : CollectableIndirectReference
-        where TObject : CollectableScriptableObject
+    public abstract class CollectionItemIndirectReference<TObject> : CollectionItemIndirectReference
+        where TObject : ScriptableObjectCollectionItem
     {
         [NonSerialized]
         private TObject cachedRef;
@@ -39,7 +39,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     out ScriptableObjectCollection<TObject> collection))
                 {
                     if (collection.TryGetCollectableByGUID(collectableGUID,
-                        out CollectableScriptableObject collectable))
+                        out ScriptableObjectCollectionItem collectable))
                     {
                         cachedRef = collectable as TObject;
                     }
@@ -67,19 +67,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public CollectableIndirectReference()
+        public CollectionItemIndirectReference()
         {
         }
 
-        public CollectableIndirectReference(TObject collectableScriptableObject)
+        public CollectionItemIndirectReference(TObject collectableScriptableObject)
         {
             FromCollectable(collectableScriptableObject);
         }
 
-        public void FromCollectable(CollectableScriptableObject collectableScriptableObject)
+        public void FromCollectable(ScriptableObjectCollectionItem scriptableObjectCollectionItem)
         {
-            collectableGUID = collectableScriptableObject.GUID;
-            collectionGUID = collectableScriptableObject.Collection.GUID;
+            collectableGUID = scriptableObjectCollectionItem.GUID;
+            collectionGUID = scriptableObjectCollectionItem.Collection.GUID;
         }
     }
 }

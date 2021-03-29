@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0]
+### Changed
+- Refactored the `Collectable` for `CollectionItem` this has several changes in multiple parts of the code, I tried my best to keep compability with the old version as well.
+- Renamed the `CollectableScriptableObject` to `ScriptableObjectCollectionItem` for better naming convention, `CollectableScriptableObject` still exist but has the obsolete flag on it to avoid breakable changes
+- Add `IsValid` to IndirectReferences to check if has valid data before being used
+- Refactored `ResourceScriptableObjectSingleton` to fix some warnings
+- Fixed the `GetEnumerator` from `Collection` warning
+- Add small display on the collection to show the base class if is not the default of the collection
+
+
 ## [1.4.1]
 ### Changed
 - Fixed issue when using the Create Settings menu
@@ -191,10 +201,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 ### [Unreleased]
-- Add `IsValid` to IndirectReferences to check if has valid data before being used
-- Refactored `ResourceScriptableObjectSingleton` to fix some warnings
-- Fixed the `GetEnumerator` from `Collection` warning
-- Add small display on the collection to show the base class if is not the default of the collection
+
 
 
 [1.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.4.1

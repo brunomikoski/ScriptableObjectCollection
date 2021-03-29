@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
-    public class ScriptableObjectCollectionCustomEditor : Editor
+    public class CollectionCustomEditor : Editor
     {
         public const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         
@@ -24,13 +24,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private ScriptableObjectCollection collection;
         private string searchString = "";
         
-        private List<CollectableScriptableObject> filteredItemList = new List<CollectableScriptableObject>();
+        private List<ScriptableObjectCollectionItem> filteredItemList = new List<ScriptableObjectCollectionItem>();
         private readonly List<SerializedObject> filteredSerializedList = new List<SerializedObject>();
         private bool filteredItemListDirty = true;
         private SearchField searchField;
         private bool showSettings;
         private Warning warnings;
-        public static CollectableScriptableObject LastAddedEnum;
+        public static ScriptableObjectCollectionItem LastAddedEnum;
 
         private static bool isWaitingForNewTypeBeCreated
         {
@@ -137,10 +137,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             filteredItemList.Clear();
             filteredSerializedList.Clear();
 
-            IEnumerable<CollectableScriptableObject> collectableScriptableObjects = collection.Items;
+            IEnumerable<ScriptableObjectCollectionItem> collectableScriptableObjects = collection.Items;
             if (string.IsNullOrEmpty(searchString))
             {
-                filteredItemList = new List<CollectableScriptableObject>(collectableScriptableObjects);
+                filteredItemList = new List<ScriptableObjectCollectionItem>(collectableScriptableObjects);
             }
             else
             {
@@ -165,7 +165,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             SerializedProperty items = serializedObject.FindProperty("items");
 
-            List<CollectableScriptableObject> validItems = new List<CollectableScriptableObject>();
+            List<ScriptableObjectCollectionItem> validItems = new List<ScriptableObjectCollectionItem>();
             for (int i = 0; i < items.arraySize; i++)
             {
                 SerializedProperty item = items.GetArrayElementAtIndex(i);
@@ -175,7 +175,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (item.objectReferenceValue == null || item.objectReferenceInstanceIDValue == 0)
                     continue;
                     
-                validItems.Add(item.objectReferenceValue as CollectableScriptableObject);
+                validItems.Add(item.objectReferenceValue as ScriptableObjectCollectionItem);
                 needToRewrite = true;
             }
 
@@ -211,9 +211,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void AddNewItem()
         {
-            List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetCollectableType(), true);
+            List<Type> collectableSubclasses = TypeUtility.GetAllSubclasses(collection.GetItemType(), true);
 
-            collectableSubclasses.Add(collection.GetCollectableType());
+            collectableSubclasses.Add(collection.GetItemType());
             GenericMenu optionsMenu = new GenericMenu();
 
             for (int i = 0; i < collectableSubclasses.Count; i++)
@@ -248,7 +248,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateAndAddNewItemOfType(Type collectableSubClass)
         {
-            CreateNewCollectableType.Show(collectableSubClass, success =>
+            CreateNewCollectionItemFromBaseWizzard.Show(collectableSubClass, success =>
             {
                 if (success)
                 {
@@ -265,20 +265,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             isWaitingForNewTypeBeCreated = false;
 
-            string lastGeneratedCollectionScriptPath = CreateNewCollectableType.LastGeneratedCollectionScriptPath;
-            string lastCollectionFullName = CreateNewCollectableType.LastCollectionFullName;
+            string lastGeneratedCollectionScriptPath = CreateNewCollectionItemFromBaseWizzard.LastGeneratedCollectionScriptPath;
+            string lastCollectionFullName = CreateNewCollectionItemFromBaseWizzard.LastCollectionFullName;
 
             if (string.IsNullOrEmpty(lastGeneratedCollectionScriptPath))
                 return;
             
-            CreateNewCollectableType.LastCollectionFullName = string.Empty;
-            CreateNewCollectableType.LastGeneratedCollectionScriptPath = string.Empty;
+            CreateNewCollectionItemFromBaseWizzard.LastCollectionFullName = string.Empty;
+            CreateNewCollectionItemFromBaseWizzard.LastGeneratedCollectionScriptPath = string.Empty;
 
             string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(lastGeneratedCollectionScriptPath);
 
             Type targetType = Type.GetType($"{lastCollectionFullName}, {assemblyName}");
 
-            if (CollectionsRegistry.Instance.TryGetCollectionFromCollectableType(targetType,
+            if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(targetType,
                 out ScriptableObjectCollection collection))
             {
                 Selection.activeObject = null;
@@ -333,7 +333,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawItem(int index)
         {
-            CollectableScriptableObject collectionItem = filteredItemList[index];
+            ScriptableObjectCollectionItem collectionItem = filteredItemList[index];
 
             if (collectionItem == null)
             {
@@ -380,7 +380,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         {
                             Type collectionType = collectionItem.GetType();
                             Type collectionBaseType = collectionItem.GetType().BaseType;
-                            if (collectionBaseType != null && collection.GetCollectableType().IsAssignableFrom(collectionBaseType))
+                            if (collectionBaseType != null && collection.GetItemType().IsAssignableFrom(collectionBaseType))
                             {
                                 GUI.enabled = false;
                                 EditorGUILayout.LabelField($"{collectionType.Name}", CollectionEditorGUI.SubtypeNameStyle);
@@ -434,7 +434,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawSelectItem(CollectableScriptableObject collectionItem)
+        private void DrawSelectItem(ScriptableObjectCollectionItem collectionItem)
         {
             if (GUILayout.Button(CollectionEditorGUI.ARROW_RIGHT_CHAR, EditorStyles.miniButton, GUILayout.Width(30),
                 CollectionEditorGUI.DEFAULT_HEIGHT))
@@ -443,7 +443,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawDeleteButton(CollectableScriptableObject item)
+        private void DrawDeleteButton(ScriptableObjectCollectionItem item)
         {
             Color previousColor = GUI.backgroundColor;
             GUI.backgroundColor = CollectionEditorGUI.DELETE_BUTTON_COLOR;
@@ -460,7 +460,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             GUI.backgroundColor = previousColor;
         }
 
-        private void DrawMoveItemDownButton(CollectableScriptableObject collectable)
+        private void DrawMoveItemDownButton(ScriptableObjectCollectionItem collectable)
         {
             int index = collection.IndexOf(collectable);
             EditorGUI.BeginDisabledGroup(index >= collection.Count - 1);
@@ -475,7 +475,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawMoveItemUpButton(CollectableScriptableObject collectable)
+        private void DrawMoveItemUpButton(ScriptableObjectCollectionItem collectable)
         {
             int index = collection.IndexOf(collectable);
             EditorGUI.BeginDisabledGroup(index <= 0);

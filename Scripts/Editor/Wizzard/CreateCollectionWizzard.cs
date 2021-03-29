@@ -124,7 +124,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool createFoldForThisCollectionScripts = true;
 
         private string collectionName = "Collection";
-        private string collectableName = "Collectable";
+        private string collectionItemName = "Item";
         private static string targetFolder;
         private bool generateIndirectAccess = true;
         
@@ -158,7 +158,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUILayout.LabelField("Settings", EditorStyles.foldoutHeader);
                         EditorGUILayout.Space();
 
-                        collectableName = EditorGUILayout.TextField("Collectable Name", collectableName);
+                        collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
                         collectionName = EditorGUILayout.TextField("Collection Name", collectionName);
 
                         generateIndirectAccess = EditorGUILayout.Toggle("Generate Indirect Access", generateIndirectAccess);
@@ -214,7 +214,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void CreateNewCollection()
         {
             bool scriptsGenerated = false;
-            scriptsGenerated |= CreateCollectableScript();
+            scriptsGenerated |= CreateCollectionItemScript();
             scriptsGenerated |= CreateCollectionScript();
 
             if (generateIndirectAccess)
@@ -236,20 +236,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (createFoldForThisCollectionScripts)
                 folderPath = Path.Combine(folderPath, $"{collectionName}");
 
-            string fileName = $"{collectableName}IndirectReference";
+            string fileName = $"{collectionItemName}IndirectReference";
 
             AssetDatabaseUtils.CreatePathIfDontExist(folderPath);
             using (StreamWriter writer = new StreamWriter(Path.Combine(folderPath, $"{fileName}.cs")))
             {
                 int indentation = 0;
                 List<string> directives = new List<string>();
-                directives.Add(typeof(CollectableScriptableObject).Namespace);
+                directives.Add(typeof(ScriptableObjectCollectionItem).Namespace);
                 directives.Add(TargetNameSpace);
                 directives.Add("System");
                 directives.Add("UnityEngine");
 
                 CodeGenerationUtility.AppendHeader(writer, ref indentation, TargetNameSpace, "[Serializable]",
-                    $"public sealed class {collectableName}IndirectReference : CollectableIndirectReference<{collectableName}>",
+                    $"public sealed class {collectionItemName}IndirectReference : CollectionItemIndirectReference<{collectionItemName}>",
                     directives.Distinct().ToArray());
 
                 CodeGenerationUtility.AppendLine(writer, 0,
@@ -259,35 +259,35 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     $"[SerializeField]");
                 
                 CodeGenerationUtility.AppendLine(writer, indentation,
-                    $"private {collectableName} editorAsset;");
+                    $"private {collectionItemName} editorAsset;");
                 
                 CodeGenerationUtility.AppendLine(writer, 0,
                     $"#endif");
                 
                 CodeGenerationUtility.AppendLine(writer, indentation,
-                    $"public {collectableName}IndirectReference() {{}}");
+                    $"public {collectionItemName}IndirectReference() {{}}");
                 
                 CodeGenerationUtility.AppendLine(writer, indentation,
-                    $"public {collectableName}IndirectReference({collectableName} collectableScriptableObject) : base(collectableScriptableObject) {{}}");
+                    $"public {collectionItemName}IndirectReference({collectionItemName} collectionItemScriptableObject) : base(collectionItemScriptableObject) {{}}");
 
                 indentation--;
                 CodeGenerationUtility.AppendFooter(writer, ref indentation, TargetNameSpace);
             }
         }
 
-        private bool CreateCollectableScript()
+        private bool CreateCollectionItemScript()
         {
             string folder = AssetDatabase.GetAssetPath(ScriptsFolder);
             LastScriptsTargetFolder = folder;
             if (createFoldForThisCollectionScripts)
                 folder = Path.Combine(folder, $"{collectionName}");
             
-            return CodeGenerationUtility.CreateNewEmptyScript(collectableName, 
+            return CodeGenerationUtility.CreateNewEmptyScript(collectionItemName, 
                 folder,
                 TargetNameSpace, 
                 string.Empty,
-                $"public partial class {collectableName} : CollectableScriptableObject", 
-                    typeof(CollectableScriptableObject).Namespace);
+                $"public partial class {collectionItemName} : ScriptableObjectCollectionItem", 
+                    typeof(ScriptableObjectCollectionItem).Namespace);
         }
         
         private bool CreateCollectionScript()
@@ -299,8 +299,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             bool result = CodeGenerationUtility.CreateNewEmptyScript(collectionName,
                 targetFolder,
                 TargetNameSpace,
-                $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {collectionName}\", fileName = \"{collectionName}\", order = 0)]",
-                $"public class {collectionName} : ScriptableObjectCollection<{collectableName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
+                $"",
+                $"public class {collectionName} : ScriptableObjectCollection<{collectionItemName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
 
             if (string.IsNullOrEmpty(TargetNameSpace))
                 LastCollectionFullName = $"{collectionName}";
@@ -313,7 +313,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private bool AreSettingsValid()
         {
-            if (string.IsNullOrEmpty(collectableName))
+            if (string.IsNullOrEmpty(collectionItemName))
                 return false;
 
             if (string.IsNullOrEmpty(collectionName))

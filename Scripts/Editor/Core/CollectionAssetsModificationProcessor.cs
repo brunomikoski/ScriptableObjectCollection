@@ -13,12 +13,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             Type type = mainAssetAtPath.GetType();
             
-            if (type.IsSubclassOf(typeof(CollectableScriptableObject)))
+            if (type.IsSubclassOf(typeof(ScriptableObjectCollectionItem)))
             {
-                CollectableScriptableObject collectable =
-                    AssetDatabase.LoadAssetAtPath<CollectableScriptableObject>(targetAssetPath);
+                ScriptableObjectCollectionItem collectionItem =
+                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(targetAssetPath);
 
-                collectable.Collection.Remove(collectable);
+                collectionItem.Collection.Remove(collectionItem);
                 return AssetDeleteResult.DidNotDelete;
             }
             

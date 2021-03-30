@@ -13,13 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the `GetEnumerator` from `Collection` warning
 - The `CollectionRegistry` now will only load Collections that are inside an active Assembly.
 - Exposed the `Collections` list on the Registry
+- Simplified the CollectionItem Dropdown (removed the type grouping)
  
 ### Added
-- A new information on the Collection custom editor to show the base class if is different from the collection type
+- A new information on the Collection custom editor to show the base class if is different from the collection type (Disabled for now)
 - Exposed the namespace to be customized by the custom static file
-
-### Removed
-- Removed the CreateAssetMenu from the generated code by wizzard, since multiple collections of the same type can cause issues. 
+- Added support of multiple collections of the same type on the registry, the `CollectionItemDrawer` will display a Collection dropdown if more than one collection for the same type of item is available
 
 ## [1.4.1]
 ### Changed

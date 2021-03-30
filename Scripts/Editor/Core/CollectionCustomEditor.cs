@@ -378,14 +378,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         }
                         else
                         {
-                            Type collectionType = collectionItem.GetType();
-                            Type collectionBaseType = collectionItem.GetType().BaseType;
-                            if (collectionBaseType != null && collection.GetItemType().IsAssignableFrom(collectionBaseType))
-                            {
-                                GUI.enabled = false;
-                                EditorGUILayout.LabelField($"{collectionType.Name}", CollectionEditorGUI.SubtypeNameStyle);
-                                GUI.enabled = true;
-                            }
+                            //Disabled for now.
+                            // Type collectionType = collectionItem.GetType();
+                            // Type collectionBaseType = collectionItem.GetType().BaseType;
+                            // if (collectionBaseType != null && collection.GetItemType().IsAssignableFrom(collectionBaseType))
+                            // {
+                            //     GUI.enabled = false;
+                            //     EditorGUILayout.LabelField($"{collectionType.Name}", CollectionEditorGUI.SubtypeNameStyle);
+                            //     GUI.enabled = true;
+                            // }
                         }
                     }
 

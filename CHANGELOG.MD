@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0]
+### Changed
+- Refactored the `Collectable` for `CollectionItem` this has several changes in multiple parts of the code, I tried my best to keep compability with the old version as well.
+- Renamed the `CollectableScriptableObject` to `ScriptableObjectCollectionItem` for better naming convention, `CollectableScriptableObject` still exist but has the obsolete flag on it to avoid breakable changes
+- Add `IsValid` to IndirectReferences to check if has valid data before being used
+- Refactored `ResourceScriptableObjectSingleton` to fix some warnings
+- Fixed the `GetEnumerator` from `Collection` warning
+- The `CollectionRegistry` now will only load Collections that are inside an active Assembly.
+- Exposed the `Collections` list on the Registry
+- Simplified the CollectionItem Dropdown (removed the type grouping)
+ 
+### Added
+- A new information on the Collection custom editor to show the base class if is different from the collection type (Disabled for now)
+- Exposed the namespace to be customized by the custom static file
+- Added support of multiple collections of the same type on the registry, the `CollectionItemDrawer` will display a Collection dropdown if more than one collection for the same type of item is available
+
 ## [1.4.1]
 ### Changed
 - Fixed issue when using the Create Settings menu
@@ -191,6 +207,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 ### [Unreleased]
+
 
 
 [1.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.4.1

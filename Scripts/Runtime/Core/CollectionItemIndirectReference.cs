@@ -1,21 +1,23 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [Serializable]
-    public abstract class CollectableIndirectReference
+    public abstract class CollectionItemIndirectReference
     {
+        [FormerlySerializedAs("collectableGUID")]
         [SerializeField]
-        protected string collectableGUID;
+        protected string collectionItemGUID;
         
         [SerializeField]
         protected string collectionGUID;
     }
 
     [Serializable]
-    public abstract class CollectableIndirectReference<TObject> : CollectableIndirectReference
-        where TObject : CollectableScriptableObject
+    public abstract class CollectionItemIndirectReference<TObject> : CollectionItemIndirectReference
+        where TObject : ScriptableObjectCollectionItem
     {
         [NonSerialized]
         private TObject cachedRef;
@@ -38,16 +40,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID,
                     out ScriptableObjectCollection<TObject> collection))
                 {
-                    if (collection.TryGetCollectableByGUID(collectableGUID,
-                        out CollectableScriptableObject collectable))
+                    if (collection.TryGetItemByGUID(collectionItemGUID,
+                        out ScriptableObjectCollectionItem item))
                     {
-                        cachedRef = collectable as TObject;
+                        cachedRef = item as TObject;
                     }
                 }
 
                 return cachedRef;
             }
-            set => FromCollectable(value);
+            set => FromCollectionItem(value);
         }
 
         /// <summary>
@@ -55,31 +57,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
         /// </summary>
         public string PairedGUID
         {
-            get => collectionGUID + ":" + collectableGUID;
+            get => collectionGUID + ":" + collectionItemGUID;
             set
             {
                 var split = value.Split(':');
                 if (split.Length == 2)
                 {
                     collectionGUID = split[0];
-                    collectableGUID = split[1];
+                    collectionItemGUID = split[1];
                 }
             }
         }
 
-        public CollectableIndirectReference()
+        public CollectionItemIndirectReference()
         {
         }
 
-        public CollectableIndirectReference(TObject collectableScriptableObject)
+        public CollectionItemIndirectReference(TObject item)
         {
-            FromCollectable(collectableScriptableObject);
+            FromCollectionItem(item);
         }
 
-        public void FromCollectable(CollectableScriptableObject collectableScriptableObject)
+        [Obsolete("FromCollectable is deprecated, use FromCollectionItem instead")]
+        public void FromCollectable(ScriptableObjectCollectionItem item)
         {
-            collectableGUID = collectableScriptableObject.GUID;
-            collectionGUID = collectableScriptableObject.Collection.GUID;
+            FromCollectionItem(item);
+        }
+
+        public void FromCollectionItem(ScriptableObjectCollectionItem item)
+        {
+            collectionItemGUID = item.GUID;
+            collectionGUID = item.Collection.GUID;
         }
     }
 }

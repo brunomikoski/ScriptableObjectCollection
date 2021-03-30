@@ -28,6 +28,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             [SerializeField]
             internal string customStaticFileName;
+
+            [SerializeField]
+            internal string customStaticFileNamespace;
         }
         
 #if UNITY_EDITOR
@@ -70,14 +73,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public string GetGeneratedStaticFileName(ScriptableObjectCollection collection)
         {
             if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
-                return collection.GetCollectableType().Name;
+                return collection.GetItemType().Name;
 
             if (string.IsNullOrEmpty(settings.customStaticFileName))
-                return collection.GetCollectableType().Name;
+                return collection.GetItemType().Name;
             
             return settings.customStaticFileName;
         }
 
+        public string GetGeneratedStaticFileNamespace(ScriptableObjectCollection collection)
+        {
+            if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
+                return collection.GetItemType().Namespace;
+
+            if (string.IsNullOrEmpty(settings.customStaticFileNamespace))
+                return collection.GetItemType().Namespace;
+            
+            return settings.customStaticFileNamespace;
+        }
+        
         public bool IsCollectionAutomaticallyLoaded(ScriptableObjectCollection collection)
         {
             if (!TryGetSettingsForCollection(collection, out CollectionToSettings settings))
@@ -146,6 +160,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
             settings.customStaticFileName = targetName;
+            ObjectUtility.SetDirty(this);
+        }
+        
+        public void SetGenerateCustomStaticFileNamespace(ScriptableObjectCollection targetCollection, string targetNamespace)
+        {
+            CollectionToSettings settings = GetOrCreateSettingsForCollection(targetCollection);
+            settings.customStaticFileNamespace = targetNamespace;
             ObjectUtility.SetDirty(this);
         }
 

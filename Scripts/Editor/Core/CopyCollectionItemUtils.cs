@@ -2,16 +2,16 @@
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public static class CopyCollectableUtils
+    public static class CopyCollectionItemUtils
     {
-        private static CollectableScriptableObject source;
+        private static ScriptableObjectCollectionItem source;
 
-        public static void SetSource(CollectableScriptableObject targetSource)
+        public static void SetSource(ScriptableObjectCollectionItem targetSource)
         {
             source = targetSource;
         }
 
-        public static bool CanPasteToTarget(CollectableScriptableObject target)
+        public static bool CanPasteToTarget(ScriptableObjectCollectionItem target)
         {
             if (source == null)
                 return false;
@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return target.GetType() == source.GetType();
         }
         
-        public static void ApplySourceToStart(CollectableScriptableObject target)
+        public static void ApplySourceToStart(ScriptableObjectCollectionItem target)
         {
             if (source == null)
                 return;

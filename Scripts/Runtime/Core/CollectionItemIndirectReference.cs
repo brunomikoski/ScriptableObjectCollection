@@ -78,6 +78,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             FromCollectionItem(item);
         }
 
+        [Obsolete("FromCollectable is deprecated, use FromCollectionItem instead")]
+        public void FromCollectable(ScriptableObjectCollectionItem item)
+        {
+            FromCollectionItem(item);
+        }
+
         public void FromCollectionItem(ScriptableObjectCollectionItem item)
         {
             collectionItemGUID = item.GUID;

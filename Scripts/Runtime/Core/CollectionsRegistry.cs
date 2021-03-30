@@ -15,6 +15,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [SerializeField]
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
+        public IReadOnlyList<ScriptableObjectCollection> Collections => collections;
+
         [SerializeField, HideInInspector]
         private List<string> collectionGUIDs = new List<string>();
         

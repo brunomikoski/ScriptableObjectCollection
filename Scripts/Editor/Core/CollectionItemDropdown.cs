@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -10,7 +9,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public sealed class CollectionItemDropdown : AdvancedDropdown
     {
         private const string CREATE_NEW_TEXT = "+ Create New";
-        private ScriptableObjectCollection collection;
+        private readonly ScriptableObjectCollection collection;
         private Action<ScriptableObjectCollectionItem> callback;
 
         public CollectionItemDropdown(AdvancedDropdownState state, ScriptableObjectCollection collection) : base(state)
@@ -45,7 +44,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ScriptableObjectCollectionItem collectionItem = collection.AddNew(collection.GetItemType());
                 callback?.Invoke(collectionItem);
                 Selection.objects = new Object[] {collection};
-                CollectionCustomEditor.LastAddedEnum = collectionItem;
+                CollectionCustomEditor.SetLastAddedEnum(collectionItem);
                 return;
             }
             

@@ -6,7 +6,6 @@ using UnityEditor.Callbacks;
 using UnityEditor.Compilation;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -14,7 +13,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class CollectionCustomEditor : Editor
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
-        
+        private static ScriptableObjectCollectionItem LAST_ADDED_COLLECTION_ITEM;
+
         [Flags]
         private enum Warning
         {
@@ -30,9 +30,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private SearchField searchField;
         private bool showSettings;
         private Warning warnings;
-        public static ScriptableObjectCollectionItem LastAddedEnum;
 
-        private static bool isWaitingForNewTypeBeCreated
+        private static bool IsWaitingForNewTypeBeCreated
         {
             get => EditorPrefs.GetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, false);
             set => EditorPrefs.SetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, value);
@@ -252,7 +251,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (success)
                 {
-                    isWaitingForNewTypeBeCreated = true;
+                    IsWaitingForNewTypeBeCreated = true;
                 }
             });
         }
@@ -260,10 +259,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [DidReloadScripts]
         public static void AfterStaticAssemblyReload()
         {
-            if (!isWaitingForNewTypeBeCreated)
+            if (!IsWaitingForNewTypeBeCreated)
                 return;
 
-            isWaitingForNewTypeBeCreated = false;
+            IsWaitingForNewTypeBeCreated = false;
 
             string lastGeneratedCollectionScriptPath = CreateNewCollectionItemFromBaseWizzard.LastGeneratedCollectionScriptPath;
             string lastCollectionFullName = CreateNewCollectionItemFromBaseWizzard.LastCollectionFullName;
@@ -282,7 +281,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 out ScriptableObjectCollection collection))
             {
                 Selection.activeObject = null;
-                LastAddedEnum =  collection.AddNew(targetType);
+                LAST_ADDED_COLLECTION_ITEM =  collection.AddNew(targetType);
                 EditorApplication.delayCall += () =>
                 {
                     Selection.activeObject = collection;
@@ -292,7 +291,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
  
         private void AddNewItemOfType(Type targetType)
         {
-            LastAddedEnum = collection.AddNew(targetType);
+            LAST_ADDED_COLLECTION_ITEM = collection.AddNew(targetType);
             filteredItemListDirty = true;
         }
 
@@ -358,10 +357,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             CollectionEditorGUI.ItemNameStyle, GUILayout.ExpandWidth(true)
                         );
 
-                        if (LastAddedEnum == collectionItem)
+                        if (LAST_ADDED_COLLECTION_ITEM == collectionItem)
                         {
                             EditorGUI.FocusTextInControl(collectionItem.GUID);
-                            LastAddedEnum = null;
+                            LAST_ADDED_COLLECTION_ITEM = null;
                         }
                         
                         if (changeCheck.changed)
@@ -375,18 +374,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             {
                                 AssetDatabaseUtils.RenameAsset(collectionItem, newName);
                             }
-                        }
-                        else
-                        {
-                            //Disabled for now.
-                            // Type collectionType = collectionItem.GetType();
-                            // Type collectionBaseType = collectionItem.GetType().BaseType;
-                            // if (collectionBaseType != null && collection.GetItemType().IsAssignableFrom(collectionBaseType))
-                            // {
-                            //     GUI.enabled = false;
-                            //     EditorGUILayout.LabelField($"{collectionType.Name}", CollectionEditorGUI.SubtypeNameStyle);
-                            //     GUI.enabled = true;
-                            // }
                         }
                     }
 
@@ -603,6 +590,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     EditorGUI.indentLevel--;
                 }
             }
+        }
+
+        public static void SetLastAddedEnum(ScriptableObjectCollectionItem collectionItem)
+        {
+            LAST_ADDED_COLLECTION_ITEM = collectionItem;
         }
     }
 }

@@ -7,7 +7,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public sealed class CollectionsDropDown : AdvancedDropdown
     {
-        private ScriptableObjectCollection[] availableCollections;
+        private readonly ScriptableObjectCollection[] availableCollections;
         private Action<ScriptableObjectCollection> callback;
 
         public CollectionsDropDown(AdvancedDropdownState state, ScriptableObjectCollection[] scriptableObjectCollections) : base(state)

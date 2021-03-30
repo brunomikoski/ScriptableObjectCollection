@@ -57,10 +57,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return true;
         }
         
-        private static string GetIndentation(int identation)
+        private static string GetIndentation(int indentation)
         {
             StringBuilder stringBuilder = new StringBuilder();
-            for (int i = 0; i < identation; i++)
+            for (int i = 0; i < indentation; i++)
             {
                 stringBuilder.Append("    ");
             }
@@ -68,7 +68,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return stringBuilder.ToString();
         }
 
-        public static void AppendHeader(StreamWriter writer, ref int identation, string nameSpace, string classAttributes, string className,
+        private static void AppendHeader(StreamWriter writer, ref int indentation, string nameSpace, string classAttributes, string className,
             bool isPartial, bool isStatic, params string[] directives)
         {
             writer.WriteLine("//  Automatically generated");
@@ -92,14 +92,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 writer.WriteLine($"namespace {nameSpace}");
                 writer.WriteLine("{");
 
-                identation++;
+                indentation++;
             }
 
             if (!string.IsNullOrEmpty(classAttributes))
-                writer.WriteLine($"{GetIndentation(identation)}{classAttributes}");
+                writer.WriteLine($"{GetIndentation(indentation)}{classAttributes}");
             
             string finalClassDeclaration = "";
-            finalClassDeclaration += GetIndentation(identation);
+            finalClassDeclaration += GetIndentation(indentation);
             finalClassDeclaration += "public ";
             if (isStatic)
                 finalClassDeclaration += "static ";
@@ -111,13 +111,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             finalClassDeclaration += className;
             
             writer.WriteLine(finalClassDeclaration);
-            writer.WriteLine(GetIndentation(identation) + "{");
+            writer.WriteLine(GetIndentation(indentation) + "{");
 
-            identation++;
+            indentation++;
         }
         
         
-        public static void AppendHeader(StreamWriter writer, ref int identation, string nameSpace, string classAttributes, string classDeclaration, params string[] directives)
+        public static void AppendHeader(StreamWriter writer, ref int indentation, string nameSpace, string classAttributes, string classDeclaration, params string[] directives)
         {
             writer.WriteLine("//  Automatically generated");
             writer.WriteLine("//");
@@ -140,37 +140,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 writer.WriteLine($"namespace {nameSpace}");
                 writer.WriteLine("{");
 
-                identation++;
+                indentation++;
             }
 
             if (!string.IsNullOrEmpty(classAttributes))
-                writer.WriteLine($"{GetIndentation(identation)}{classAttributes}");
+                writer.WriteLine($"{GetIndentation(indentation)}{classAttributes}");
 
-            writer.WriteLine($"{GetIndentation(identation)}{classDeclaration}");
-            writer.WriteLine(GetIndentation(identation) + "{");
+            writer.WriteLine($"{GetIndentation(indentation)}{classDeclaration}");
+            writer.WriteLine(GetIndentation(indentation) + "{");
 
-            identation++;
+            indentation++;
         }
         
 
-        public static void AppendLine(StreamWriter writer, int identation, string input = "")
+        public static void AppendLine(StreamWriter writer, int indentation, string input = "")
         {
-            writer.WriteLine($"{GetIndentation(identation)}{input}");
+            writer.WriteLine($"{GetIndentation(indentation)}{input}");
         }
 
-        public static void AppendFooter(StreamWriter writer, ref int identation, string nameSpace)
+        public static void AppendFooter(StreamWriter writer, ref int indentation, string nameSpace)
         {
             bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
             if (hasNameSpace)
             {
-                writer.WriteLine($"{GetIndentation(identation)}" + "}");
-                identation--;
-                writer.WriteLine($"{GetIndentation(identation)}" + "}");
+                writer.WriteLine($"{GetIndentation(indentation)}" + "}");
+                indentation--;
+                writer.WriteLine($"{GetIndentation(indentation)}" + "}");
             }
             else
             {
-                identation--;
-                writer.WriteLine($"{GetIndentation(identation)}" + "}");
+                indentation--;
+                writer.WriteLine($"{GetIndentation(indentation)}" + "}");
             }
         }
 
@@ -183,7 +183,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             string fileName = GetFileName(collection);
-            string nameSpace = GetNamespace(collection);;
+            string nameSpace = GetNamespace(collection);
            
             string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
 
@@ -289,8 +289,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation)
         {
-            bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
-
             string cachedValuesName = "values";
             AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
 

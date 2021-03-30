@@ -11,12 +11,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
     public class CollectionItemItemObjectPropertyDrawer : PropertyDrawer
     {
-        private static readonly CollectionItemEditorOptionsAttribute defaultAttribute
+        private static readonly CollectionItemEditorOptionsAttribute DefaultAttribute
             = new CollectionItemEditorOptionsAttribute(DrawType.Dropdown);
 
         private CollectionItemEditorOptionsAttribute cachedOptionsAttribute;
 
-        private CollectionItemEditorOptionsAttribute optionsAttribute
+        private CollectionItemEditorOptionsAttribute OptionsAttribute
         {
             get
             {
@@ -30,8 +30,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private ScriptableObjectCollection collection;
         
         private ScriptableObjectCollectionItem[] options;
-        private string[] optionsNames;
-        private GUIContent[] GUIContents;
+        private GUIContent[] guiContents;
         
         private ScriptableObjectCollectionItem item;
         private Object currentObject;
@@ -55,17 +54,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private CollectionItemEditorOptionsAttribute GetOptionsAttribute()
         {
             if (fieldInfo == null)
-                return defaultAttribute;
+                return DefaultAttribute;
             object[] attributes
                 = fieldInfo.GetCustomAttributes(typeof(CollectionItemEditorOptionsAttribute), false);
             if (attributes.Length > 0)
                 return attributes[0] as CollectionItemEditorOptionsAttribute;
-            return defaultAttribute;
+            return DefaultAttribute;
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (singleCollection || optionsAttribute.DrawType == DrawType.AsReference)
+            if (singleCollection || OptionsAttribute.DrawType == DrawType.AsReference)
                 return base.GetPropertyHeight(property, label);
             
             return (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2;
@@ -76,7 +75,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Initialize(property);
             
 
-            if (optionsAttribute.DrawType == DrawType.AsReference)
+            if (OptionsAttribute.DrawType == DrawType.AsReference)
             {
                 EditorGUI.PropertyField(position, property, label, true);
                 return;  
@@ -97,7 +96,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (!singleCollection)
                 {
-                    DrawSearcheableCollection(ref popupRect, property);
+                    DrawCollectionDropDown(ref popupRect, property);
                     popupRect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                 }
                 
@@ -107,7 +106,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     DrawGotoButton(ref popupRect);
                 }
                 
-                DrawSearchableCollectionItem(ref popupRect, property);
+                DrawCollectionItemDropDown(ref popupRect, property);
 
                 if (item != null)
                 {
@@ -138,7 +137,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawSearcheableCollection(ref Rect popupRect, SerializedProperty property)
+        private void DrawCollectionDropDown(ref Rect popupRect, SerializedProperty property)
         {
             int index = 0;
             if (collection != null)
@@ -169,8 +168,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             List<string> displayOptions = collection.Items.Select(o => o.name).ToList();
             displayOptions.Insert(0, CollectionEditorGUI.DEFAULT_NONE_ITEM_TEXT);
             
-            optionsNames = displayOptions.ToArray();
-            GUIContents = optionsNames.Select(s => new GUIContent(s)).ToArray();
+            string[] optionsNames = displayOptions.ToArray();
+            guiContents = optionsNames.Select(s => new GUIContent(s)).ToArray();
             collectionItemDropdown = new CollectionItemDropdown(new AdvancedDropdownState(), collection);
         }
 
@@ -178,18 +177,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (initialized)
                 return;
-            
-            Type itemType;
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
-            if (arrayOrListType != null)
-                itemType = arrayOrListType;
-            else
-                itemType = fieldInfo.FieldType;
+            Type itemType = arrayOrListType != null ? arrayOrListType : fieldInfo.FieldType;
             
             availableCollections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType).ToArray();
             if (availableCollections.Length == 0)
             {
-                optionsAttribute.DrawType = DrawType.AsReference;
+                OptionsAttribute.DrawType = DrawType.AsReference;
                 return;
             }
             
@@ -222,20 +216,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             initialized = true;
         }
 
-        private void DrawSearchableCollectionItem(ref Rect position, SerializedProperty property)
+        private void DrawCollectionItemDropDown(ref Rect position, SerializedProperty property)
         {
             bool guiEnabled = GUI.enabled;
             if (collection == null)
                 GUI.enabled = false;
-            
-            int selectedIndex = 0;
-
             GUIContent displayValue = new GUIContent("Select Collection First");
 
             if (collection != null)
             {
-                selectedIndex = Array.IndexOf(options, item) + 1;
-                displayValue = GUIContents[selectedIndex];
+                int selectedIndex = Array.IndexOf(options, item) + 1;
+                displayValue = guiContents[selectedIndex];
             }
             
             if (GUI.Button(position, displayValue, EditorStyles.popup))
@@ -249,8 +240,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             GUI.enabled = guiEnabled;
         }
-        
-        public void DrawGotoButton(ref Rect popupRect)
+
+        private void DrawGotoButton(ref Rect popupRect)
         {
             Rect buttonRect = popupRect;
             buttonRect.width = 30;

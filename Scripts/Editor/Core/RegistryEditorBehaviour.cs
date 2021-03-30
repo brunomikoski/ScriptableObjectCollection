@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEditor.Callbacks;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -7,14 +8,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         static RegistryEditorBehaviour()
         {
-         
-            EditorApplication.playModeStateChanged += EditorApplicationOnplayModeStateChanged;
+            EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
-        private static void EditorApplicationOnplayModeStateChanged(PlayModeStateChange playModeStateChange)
+        [DidReloadScripts]
+        private static void AfterScriptsReload()
+        {
+            CollectionsRegistry.Instance.ReloadCollections();
+        }
+
+        private static void OnPlayModeStateChanged(PlayModeStateChange playModeStateChange)
         {
             if (playModeStateChange == PlayModeStateChange.EnteredPlayMode)
-            {
+            {                
+                CollectionsRegistry.Instance.ReloadCollections();
                 CollectionsRegistry.Instance.RemoveNonAutomaticallyInitializedCollections();
             }
             else if (playModeStateChange == PlayModeStateChange.EnteredEditMode)

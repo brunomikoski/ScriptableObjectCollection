@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+using UnityEditor.Compilation;
+
+#endif
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -205,29 +210,35 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #if UNITY_EDITOR
             if (Application.isPlaying)
                 return;
-            
-            string[] collectionsGUIDs = UnityEditor.AssetDatabase.FindAssets($"t:{nameof(ScriptableObjectCollection)}");
 
             collections.Clear();
             collectionGUIDs.Clear();
-            
-            for (int i = 0; i < collectionsGUIDs.Length; i++)
+
+            bool changed = false;
+            List<Type> types = TypeUtility.GetAllSubclasses(typeof(ScriptableObjectCollection));
+            for (int i = 0; i < types.Count; i++)
             {
-                string collectionGUID = collectionsGUIDs[i];
+                Type type = types[i];
+                string[] typeGUIDs = AssetDatabase.FindAssets($"t:{type.Name}");
 
-                ScriptableObjectCollection collection =
-                    UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(
-                        UnityEditor.AssetDatabase.GUIDToAssetPath(collectionGUID));
+                for (int j = 0; j < typeGUIDs.Length; j++)
+                {
+                    string typeGUID = typeGUIDs[j];
+                    ScriptableObjectCollection collection = 
+                        AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(AssetDatabase.GUIDToAssetPath(typeGUID));
 
-                if (collection == null)
-                    continue;
+                    if (collection == null)
+                        continue;
 
-                collection.RefreshCollection();
-                collections.Add(collection);
-                collectionGUIDs.Add(collection.GUID);
+                    collection.RefreshCollection();
+                    collections.Add(collection);
+                    collectionGUIDs.Add(collection.GUID);
+                    changed = true;
+                }
             }
 
-            ObjectUtility.SetDirty(this);
+            if (changed)
+                ObjectUtility.SetDirty(this);
 #endif
         }
         
@@ -245,6 +256,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
+                
                 if (ScriptableObjectCollectionSettings.Instance.IsCollectionAutomaticallyLoaded(collection))
                     continue;
 

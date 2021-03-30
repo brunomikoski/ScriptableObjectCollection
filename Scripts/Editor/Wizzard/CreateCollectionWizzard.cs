@@ -16,6 +16,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string LAST_COLLECTION_FULL_NAME_KEY = "CollectionFullNameKey";
         private const string LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY = "CollectionScriptPathKey";
         private const string LAST_TARGET_SCRIPTS_FOLDER_KEY = "LastTargetScriptsFolder";
+        
+        private static CreateCollectionWizzard WINDOW_INSTANCE;
+        private static string TARGET_FOLDER;
+
 
         private DefaultAsset cachedScriptableObjectFolder;
         private DefaultAsset ScriptableObjectFolder
@@ -25,9 +29,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (cachedScriptableObjectFolder != null) 
                     return cachedScriptableObjectFolder;
 
-                if (!string.IsNullOrEmpty(targetFolder))
+                if (!string.IsNullOrEmpty(TARGET_FOLDER))
                 {
-                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
+                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TARGET_FOLDER);
                     return cachedScriptableObjectFolder;
                 }
 
@@ -61,9 +65,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     return cachedScriptsFolder;
                 }
                 
-                if (!string.IsNullOrEmpty(targetFolder))
+                if (!string.IsNullOrEmpty(TARGET_FOLDER))
                 {
-                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
+                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TARGET_FOLDER);
                     return cachedScriptsFolder;
                 }
                 
@@ -125,25 +129,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private string collectionName = "Collection";
         private string collectionItemName = "Item";
-        private static string targetFolder;
         private bool generateIndirectAccess = true;
         
-        private static CreateCollectionWizzard windowInstance;
 
-        public static CreateCollectionWizzard GetWindowInstance()
+        private static CreateCollectionWizzard GetWindowInstance()
         {
-            if (windowInstance == null)
+            if (WINDOW_INSTANCE == null)
             {
-                windowInstance =  CreateInstance<CreateCollectionWizzard>();
-                windowInstance.titleContent = new GUIContent("Create New Collection");
+                WINDOW_INSTANCE =  CreateInstance<CreateCollectionWizzard>();
+                WINDOW_INSTANCE.titleContent = new GUIContent("Create New Collection");
             }
 
-            return windowInstance;
+            return WINDOW_INSTANCE;
         }
         
         public static void Show(string targetPath)
         {
-            targetFolder = targetPath;
+            TARGET_FOLDER = targetPath;
             GetWindowInstance().ShowUtility();
         }
 
@@ -292,12 +294,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private bool CreateCollectionScript()
         {
-            string targetFolder = AssetDatabase.GetAssetPath(ScriptsFolder);
+            string folder = AssetDatabase.GetAssetPath(ScriptsFolder);
             if (createFoldForThisCollectionScripts)
-                targetFolder = Path.Combine(targetFolder, $"{collectionName}");
+                folder = Path.Combine(folder, $"{collectionName}");
 
             bool result = CodeGenerationUtility.CreateNewEmptyScript(collectionName,
-                targetFolder,
+                folder,
                 TargetNameSpace,
                 $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {collectionName}\", fileName = \"{collectionName}\", order = 0)]",
                 $"public class {collectionName} : ScriptableObjectCollection<{collectionItemName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
@@ -307,7 +309,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             else
                 LastCollectionFullName = $"{TargetNameSpace}.{collectionName}";
 
-            LastGeneratedCollectionScriptPath = Path.Combine(targetFolder, $"{collectionName}.cs");
+            LastGeneratedCollectionScriptPath = Path.Combine(folder, $"{collectionName}.cs");
             return result;
         }
 

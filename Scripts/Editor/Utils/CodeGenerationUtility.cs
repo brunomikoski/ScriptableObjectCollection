@@ -178,10 +178,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string fileName = $"{collection.GetItemType().Name}Static";
             bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
-            if (isGeneratingCustomStaticFile)
-                fileName = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
-            
             string nameSpace = collection.GetItemType().Namespace;
+
+            if (isGeneratingCustomStaticFile)
+            {
+                fileName = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
+                nameSpace = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileNamespace(collection);
+            }
+           
             string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
 
             if (string.IsNullOrEmpty(finalFolder))

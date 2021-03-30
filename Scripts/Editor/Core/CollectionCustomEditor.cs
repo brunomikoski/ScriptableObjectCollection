@@ -581,6 +581,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                     collection, customStaticFileName);
                             }
                         }
+                        
+                        
+                        string customNamespace =
+                            ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileNamespace(collection);
+                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                        {
+                            customNamespace = EditorGUILayout.TextField("Static Class Namespace", customNamespace);
+                        
+                            if (changeCheck.changed)
+                            {
+                                ScriptableObjectCollectionSettings.Instance.SetGenerateCustomStaticFileNamespace(
+                                    collection, customNamespace);
+                            }
+                        }
+                        
                         EditorGUI.indentLevel--;
                     }
 

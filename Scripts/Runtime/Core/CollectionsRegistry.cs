@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -93,6 +94,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        public List<ScriptableObjectCollection> GetCollectionsByItemType<T>() where T : ScriptableObjectCollectionItem
+        {
+            return GetCollectionsByItemType(typeof(T));
+        }
+
+        public List<ScriptableObjectCollection> GetCollectionsByItemType(Type targetCollectionItemType)
+        {
+            List<ScriptableObjectCollection> result = new List<ScriptableObjectCollection>();
+
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (scriptableObjectCollection.GetItemType().IsAssignableFrom(targetCollectionItemType))
+                {
+                    result.Add(scriptableObjectCollection);
+                }
+            }
+
+            return result;
+        }
         
         public ScriptableObjectCollection GetCollectionByGUID(string guid)
         {

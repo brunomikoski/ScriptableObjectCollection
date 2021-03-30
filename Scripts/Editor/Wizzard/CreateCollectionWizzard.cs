@@ -299,7 +299,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             bool result = CodeGenerationUtility.CreateNewEmptyScript(collectionName,
                 targetFolder,
                 TargetNameSpace,
-                $"",
+                $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {collectionName}\", fileName = \"{collectionName}\", order = 0)]",
                 $"public class {collectionName} : ScriptableObjectCollection<{collectionItemName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
 
             if (string.IsNullOrEmpty(TargetNameSpace))

@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the `GetEnumerator` from `Collection` warning
 - The `CollectionRegistry` now will only load Collections that are inside an active Assembly.
 - Exposed the `Collections` list on the Registry
-
+ 
 ### Added
 - A new information on the Collection custom editor to show the base class if is different from the collection type
 - Exposed the namespace to be customized by the custom static file

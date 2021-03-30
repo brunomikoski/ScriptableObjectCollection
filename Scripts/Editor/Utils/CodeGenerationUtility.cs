@@ -176,26 +176,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            string fileName = $"{collection.GetItemType().Name}Static";
-            bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
-            string nameSpace = collection.GetItemType().Namespace;
-
-            if (isGeneratingCustomStaticFile)
+            if (!CanGenerateStaticFile(collection, out string errorMessage))
             {
-                fileName = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
-                nameSpace = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileNamespace(collection);
+                Debug.LogError(errorMessage);
+                return;
             }
+
+            string fileName = GetFileName(collection);
+            string nameSpace = GetNamespace(collection);;
            
             string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
 
-            if (string.IsNullOrEmpty(finalFolder))
-            {
-                Debug.LogError("Static Code Generation folder not assigned, please assign it on the ScriptableObjectCollectionSettings");
-                EditorGUIUtility.PingObject(ScriptableObjectCollectionSettings.Instance);
-                Selection.objects = new Object[] {ScriptableObjectCollectionSettings.Instance};
-                return;
-            }
-            
             AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);
             using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.cs")))
             {
@@ -208,7 +199,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.Add("System.Linq");
                 directives.AddRange(GetCollectionDirectives(collection));
 
-                if (!isGeneratingCustomStaticFile)
+                if (!ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection))
                 {
                     AppendHeader(writer, ref indentation, nameSpace,"",
                         collection.GetItemType().Name, true, false, directives.Distinct().ToArray());
@@ -227,6 +218,63 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+
+        private static bool CanGenerateStaticFile(ScriptableObjectCollection collection, out string errorMessage)
+        {
+            string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
+
+            if (string.IsNullOrEmpty(finalFolder))
+            {
+                errorMessage = "Static Code Generation folder not assigned, please assign it on the ScriptableObjectCollectionSettings";
+                EditorGUIUtility.PingObject(ScriptableObjectCollectionSettings.Instance);
+                Selection.objects = new Object[] {ScriptableObjectCollectionSettings.Instance};
+                return false;
+            }
+            
+            List<ScriptableObjectCollection> collectionsOfSameType = CollectionsRegistry.Instance.GetCollectionsByItemType(collection.GetItemType());
+            if (collectionsOfSameType.Count > 1)
+            {
+                for (int i = 0; i < collectionsOfSameType.Count; i++)
+                {
+                    ScriptableObjectCollection collectionA = collectionsOfSameType[i];
+                    for (int j = 0; j < collectionsOfSameType.Count; j++)
+                    {
+                        if (i == j)
+                            continue;
+
+                        ScriptableObjectCollection collectionB = collectionsOfSameType[j];
+
+                        if (GetFileName(collectionA).Equals(GetFileName(collectionB))
+                            && GetNamespace(collectionA).Equals(GetNamespace(collectionB)))
+                        {
+                            errorMessage =
+                                "Two collections with the same name and namespace already exist, please use custom ones";
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            errorMessage = String.Empty;
+            return true;
+        }
+
+        private static string GetNamespace(ScriptableObjectCollection collection)
+        {
+            string targetNamespace = collection.GetItemType().Namespace;
+            if (ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection))
+                targetNamespace = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileNamespace(collection);
+            return targetNamespace;
+        }
+
+        private static string GetFileName(ScriptableObjectCollection collection)
+        {
+            string fileName = $"{collection.GetItemType().Name}Static";
+            if (ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection))
+                fileName = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
+
+            return fileName;
         }
 
         private static string[] GetCollectionDirectives(ScriptableObjectCollection collection)

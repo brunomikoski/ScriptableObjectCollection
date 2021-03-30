@@ -13,7 +13,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class CollectionCustomEditor : Editor
     {
-        public const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
+        private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         
         [Flags]
         private enum Warning

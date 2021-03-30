@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `IsValid` to IndirectReferences to check if has valid data before being used
 - Refactored `ResourceScriptableObjectSingleton` to fix some warnings
 - Fixed the `GetEnumerator` from `Collection` warning
-- 
+- The `CollectionRegistry` now will only load Collections that are inside an active Assembly.
 
 ### Added
 - A new information on the Collection custom editor to show the base class if is different from the collection type

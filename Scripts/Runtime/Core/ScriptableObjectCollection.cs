@@ -349,7 +349,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
-        [Obsolete("Use TryGetItemByGUID instead")]
+        [Obsolete("TryGetCollectableByGUID is deprecated, Use TryGetItemByGUID instead")]
         public bool TryGetCollectableByGUID(string itemGUID, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
         {
             return TryGetItemByGUID(itemGUID, out scriptableObjectCollectionItem);
@@ -466,7 +466,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         } 
 #endif
 
-        [Obsolete("Use GetItemByGUID instead")]
+        [Obsolete("GetCollectableByGUID is deprecated, Use GetItemByGUID instead")]
         public ObjectType GetCollectableByGUID(string targetGUID)
         {
             return GetItemByGUID(targetGUID);   

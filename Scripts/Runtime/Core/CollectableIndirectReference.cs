@@ -2,7 +2,7 @@
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    [Obsolete("CollectableIndirectReference have been renamed to CollectionItemIndirectReference")]
+    [Obsolete("CollectableIndirectReference is deprecated, use CollectionItemIndirectReference instead")]
     public abstract class CollectableIndirectReference<TObject> : CollectionItemIndirectReference<TObject>
     where TObject : ScriptableObjectCollectionItem { }
 }

@@ -2,7 +2,7 @@
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    [Obsolete("CollectableScriptableObject have been renamed to ScriptableObjectCollectionItem")]
+    [Obsolete("CollectableScriptableObject is deprecated use ScriptableObjectCollectionItem instead")]
     public class CollectableScriptableObject : ScriptableObjectCollectionItem
     {
         

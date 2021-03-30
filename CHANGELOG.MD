@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - A new information on the Collection custom editor to show the base class if is different from the collection type
--
+- Exposed the namespace to be customized by the custom static file
 
 ### Removed
 - Removed the CreateAssetMenu from the generated code by wizzard, since multiple collections of the same type can cause issues. 

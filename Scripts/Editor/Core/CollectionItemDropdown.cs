@@ -14,7 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private Action<ScriptableObjectCollectionItem> callback;
         private readonly List<ScriptableObjectCollection> collections;
 
-        private Type itemType;
+        private readonly Type itemType;
 
         public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType) : base(state)
         {

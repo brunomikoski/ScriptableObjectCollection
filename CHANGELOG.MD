@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.1]
+### Changed
+- Simplified the multiple collection display to be a single line again, showing all the available items inside the `AdvancedDropdown`
+
 ## [1.5.0]
 ### Changed
 - Refactored the `Collectable` for `CollectionItem` this has several changes in multiple parts of the code, I tried my best to keep compability with the old version as well.
@@ -209,7 +213,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### [Unreleased]
 
 
-
+[1.5.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.1
+[1.5.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.0
 [1.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.4.1
 [1.4.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.4.0
 [1.3.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.3.2

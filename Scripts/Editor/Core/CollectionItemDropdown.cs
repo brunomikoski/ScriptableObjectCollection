@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -9,29 +11,50 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public sealed class CollectionItemDropdown : AdvancedDropdown
     {
         private const string CREATE_NEW_TEXT = "+ Create New";
-        private readonly ScriptableObjectCollection collection;
         private Action<ScriptableObjectCollectionItem> callback;
+        private readonly List<ScriptableObjectCollection> collections;
 
-        public CollectionItemDropdown(AdvancedDropdownState state, ScriptableObjectCollection collection) : base(state)
+        private readonly Type itemType;
+
+        public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType) : base(state)
         {
-            this.collection = collection;
-            this.minimumSize = new Vector2(200, 300);
+            itemType = targetItemType;
+            collections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType);
+            minimumSize = new Vector2(200, 300);
         }
 
         protected override AdvancedDropdownItem BuildRoot()
         {
-            Type collectionItemType = collection.GetItemType();
-            AdvancedDropdownItem root = new AdvancedDropdownItem(collectionItemType.Name);
+            AdvancedDropdownItem root = new AdvancedDropdownItem(itemType.Name);
 
             root.AddChild(new AdvancedDropdownItem("None"));
             root.AddSeparator();
-            for (int i = 0; i < collection.Count; i++)
+
+            AdvancedDropdownItem targetParent = root;
+            bool multipleCollections = collections.Count > 1;
+            for (int i = 0; i < collections.Count; i++)
             {
-                ScriptableObjectCollectionItem collectionItem = collection[i];
-                root.AddChild(new CollectionItemDropdownItem(collectionItem));
+                ScriptableObjectCollection collection = collections[i];
+                
+                if (multipleCollections)
+                {
+                    AdvancedDropdownItem collectionParent = new AdvancedDropdownItem(collection.name);
+                    root.AddChild(collectionParent);
+                    targetParent = collectionParent;
+                }
+
+                for (int j = 0; j < collection.Count; j++)
+                {
+                    ScriptableObjectCollectionItem collectionItem = collection[j];
+                    targetParent.AddChild(new CollectionItemDropdownItem(collectionItem));
+                }
             }
-            root.AddSeparator();
-            root.AddChild(new AdvancedDropdownItem(CREATE_NEW_TEXT));
+
+            if (!multipleCollections)
+            {
+                root.AddSeparator();
+                root.AddChild(new AdvancedDropdownItem(CREATE_NEW_TEXT));
+            }
             return root;
         }
 
@@ -41,7 +64,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
-                ScriptableObjectCollectionItem collectionItem = collection.AddNew(collection.GetItemType());
+                ScriptableObjectCollection collection = collections.First();
+                ScriptableObjectCollectionItem collectionItem = collection.AddNew(itemType);
                 callback?.Invoke(collectionItem);
                 Selection.objects = new Object[] {collection};
                 CollectionCustomEditor.SetLastAddedEnum(collectionItem);

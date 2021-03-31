@@ -94,6 +94,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        public List<ScriptableObjectCollectionItem> GetAllCollectionItemsOfType(Type itemType)
+        {
+            List<ScriptableObjectCollectionItem> results = new List<ScriptableObjectCollectionItem>();
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (!scriptableObjectCollection.GetItemType().IsAssignableFrom(itemType))
+                    continue;
+
+                results.AddRange(scriptableObjectCollection.Items);
+            }
+
+            return results;
+        }
+        
         public List<ScriptableObjectCollection> GetCollectionsByItemType<T>() where T : ScriptableObjectCollectionItem
         {
             return GetCollectionsByItemType(typeof(T));

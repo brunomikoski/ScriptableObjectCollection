@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.Compilation;
 
 #endif
 
@@ -246,6 +244,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void ReloadCollections()
         {
 #if UNITY_EDITOR
+            if (Application.isBatchMode)
+                return;
+            
             if (Application.isPlaying)
                 return;
 

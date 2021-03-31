@@ -244,9 +244,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void ReloadCollections()
         {
 #if UNITY_EDITOR
-            if (Application.isBatchMode)
-                return;
-            
             if (Application.isPlaying)
                 return;
 

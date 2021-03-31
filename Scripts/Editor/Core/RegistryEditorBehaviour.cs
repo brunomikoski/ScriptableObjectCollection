@@ -1,5 +1,6 @@
 ﻿using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -14,6 +15,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [DidReloadScripts]
         private static void AfterScriptsReload()
         {
+            if (Application.isBatchMode)
+                return;
+
             CollectionsRegistry.Instance.ReloadCollections();
         }
 

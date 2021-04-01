@@ -12,15 +12,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
-        [DidReloadScripts]
-        private static void AfterScriptsReload()
-        {
-            if (Application.isBatchMode)
-                return;
-
-            CollectionsRegistry.Instance.ReloadCollections();
-        }
-
         private static void OnPlayModeStateChanged(PlayModeStateChange playModeStateChange)
         {
             if (playModeStateChange == PlayModeStateChange.EnteredPlayMode)

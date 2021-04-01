@@ -21,7 +21,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
         {
             if (!TryToLoadInstance(out T resultInstance))
             {
-#if UNITY_EDITOR
+#if !UNITY_EDITOR
+                return null;
+#else
                 resultInstance = CreateInstance<T>();
 
                 AssetDatabaseUtils.CreatePathIfDontExist("Assets/Resources");
@@ -30,7 +32,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
                 UnityEditor.AssetDatabase.Refresh();
                 return resultInstance;
 #endif         
-                return null;
             }
 
             return resultInstance;
@@ -38,10 +39,10 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
 
         public static bool Exist()
         {
-            return TryToLoadInstance<T>(out _);
+            return TryToLoadInstance(out _);
         }
 
-        private static bool TryToLoadInstance<T>(out T result) where T : ScriptableObject
+        private static bool TryToLoadInstance(out T result)
         {
             T newInstance = Resources.Load<T>(typeof(T).Name);
 

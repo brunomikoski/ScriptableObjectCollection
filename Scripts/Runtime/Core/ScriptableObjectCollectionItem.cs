@@ -17,12 +17,38 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
         [SerializeField, HideInInspector]
-        private ScriptableObjectCollection collection;
-        public ScriptableObjectCollection Collection => collection;
+        private string collectionGUID;
         
+        private ScriptableObjectCollection cachedScriptableObjectCollection;
+        public ScriptableObjectCollection Collection
+        {
+            get
+            {
+                if (cachedScriptableObjectCollection == null)
+                {
+                    if (!string.IsNullOrEmpty(collectionGUID))
+                    {
+                        cachedScriptableObjectCollection = CollectionsRegistry.Instance.GetCollectionByGUID(collectionGUID);
+                    }
+                    else
+                    {
+                        CollectionsRegistry.Instance.TryGetCollectionFromItemType(GetType(), out cachedScriptableObjectCollection);
+                        if (cachedScriptableObjectCollection != null)
+                        {
+                            collectionGUID = cachedScriptableObjectCollection.GUID;
+                            ObjectUtility.SetDirty(this);
+                        }
+                    }
+                }
+                
+                return cachedScriptableObjectCollection;
+            }
+        }
+
         public void SetCollection(ScriptableObjectCollection collection)
         {
-            this.collection = collection;
+            cachedScriptableObjectCollection = collection;
+            collectionGUID = cachedScriptableObjectCollection.GUID;
             ObjectUtility.SetDirty(this);
         }
 

@@ -60,7 +60,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => collectionGUID + ":" + collectionItemGUID;
             set
             {
-                var split = value.Split(':');
+                string[] split = value.Split(':');
                 if (split.Length == 2)
                 {
                     collectionGUID = split[0];

@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.4]
+### Changed
+- Removed the automatically reload of CollectionRegistry using the `DidReloadScripts` callback, this caused multiple issues on batch mode and on clear libraries
+- Converted the `Collection` reference on the `CollectionItem` to be a Lazy reference, since this was causing some dependency when using `CollectionItem` as addressables
+- Refactored the `ScriptableObjectSettings` this used to be a Resources object that was auto loaded, but this could also create unwanted dependencies between items. The settings for code generated are not stored inside the Collection itself. Make sure you delete the `ScriptableObjectsSettings` ScriptableObject inside your resources folder.
+- Added a bunch of validation and verification for the Generation of the static access, making sure it only allows partial classes when is possible and other small checks.
+- The settings are now on the Project Preferences where you can define the default folder for the Scriptable Objects and default namespace.
+
 ## [1.5.3]
 ### Changed
 - Disabled the reload of the collection after script reloading on batch mode. 
@@ -218,8 +226,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added 
  - First initial working version 
 
-### [Unreleased]
+### Unreleased
 
+
+
+[1.5.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.4
 [1.5.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.3
 [1.5.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.2
 [1.5.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.1

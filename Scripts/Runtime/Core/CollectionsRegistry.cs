@@ -4,7 +4,6 @@ using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
-
 #endif
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -281,24 +280,29 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void PreBuildProcess()
         {
             RemoveNonAutomaticallyInitializedCollections();
-            ObjectUtility.SetDirty(this);
 #if UNITY_EDITOR
-            UnityEditor.AssetDatabase.SaveAssets();
+            AssetDatabase.SaveAssets();
 #endif
         }
 
         public void RemoveNonAutomaticallyInitializedCollections()
         {
+#if UNITY_EDITOR
             for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
+
+                SerializedObject serializedObject = new SerializedObject(collection);
+                SerializedProperty automaticallyLoaded = serializedObject.FindProperty("automaticallyLoaded");
                 
-                if (ScriptableObjectCollectionSettings.Instance.IsCollectionAutomaticallyLoaded(collection))
+                if (automaticallyLoaded.boolValue)
                     continue;
 
                 collections.Remove(collection);
                 collectionGUIDs.Remove(collection.GUID);
             }
+            ObjectUtility.SetDirty(this);
+#endif
         }
 
         public void PostBuildProcess()

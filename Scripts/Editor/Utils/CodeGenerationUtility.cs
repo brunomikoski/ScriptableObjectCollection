@@ -182,10 +182,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
-            string fileName = GetFileName(collection);
-            string nameSpace = GetNamespace(collection);
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+
+
+            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
+            string nameSpace = collectionSerializedObject.FindProperty("generateStaticFileNamespace").stringValue;
            
-            string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
+            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
+            bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
+
 
             AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);
             using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.cs")))
@@ -198,17 +203,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.Add(typeof(List<>).Namespace);
                 directives.Add("System.Linq");
                 directives.AddRange(GetCollectionDirectives(collection));
-
-                if (!ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection))
-                {
-                    AppendHeader(writer, ref indentation, nameSpace,"",
-                        collection.GetItemType().Name, true, false, directives.Distinct().ToArray());
-                }
-                else
-                {
-                    AppendHeader(writer, ref indentation, nameSpace,"",
-                        fileName, false, false, directives.Distinct().ToArray());
-                }
+                string className = collection.GetItemType().Name;
+                if (!writeAsPartial)
+                    className = fileName;
+                
+                AppendHeader(writer, ref indentation, nameSpace, "", className,
+                    writeAsPartial,
+                    false, directives.Distinct().ToArray()
+                );
 
                 WriteDirectAccessCollectionStatic(collection, writer, ref indentation);
 
@@ -222,34 +224,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static bool CanGenerateStaticFile(ScriptableObjectCollection collection, out string errorMessage)
         {
-            string finalFolder = ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
-
-            if (string.IsNullOrEmpty(finalFolder))
-            {
-                errorMessage = "Static Code Generation folder not assigned, please assign it on the ScriptableObjectCollectionSettings";
-                EditorGUIUtility.PingObject(ScriptableObjectCollectionSettings.Instance);
-                Selection.objects = new Object[] {ScriptableObjectCollectionSettings.Instance};
-                return false;
-            }
-            
             List<ScriptableObjectCollection> collectionsOfSameType = CollectionsRegistry.Instance.GetCollectionsByItemType(collection.GetItemType());
             if (collectionsOfSameType.Count > 1)
             {
                 for (int i = 0; i < collectionsOfSameType.Count; i++)
                 {
                     ScriptableObjectCollection collectionA = collectionsOfSameType[i];
+                    SerializedObject collectionASerializedObject = new SerializedObject(collectionA);
                     for (int j = 0; j < collectionsOfSameType.Count; j++)
                     {
                         if (i == j)
                             continue;
 
                         ScriptableObjectCollection collectionB = collectionsOfSameType[j];
+                        SerializedObject collectionBSerializedObject = new SerializedObject(collectionB);
 
-                        if (GetFileName(collectionA).Equals(GetFileName(collectionB))
-                            && GetNamespace(collectionA).Equals(GetNamespace(collectionB)))
+                        if (collectionASerializedObject.FindProperty("generatedStaticClassFileName").stringValue.Equals(collectionBSerializedObject.FindProperty("generatedStaticClassFileName").stringValue)
+                            && collectionASerializedObject.FindProperty("generateStaticFileNamespace").stringValue.Equals(collectionASerializedObject.FindProperty("generateStaticFileNamespace").stringValue))
                         {
                             errorMessage =
-                                "Two collections with the same name and namespace already exist, please use custom ones";
+                                $"Two collections ({collectionA.name} and {collectionB.name}) with the same name and namespace already exist, please use custom ones";
                             return false;
                         }
                     }
@@ -259,24 +253,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             errorMessage = String.Empty;
             return true;
         }
-
-        private static string GetNamespace(ScriptableObjectCollection collection)
-        {
-            string targetNamespace = collection.GetItemType().Namespace;
-            if (ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection))
-                targetNamespace = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileNamespace(collection);
-            return targetNamespace;
-        }
-
-        private static string GetFileName(ScriptableObjectCollection collection)
-        {
-            string fileName = $"{collection.GetItemType().Name}Static";
-            if (ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection))
-                fileName = ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
-
-            return fileName;
-        }
-
+       
         private static string[] GetCollectionDirectives(ScriptableObjectCollection collection)
         {
             HashSet<string> directives = new HashSet<string>();

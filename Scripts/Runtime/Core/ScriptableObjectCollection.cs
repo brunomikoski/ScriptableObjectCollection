@@ -28,6 +28,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [NonSerialized]
         private bool isReadyOnlyListDirty = true;
+
+#pragma warning disable 0414
+        [SerializeField]
+        private bool automaticallyLoaded = true;
+#if UNITY_EDITOR
+        [SerializeField]
+        private bool generateAsPartialClass = true;
+        [SerializeField]
+        private string generatedFileLocationPath;
+        [SerializeField]
+        private string generatedStaticClassFileName;
+        [SerializeField]
+        private string generateStaticFileNamespace;
+#pragma warning restore 0414
+#endif
         
         private IReadOnlyList<ScriptableObjectCollectionItem> readOnlyList = new List<ScriptableObjectCollectionItem>();
         public IReadOnlyList<ScriptableObjectCollectionItem> Items
@@ -381,6 +396,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items = new List<ScriptableObjectCollectionItem>(editorSerializedItems);
             ObjectUtility.SetDirty(this);
         }
+
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>

@@ -7,8 +7,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CollectionUtility
     {
-        
-
         private static Dictionary<int, bool> objectToFoldOut = new Dictionary<int, bool>();
 
         [MenuItem("Assets/Create/ScriptableObject Collection/New Collection", false, 100)]
@@ -19,18 +17,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 targetPath = AssetDatabase.GetAssetPath(folder);
             
             CreateCollectionWizzard.Show(targetPath);
-        }
-        
-        [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", false, 200)]
-        private static void CreateSettings()
-        {
-            ScriptableObjectCollectionSettings.LoadOrCreateInstance();
-        }
-
-        [MenuItem("Assets/Create/ScriptableObject Collection/Create Settings", true, 200)]
-        private static bool CreateSettings_Validation()
-        {
-            return !ScriptableObjectCollectionSettings.Exist();
         }
 
         private static int GetHasCount(Object[] objects)

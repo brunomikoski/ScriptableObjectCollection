@@ -17,8 +17,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY = "CollectionScriptPathKey";
         private const string LAST_TARGET_SCRIPTS_FOLDER_KEY = "LastTargetScriptsFolder";
         
-        private static CreateCollectionWizzard WINDOW_INSTANCE;
-        private static string TARGET_FOLDER;
+        private static CreateCollectionWizzard windowInstance;
+        private static string targetFolder;
 
 
         private DefaultAsset cachedScriptableObjectFolder;
@@ -29,9 +29,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (cachedScriptableObjectFolder != null) 
                     return cachedScriptableObjectFolder;
 
-                if (!string.IsNullOrEmpty(TARGET_FOLDER))
+                if (!string.IsNullOrEmpty(targetFolder))
                 {
-                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TARGET_FOLDER);
+                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
                     return cachedScriptableObjectFolder;
                 }
 
@@ -41,11 +41,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     return cachedScriptableObjectFolder;
                 }
                 
-                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.DefaultScriptableObjectsFolder))
-                {
-                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                        ScriptableObjectCollectionSettings.Instance.DefaultScriptableObjectsFolder);
-                }
                 return cachedScriptableObjectFolder;
             }
             set => cachedScriptableObjectFolder = value;
@@ -65,17 +60,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     return cachedScriptsFolder;
                 }
                 
-                if (!string.IsNullOrEmpty(TARGET_FOLDER))
+                if (!string.IsNullOrEmpty(targetFolder))
                 {
-                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(TARGET_FOLDER);
+                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
                     return cachedScriptsFolder;
                 }
                 
-                if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.Instance.DefaultScriptsFolder))
-                {
-                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                        ScriptableObjectCollectionSettings.Instance.DefaultScriptsFolder);
-                }
                 return cachedScriptsFolder;
             }
             set => cachedScriptsFolder = value;
@@ -87,7 +77,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get
             {
                 if (string.IsNullOrEmpty(cachedNameSpace))
-                    cachedNameSpace = ScriptableObjectCollectionSettings.Instance.DefaultNamespace;
+                    cachedNameSpace = ScriptableObjectCollectionSettings.GetInstance().DefaultNamespace;
                 return cachedNameSpace;
             }
             set => cachedNameSpace = value;
@@ -134,18 +124,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static CreateCollectionWizzard GetWindowInstance()
         {
-            if (WINDOW_INSTANCE == null)
+            if (windowInstance == null)
             {
-                WINDOW_INSTANCE =  CreateInstance<CreateCollectionWizzard>();
-                WINDOW_INSTANCE.titleContent = new GUIContent("Create New Collection");
+                windowInstance =  CreateInstance<CreateCollectionWizzard>();
+                windowInstance.titleContent = new GUIContent("Create New Collection");
             }
 
-            return WINDOW_INSTANCE;
+            return windowInstance;
         }
         
         public static void Show(string targetPath)
         {
-            TARGET_FOLDER = targetPath;
+            targetFolder = targetPath;
             GetWindowInstance().ShowUtility();
         }
 

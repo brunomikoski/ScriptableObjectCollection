@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -15,12 +16,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         private static ScriptableObjectCollectionItem LAST_ADDED_COLLECTION_ITEM;
 
-        [Flags]
-        private enum Warning
-        {
-            PartialStaticFileInDifferentAssembly = 1 << 0
-        }
-        
         private ScriptableObjectCollection collection;
         private string searchString = "";
         
@@ -29,7 +24,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool filteredItemListDirty = true;
         private SearchField searchField;
         private bool showSettings;
-        private Warning warnings;
 
         private static bool IsWaitingForNewTypeBeCreated
         {
@@ -43,33 +37,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (!CollectionsRegistry.Instance.IsKnowCollectionGUID(collection.GUID))
                 CollectionsRegistry.Instance.ReloadCollections();
-            
 
             FixCollectionItems();
             ValidateGUIDS();
-            CheckForWarnings();
-        }
-
-        private void CheckForWarnings()
-        {
-            bool isGeneratingCustomStaticFile = ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
-            if (!isGeneratingCustomStaticFile)
-            {
-                MonoScript collectionMonoAsset = MonoScript.FromScriptableObject(collection);
-                string collectionScriptPath = AssetDatabase.GetAssetPath(collectionMonoAsset);
-                string collectionAssemblyPath = CompilationPipeline.GetAssemblyDefinitionFilePathFromScriptPath(collectionScriptPath);
-                if (!string.IsNullOrEmpty(collectionAssemblyPath))
-                {
-                    string generatedFilePath =  ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(collection);
-                    string staticAssembly =
-                        CompilationPipeline.GetAssemblyDefinitionFilePathFromScriptPath(generatedFilePath);
-
-                    if (!string.Equals(collectionAssemblyPath, staticAssembly, StringComparison.Ordinal))
-                    {
-                        warnings |= Warning.PartialStaticFileInDifferentAssembly;
-                    }
-                }
-            }
+            CheckGeneratedCodeLocation();
+            CheckIfCanBePartial();
+            CheckGeneratedStaticFileName();
+            CheckGeneratedStaticFileNamespace();
         }
 
         private void OnDisable()
@@ -112,19 +86,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 DrawBottomMenu();
             }
             DrawSettings();
-            DrawWarnings();
        }
-
-        private void DrawWarnings()
-        {
-            if (warnings.HasFlag(Warning.PartialStaticFileInDifferentAssembly))
-            {
-                EditorGUILayout.HelpBox(
-                    "Static File Location is on a different assembly from the Collection script Assembly, " +
-                    "please set to use a Custom Static File on the Collection Settings to generate a unique non-partial file",
-                    MessageType.Error);
-            }
-        }
 
         private void UpdateFilteredItemList()
         {
@@ -490,105 +452,172 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     EditorGUI.indentLevel++;
 
-                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                    {
-                        bool isAutomaticallyLoaded = EditorGUILayout.ToggleLeft("Automatically Loaded",
-                            ScriptableObjectCollectionSettings.Instance.IsCollectionAutomaticallyLoaded(
-                                collection));
-
-                        if (changeCheck.changed)
-                        {
-                            ScriptableObjectCollectionSettings.Instance.SetCollectionAutomaticallyLoaded(
-                                collection,
-                                isAutomaticallyLoaded);
-                        }
-                    }
-
-                    bool overwriteStaticFileLocation = false;
-                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                    {
-                        overwriteStaticFileLocation = EditorGUILayout.ToggleLeft(
-                            "Overwrite Static File Location",
-                            ScriptableObjectCollectionSettings.Instance.IsOverridingStaticFileLocation(collection));
-                        if (changeCheck.changed)
-                        {
-                            ScriptableObjectCollectionSettings.Instance.SetOverridingStaticFileLocation(
-                                collection, overwriteStaticFileLocation);
-                        }
-                    }
-
-                    if (overwriteStaticFileLocation)
-                    {
-                        EditorGUI.indentLevel++;
-
-                        DefaultAsset targetFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(
-                            ScriptableObjectCollectionSettings.Instance.GetStaticFileFolderForCollection(
-                                collection));
-                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                        {
-                            targetFolder = (DefaultAsset) EditorGUILayout.ObjectField("Target Folder",
-                                targetFolder,
-                                typeof(DefaultAsset), false);
-
-                            if (changeCheck.changed)
-                            {
-                                ScriptableObjectCollectionSettings.Instance.SetStaticFileFolderForCollection(
-                                    collection,
-                                    AssetDatabase.GetAssetPath(targetFolder));
-                            }
-                        }
-                        EditorGUI.indentLevel--;
-                    }
-
-                    bool generateCustomStaticFile =
-                        ScriptableObjectCollectionSettings.Instance.IsGeneratingCustomStaticFile(collection);
-                    using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                    {
-                        generateCustomStaticFile = EditorGUILayout.ToggleLeft("Custom Static file", generateCustomStaticFile);
-                        
-                        if (changeCheck.changed)
-                        {
-                            ScriptableObjectCollectionSettings.Instance.SetGenerateCustomStaticFile(
-                                collection, generateCustomStaticFile);
-                        }
-                    }
-
-                    if (generateCustomStaticFile)
-                    {
-                        EditorGUI.indentLevel++;
-
-                        string customStaticFileName =
-                            ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileName(collection);
-                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                        {
-                            customStaticFileName = EditorGUILayout.TextField("Static Class Name", customStaticFileName);
-                        
-                            if (changeCheck.changed)
-                            {
-                                ScriptableObjectCollectionSettings.Instance.SetGenerateCustomStaticFileName(
-                                    collection, customStaticFileName);
-                            }
-                        }
-                        
-                        
-                        string customNamespace =
-                            ScriptableObjectCollectionSettings.Instance.GetGeneratedStaticFileNamespace(collection);
-                        using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-                        {
-                            customNamespace = EditorGUILayout.TextField("Static Class Namespace", customNamespace);
-                        
-                            if (changeCheck.changed)
-                            {
-                                ScriptableObjectCollectionSettings.Instance.SetGenerateCustomStaticFileNamespace(
-                                    collection, customNamespace);
-                            }
-                        }
-                        
-                        EditorGUI.indentLevel--;
-                    }
-
+                    DrawAutomaticallyLoaded();
+                    DrawGeneratedClassParentFolder();
+                    DrawPartialClassToggle();
+                    DrawGeneratedFileName();
+                    DrawGeneratedFileNamespace();
+                    
                     EditorGUI.indentLevel--;
                 }
+            }
+        }
+
+        private void DrawGeneratedFileName()
+        {
+            SerializedProperty fileNameSerializedProperty = serializedObject.FindProperty("generatedStaticClassFileName");
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                string newFileName = EditorGUILayout.DelayedTextField("File Name", fileNameSerializedProperty.stringValue);
+                if (changeCheck.changed)
+                {
+                    fileNameSerializedProperty.stringValue = newFileName;
+                    fileNameSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        private void DrawGeneratedFileNamespace()
+        {
+            SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                string newFileName = EditorGUILayout.DelayedTextField("Namespace", fileNamespaceSerializedProperty.stringValue);
+                if (changeCheck.changed)
+                {
+                    fileNamespaceSerializedProperty.stringValue = newFileName;
+                    fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
+        }
+        
+        private void DrawAutomaticallyLoaded()
+        {
+            SerializedProperty automaticLoadedSerializedProperty = serializedObject.FindProperty("automaticallyLoaded");
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                bool isAutomaticallyLoaded = EditorGUILayout.Toggle("Automatically Loaded", automaticLoadedSerializedProperty.boolValue);
+                if (changeCheck.changed)
+                {
+                    automaticLoadedSerializedProperty.boolValue = isAutomaticallyLoaded;
+                    automaticLoadedSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        private void DrawGeneratedClassParentFolder()
+        {
+            SerializedProperty generatedCodePathSerializedProperty = serializedObject.FindProperty("generatedFileLocationPath");
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedCodePathSerializedProperty.stringValue);
+                pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
+                    "Generated Scripts Parent Folder",
+                    pathObject,
+                    typeof(DefaultAsset),
+                    false
+                );
+                if (changeCheck.changed)
+                {
+                    generatedCodePathSerializedProperty.stringValue = AssetDatabase.GetAssetPath(pathObject);
+                    generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        private void DrawPartialClassToggle()
+        {
+            SerializedProperty usePartialClassSerializedProperty = serializedObject.FindProperty("generateAsPartialClass");
+            bool canBePartial= CheckIfCanBePartial();
+            
+            EditorGUI.BeginDisabledGroup(!canBePartial);
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                bool writeAsPartial = EditorGUILayout.Toggle("Write as Partial Class", usePartialClassSerializedProperty.boolValue);
+                if (changeCheck.changed)
+                {
+                    usePartialClassSerializedProperty.boolValue = writeAsPartial;
+                    usePartialClassSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
+
+            EditorGUI.EndDisabledGroup();
+        }
+        
+        private void CheckGeneratedStaticFileName()
+        {
+            SerializedProperty fileNameSerializedProperty = serializedObject.FindProperty("generatedStaticClassFileName");
+            if (!string.IsNullOrEmpty(fileNameSerializedProperty.stringValue))
+                return;
+
+            if (collection.name.Equals(collection.GetItemType().Name, StringComparison.Ordinal) 
+                && serializedObject.FindProperty("generateAsPartialClass").boolValue)
+            {
+                fileNameSerializedProperty.stringValue = $"{collection.GetItemType().Name}Static";
+            }
+            else
+            {
+                fileNameSerializedProperty.stringValue = $"{collection.name}Static".Sanitize().FirstToUpper();
+            }
+            fileNameSerializedProperty.serializedObject.ApplyModifiedProperties();
+        }
+        
+        private void CheckGeneratedStaticFileNamespace()
+        {
+            SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
+            if (!string.IsNullOrEmpty(fileNamespaceSerializedProperty.stringValue))
+                return;
+            
+            
+            ScriptableObjectCollectionSettings settingsInstance = ScriptableObjectCollectionSettings.GetInstance();
+            if (!string.IsNullOrEmpty(settingsInstance.DefaultNamespace))
+            {
+                fileNamespaceSerializedProperty.stringValue = settingsInstance.DefaultNamespace;
+                fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
+                return;
+            }
+
+
+            fileNamespaceSerializedProperty.stringValue = collection.GetItemType().Namespace;
+            fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
+        }
+
+        private bool CheckIfCanBePartial()
+        {
+            SerializedProperty generatedCodePathSerializedProperty = serializedObject.FindProperty("generatedFileLocationPath");
+            SerializedProperty usePartialClassSerializedProperty = serializedObject.FindProperty("generateAsPartialClass");
+            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
+            string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
+            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(generatedCodePathSerializedProperty.stringValue);
+            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal);
+            if (usePartialClassSerializedProperty.boolValue && !canBePartial)
+            {
+                usePartialClassSerializedProperty.boolValue = false;
+                usePartialClassSerializedProperty.serializedObject.ApplyModifiedProperties();
+            }
+
+            return canBePartial;
+        }
+
+        private void CheckGeneratedCodeLocation()
+        {
+            SerializedProperty generatedCodePathSerializedProperty = serializedObject.FindProperty("generatedFileLocationPath");
+            if (!string.IsNullOrEmpty(generatedCodePathSerializedProperty.stringValue))
+                return;
+
+            ScriptableObjectCollectionSettings settingsInstance = ScriptableObjectCollectionSettings.GetInstance();
+            if (!string.IsNullOrEmpty(settingsInstance.DefaultGeneratedScriptsPath))
+            {
+                generatedCodePathSerializedProperty.stringValue = settingsInstance.DefaultGeneratedScriptsPath;
+                generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+            }
+            else
+            {
+                string collectionScriptPath =
+                    Path.GetDirectoryName(AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection)));
+                
+                generatedCodePathSerializedProperty.stringValue = collectionScriptPath;
+                generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
             }
         }
 

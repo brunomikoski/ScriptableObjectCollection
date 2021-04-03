@@ -35,6 +35,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         CollectionsRegistry.Instance.TryGetCollectionFromItemType(GetType(), out cachedScriptableObjectCollection);
                         if (cachedScriptableObjectCollection != null)
                         {
+                            Debug.Log($"Collection Item ({this.name}) was missing the Collection GUID, assigned to {cachedScriptableObjectCollection.name}");
                             collectionGUID = cachedScriptableObjectCollection.GUID;
                             ObjectUtility.SetDirty(this);
                         }

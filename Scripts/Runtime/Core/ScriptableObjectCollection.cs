@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -25,9 +28,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [SerializeField]
         protected List<ScriptableObjectCollectionItem> items = new List<ScriptableObjectCollectionItem>();
-        
-        [NonSerialized]
-        private bool isReadyOnlyListDirty = true;
+        public List<ScriptableObjectCollectionItem> Items => items;
 
 #pragma warning disable 0414
         [SerializeField]
@@ -43,21 +44,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string generateStaticFileNamespace;
 #pragma warning restore 0414
 #endif
-        
-        private IReadOnlyList<ScriptableObjectCollectionItem> readOnlyList = new List<ScriptableObjectCollectionItem>();
-        public IReadOnlyList<ScriptableObjectCollectionItem> Items
-        {
-            get
-            {
-                if (isReadyOnlyListDirty)
-                {
-                    readOnlyList = items.AsReadOnly();
-                    
-                    isReadyOnlyListDirty = false;
-                }
-                return readOnlyList;
-            }
-        }
 
         private void SyncGUID()
         {
@@ -138,7 +124,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
             return true;
         }
 
@@ -181,7 +166,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             this.Add(item);
             UnityEditor.AssetDatabase.CreateAsset(item, newFileName);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
             return item;
         }
 #endif
@@ -209,7 +193,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public virtual void Sort()
         {
             items.Sort();
-            isReadyOnlyListDirty = true;
             ObjectUtility.SetDirty(this);
         }
 
@@ -217,7 +200,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             items.Clear();
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public bool Contains(object value)
@@ -245,7 +227,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items.Insert(index, item);
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public void Insert(int index, object value)
@@ -257,8 +238,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             bool result =  items.Remove(item);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
-
             return result;
         }
 
@@ -271,7 +250,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             items.RemoveAt(index);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         object IList.this[int index]
@@ -289,7 +267,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items[targetIndex] = items[newIndex];
             items[newIndex] = temp;
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public void ClearBadItems()
@@ -300,7 +277,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     items.RemoveAt(i);
             }
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public void ValidateGUID()
@@ -330,21 +306,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        
+        [ContextMenu("Refresh Collection")]
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
             Type collectionType = GetItemType();
             if (collectionType == null)
                 return;
-            
-            string[] guids = UnityEditor.AssetDatabase.FindAssets($"t:{collectionType.Name}");
+
+            string folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
+            string[] guids = AssetDatabase.FindAssets($"t:{collectionType.Name}", new []{folder});
 
             for (int i = 0; i < guids.Length; i++)
             {
                 ScriptableObjectCollectionItem item =
-                    UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(
-                        UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]));
+                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(AssetDatabase.GUIDToAssetPath(guids[i]));
                 
                 if (item == null)
                     continue;
@@ -352,15 +328,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (item.Collection != this)
                     continue;
 
-                if (!PathUtility.IsObjectDeeperThanObject(item, this))
+                if (item.Collection.Contains(item))
                     continue;
-
+                
+                Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");
                 Add(item);
             }
 
             items = items.Where(o => o != null).Distinct().ToList();
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
 #endif
         }
 
@@ -402,25 +378,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : ScriptableObjectCollectionItem
     {
-        private static ScriptableObjectCollection<ObjectType> instance;
-        public static ScriptableObjectCollection<ObjectType> Values
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(out ScriptableObjectCollection<ObjectType> result))
-                        instance = result;
-                }
-                
-                return instance;
-            }
-        }
+        private static ScriptableObjectCollection<ObjectType> values;
+        public static ScriptableObjectCollection<ObjectType> Values => values;
 
         public new ObjectType this[int index]
         {
             get => (ObjectType)base[index];
             set => base[index] = value;
+        }
+
+        private void OnEnable()
+        {
+            values = this;
         }
 
         public new IEnumerator<ObjectType> GetEnumerator()

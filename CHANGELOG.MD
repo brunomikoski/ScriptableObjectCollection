@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored the `ScriptableObjectSettings` this used to be a Resources object that was auto loaded, but this could also create unwanted dependencies between items. The settings for code generated are not stored inside the Collection itself. Make sure you delete the `ScriptableObjectsSettings` ScriptableObject inside your resources folder.
 - Added a bunch of validation and verification for the Generation of the static access, making sure it only allows partial classes when is possible and other small checks.
 - The settings are now on the Project Preferences where you can define the default folder for the Scriptable Objects and default namespace.
+- Removed the `ReadOnlyList` on the `Collection`, the casting was expensive and was an unnecessary safety measure
+- In order to support multiple collections of the same type the check of the `Values` I had to tweak how the instance of every instance its assigned, changed for the `OnEnable` of the collection item
+- Changed the Refresh of the collections to only find items under the same folder.
+- Fixed a lot of scripts to work properly with multiple collections of the same type
+- Added some logs when `CollectionItems` are added/removed from collections to help the visibility
 
 ## [1.5.3]
 ### Changed

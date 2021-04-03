@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed the Refresh of the collections to only find items under the same folder.
 - Fixed a lot of scripts to work properly with multiple collections of the same type
 - Added some logs when `CollectionItems` are added/removed from collections to help the visibility
-
+- `CollectionType.Values` now will return all the `CollectionItem` available on the registry, so if you have 2 Collections of the one Type this will return the content of both collections while the `CollectionItem.Values` when the access file is generated will only return that specific collection items
 
 ## [1.5.4]
 ### Changed

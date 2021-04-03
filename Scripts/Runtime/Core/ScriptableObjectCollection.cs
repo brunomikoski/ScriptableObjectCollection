@@ -52,7 +52,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             guid = Guid.NewGuid().ToString();
 #if UNITY_EDITOR
-            guid = UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(this));
+            guid = AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(this));
             ObjectUtility.SetDirty(this);
 #endif
         }
@@ -124,6 +124,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
+            ClearCachedValues();
             return true;
         }
 
@@ -135,7 +136,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 throw new NotSupportedException();
             
             ScriptableObjectCollectionItem item = (ScriptableObjectCollectionItem)CreateInstance(collectionType);
-            string assetPath = Path.GetDirectoryName(UnityEditor.AssetDatabase.GetAssetPath(this));
+            string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
             string parentFolderPath = Path.Combine(assetPath, "Items");
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolderPath);
 
@@ -164,7 +165,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string newFileName = Path.Combine(parentFolderPath, item.name + ".asset");
             
             this.Add(item);
-            UnityEditor.AssetDatabase.CreateAsset(item, newFileName);
+            AssetDatabase.CreateAsset(item, newFileName);
             ObjectUtility.SetDirty(this);
             return item;
         }
@@ -373,23 +374,29 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
+        protected virtual void ClearCachedValues()
+        {
+        }
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : ScriptableObjectCollectionItem
     {
-        private static ScriptableObjectCollection<ObjectType> values;
-        public static ScriptableObjectCollection<ObjectType> Values => values;
+        protected static List<ObjectType> cachedValues;
+        public static List<ObjectType> Values
+        {
+            get
+            {
+                if (cachedValues == null)
+                    cachedValues = CollectionsRegistry.Instance.GetAllCollectionItemsOfType<ObjectType>();
+                return cachedValues;
+            }
+        }
 
         public new ObjectType this[int index]
         {
             get => (ObjectType)base[index];
             set => base[index] = value;
-        }
-
-        private void OnEnable()
-        {
-            values = this;
         }
 
         public new IEnumerator<ObjectType> GetEnumerator()
@@ -472,11 +479,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Add(ObjectType item)
         {
             base.Add(item);
+            ClearCachedValues();
         }
 
         public ObjectType Add(Type itemType = null)
         {
             ObjectType item = base.Add(itemType) as ObjectType;
+            ClearCachedValues();
             return item;
         }
 
@@ -498,11 +507,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Insert(int index, ObjectType item)
         {
             base.Insert(index, item);
+            ClearCachedValues();
         }
 
         public bool Remove(ObjectType item)
         {
             bool remove = base.Remove(item);
+            ClearCachedValues();
             return remove;
         }
         
@@ -521,5 +532,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return base.GetEnumerator();
         }
+        
+        protected override void ClearCachedValues()
+        {
+            cachedValues = null;
+        }
+
     }
 }

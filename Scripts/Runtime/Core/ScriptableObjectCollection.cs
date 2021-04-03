@@ -382,8 +382,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : ScriptableObjectCollectionItem
     {
-        protected static List<ObjectType> cachedValues;
-        public static List<ObjectType> Values
+        private static List<ObjectType> cachedValues;
+        public static IReadOnlyList<ObjectType> Values
         {
             get
             {

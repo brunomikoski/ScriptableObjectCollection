@@ -62,6 +62,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
                     {
                         RefreshRegistry();
+                        Debug.Log($"New collection found on the Project {collection.name}, refreshing the Registry");
                         return;
                     }
                 }

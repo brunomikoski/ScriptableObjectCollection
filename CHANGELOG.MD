@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [1.5.5]
+### Changed
+- In order to support multiple collections of the same type the check of the `Values` I had to tweak how the instance of every instance its assigned, changed for the `OnEnable` of the collection item
+- Changed the Refresh of the collections to only find items under the same folder.
+- Fixed a lot of scripts to work properly with multiple collections of the same type
+- Added some logs when `CollectionItems` are added/removed from collections to help the visibility
+- `CollectionType.Values` now will return all the `CollectionItem` available on the registry, so if you have 2 Collections of the one Type this will return the content of both collections while the `CollectionItem.Values` when the access file is generated will only return that specific collection items
+
 ## [1.5.4]
 ### Changed
 - Removed the automatically reload of CollectionRegistry using the `DidReloadScripts` callback, this caused multiple issues on batch mode and on clear libraries
@@ -11,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored the `ScriptableObjectSettings` this used to be a Resources object that was auto loaded, but this could also create unwanted dependencies between items. The settings for code generated are not stored inside the Collection itself. Make sure you delete the `ScriptableObjectsSettings` ScriptableObject inside your resources folder.
 - Added a bunch of validation and verification for the Generation of the static access, making sure it only allows partial classes when is possible and other small checks.
 - The settings are now on the Project Preferences where you can define the default folder for the Scriptable Objects and default namespace.
+- Removed the `ReadOnlyList` on the `Collection`, the casting was expensive and was an unnecessary safety measure
+
 
 ## [1.5.3]
 ### Changed
@@ -229,7 +240,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Unreleased
 
 
-
+[1.5.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.5
 [1.5.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.4
 [1.5.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.3
 [1.5.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.2

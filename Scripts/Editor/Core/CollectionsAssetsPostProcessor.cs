@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Callbacks;
+using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -9,32 +10,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         private const string REFRESH_REGISTRY_AFTER_RECOMPILATION_KEY = "RefreshRegistryAfterRecompilationKey";
 
-        private static Dictionary<Type, ScriptableObjectCollection> cachedTypeToCollections;
-        private static Dictionary<Type, ScriptableObjectCollection> typeToCollections
-        {
-            get
-            {
-                if (cachedTypeToCollections == null)
-                {
-                    cachedTypeToCollections = new Dictionary<Type, ScriptableObjectCollection>();
-                    string[] collectionGUIDS = AssetDatabase.FindAssets($"t:{(nameof(ScriptableObjectCollection))}");
-
-                    foreach (string guid in collectionGUIDS)
-                    {
-                        ScriptableObjectCollection collection =
-                            AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(
-                                AssetDatabase.GUIDToAssetPath(guid));
-                        if(collection == null)
-                            continue;
-
-                        cachedTypeToCollections.Add(collection.GetItemType(), collection);
-                    }
-                }
-
-                return cachedTypeToCollections;
-            }
-        }
-        
         private static bool RefreshRegistryAfterRecompilation
         {
             get => EditorPrefs.GetBool(REFRESH_REGISTRY_AFTER_RECOMPILATION_KEY, false);
@@ -59,15 +34,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         if (scriptableObjectCollectionItem.Collection == null)
                         {
-                            if (typeToCollections.TryGetValue(type, out ScriptableObjectCollection collection))
-                            {
-                                if (!collection.Add(scriptableObjectCollectionItem))
-                                    scriptableObjectCollectionItem.SetCollection(collection);
-                            }
+                            Debug.LogError(
+                                $"CollectionItem ({scriptableObjectCollectionItem.name}) has null Collection, please assign it some Collection",
+                                scriptableObjectCollectionItem
+                            );
                         }
                         else
                         {
-                            scriptableObjectCollectionItem.Collection.Add(scriptableObjectCollectionItem);
+                            if (!scriptableObjectCollectionItem.Collection.Contains(scriptableObjectCollectionItem))
+                            {
+                                scriptableObjectCollectionItem.Collection.Add(scriptableObjectCollectionItem);
+                                Debug.Log($"{scriptableObjectCollectionItem.name} has collection assigned "
+                                          + $"{scriptableObjectCollectionItem.Collection} but its missing from collection list, adding it");
+                            }
                         }
                     }
                 }
@@ -80,9 +59,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (collection == null)
                         continue;
 
-                    if (!CollectionsRegistry.Instance.IsKnowCollectionGUID(collection.GUID))
+                    if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
                     {
                         RefreshRegistry();
+                        Debug.Log($"New collection found on the Project {collection.name}, refreshing the Registry");
                         return;
                     }
                 }
@@ -98,7 +78,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             EditorApplication.delayCall += () => { CollectionsRegistry.Instance.ReloadCollections(); };
-            
         }
 
 

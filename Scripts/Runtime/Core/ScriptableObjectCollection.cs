@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -25,9 +28,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [SerializeField]
         protected List<ScriptableObjectCollectionItem> items = new List<ScriptableObjectCollectionItem>();
-        
-        [NonSerialized]
-        private bool isReadyOnlyListDirty = true;
+        public List<ScriptableObjectCollectionItem> Items => items;
 
 #pragma warning disable 0414
         [SerializeField]
@@ -43,21 +44,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string generateStaticFileNamespace;
 #pragma warning restore 0414
 #endif
-        
-        private IReadOnlyList<ScriptableObjectCollectionItem> readOnlyList = new List<ScriptableObjectCollectionItem>();
-        public IReadOnlyList<ScriptableObjectCollectionItem> Items
-        {
-            get
-            {
-                if (isReadyOnlyListDirty)
-                {
-                    readOnlyList = items.AsReadOnly();
-                    
-                    isReadyOnlyListDirty = false;
-                }
-                return readOnlyList;
-            }
-        }
 
         private void SyncGUID()
         {
@@ -66,7 +52,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             guid = Guid.NewGuid().ToString();
 #if UNITY_EDITOR
-            guid = UnityEditor.AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(this));
+            guid = AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(this));
             ObjectUtility.SetDirty(this);
 #endif
         }
@@ -138,7 +124,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
+            ClearCachedValues();
             return true;
         }
 
@@ -150,7 +136,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 throw new NotSupportedException();
             
             ScriptableObjectCollectionItem item = (ScriptableObjectCollectionItem)CreateInstance(collectionType);
-            string assetPath = Path.GetDirectoryName(UnityEditor.AssetDatabase.GetAssetPath(this));
+            string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
             string parentFolderPath = Path.Combine(assetPath, "Items");
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolderPath);
 
@@ -179,9 +165,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string newFileName = Path.Combine(parentFolderPath, item.name + ".asset");
             
             this.Add(item);
-            UnityEditor.AssetDatabase.CreateAsset(item, newFileName);
+            AssetDatabase.CreateAsset(item, newFileName);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
             return item;
         }
 #endif
@@ -209,7 +194,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public virtual void Sort()
         {
             items.Sort();
-            isReadyOnlyListDirty = true;
             ObjectUtility.SetDirty(this);
         }
 
@@ -217,7 +201,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             items.Clear();
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public bool Contains(object value)
@@ -245,7 +228,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items.Insert(index, item);
             item.SetCollection(this);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public void Insert(int index, object value)
@@ -257,8 +239,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             bool result =  items.Remove(item);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
-
             return result;
         }
 
@@ -271,7 +251,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             items.RemoveAt(index);
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         object IList.this[int index]
@@ -289,7 +268,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items[targetIndex] = items[newIndex];
             items[newIndex] = temp;
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public void ClearBadItems()
@@ -300,7 +278,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     items.RemoveAt(i);
             }
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
         }
 
         public void ValidateGUID()
@@ -330,21 +307,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        
+        [ContextMenu("Refresh Collection")]
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
             Type collectionType = GetItemType();
             if (collectionType == null)
                 return;
-            
-            string[] guids = UnityEditor.AssetDatabase.FindAssets($"t:{collectionType.Name}");
+
+            string folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
+            string[] guids = AssetDatabase.FindAssets($"t:{collectionType.Name}", new []{folder});
 
             for (int i = 0; i < guids.Length; i++)
             {
                 ScriptableObjectCollectionItem item =
-                    UnityEditor.AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(
-                        UnityEditor.AssetDatabase.GUIDToAssetPath(guids[i]));
+                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(AssetDatabase.GUIDToAssetPath(guids[i]));
                 
                 if (item == null)
                     continue;
@@ -352,15 +329,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (item.Collection != this)
                     continue;
 
-                if (!PathUtility.IsObjectDeeperThanObject(item, this))
+                if (item.Collection.Contains(item))
                     continue;
-
+                
+                Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");
                 Add(item);
             }
 
             items = items.Where(o => o != null).Distinct().ToList();
             ObjectUtility.SetDirty(this);
-            isReadyOnlyListDirty = true;
 #endif
         }
 
@@ -397,23 +374,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
+        protected virtual void ClearCachedValues()
+        {
+        }
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
         where ObjectType : ScriptableObjectCollectionItem
     {
-        private static ScriptableObjectCollection<ObjectType> instance;
-        public static ScriptableObjectCollection<ObjectType> Values
+        private static List<ObjectType> cachedValues;
+        public static IReadOnlyList<ObjectType> Values
         {
             get
             {
-                if (instance == null)
-                {
-                    if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(out ScriptableObjectCollection<ObjectType> result))
-                        instance = result;
-                }
-                
-                return instance;
+                if (cachedValues == null)
+                    cachedValues = CollectionsRegistry.Instance.GetAllCollectionItemsOfType<ObjectType>();
+                return cachedValues;
             }
         }
 
@@ -503,11 +479,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Add(ObjectType item)
         {
             base.Add(item);
+            ClearCachedValues();
         }
 
         public ObjectType Add(Type itemType = null)
         {
             ObjectType item = base.Add(itemType) as ObjectType;
+            ClearCachedValues();
             return item;
         }
 
@@ -529,11 +507,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void Insert(int index, ObjectType item)
         {
             base.Insert(index, item);
+            ClearCachedValues();
         }
 
         public bool Remove(ObjectType item)
         {
             bool remove = base.Remove(item);
+            ClearCachedValues();
             return remove;
         }
         
@@ -552,5 +532,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return base.GetEnumerator();
         }
+        
+        protected override void ClearCachedValues()
+        {
+            cachedValues = null;
+        }
+
     }
 }

@@ -35,7 +35,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             collection = (ScriptableObjectCollection)target;
 
-            if (!CollectionsRegistry.Instance.IsKnowCollectionGUID(collection.GUID))
+            if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
                 CollectionsRegistry.Instance.ReloadCollections();
 
             FixCollectionItems();
@@ -73,6 +73,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     collection.ClearBadItems();
                     return;
                 }
+            }
+
+            for (int i = 0; i < collection.Count; i++)
+            {
+                collection[i].SetCollection(collection);
             }
         }
 

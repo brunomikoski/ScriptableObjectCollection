@@ -22,12 +22,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [NonSerialized]
         private TObject cachedRef;
         
-        /// <summary>
-        /// Alternative to [XmlIgnore] [JsonIgnore]
-        /// </summary>
-        /// <returns>false, because of a circular reference and the SO is not serializable</returns>
-        public bool ShouldSerializeRef() => false;
-
         public TObject Ref
         {
             get

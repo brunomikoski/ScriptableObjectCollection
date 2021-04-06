@@ -64,7 +64,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (Application.isPlaying)
                 return;
             
+#if UNITY_EDITOR
             CollectionsRegistry.Instance.DeleteCollection(collection);
+#endif
         }
 
         private void ValidateGUIDS()

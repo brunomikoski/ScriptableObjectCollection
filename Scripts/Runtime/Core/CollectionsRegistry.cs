@@ -4,7 +4,6 @@ using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 #if UNITY_EDITOR
-using System.IO;
 using UnityEditor;
 #endif
 
@@ -15,7 +14,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [SerializeField]
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
-        public IReadOnlyList<ScriptableObjectCollection> Collections => collections;
 
         public void UsedOnlyForAOTCodeGeneration()
         {
@@ -23,10 +21,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Include an exception so we can be sure to know if this method is ever called.
             throw new InvalidOperationException("This method is used for AOT code generation only. Do not call it at runtime.");
         }
-        
+
         public bool IsKnowCollection(ScriptableObjectCollection targetCollection)
         {
-            return collections.Any(collection => collection.GUID.Equals(targetCollection.GUID, StringComparison.Ordinal));
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                if (collection != null && collection.GUID.Equals(targetCollection.GUID, StringComparison.Ordinal))
+                    return true;
+            }
+
+            return false;
         }
 
         public void RegisterCollection(ScriptableObjectCollection targetCollection)
@@ -209,7 +214,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
 #if UNITY_EDITOR
             for (int i = collection.Items.Count - 1; i >= 0; i--)
-                UnityEditor.AssetDatabase.DeleteAsset(UnityEditor.AssetDatabase.GetAssetPath(collection.Items[i]));
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(collection.Items[i]));
 #endif
             ObjectUtility.SetDirty(this);
         }
@@ -245,7 +250,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             if (changed)
+            {
                 ObjectUtility.SetDirty(this);
+            }
 #endif
         }
         

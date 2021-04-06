@@ -244,18 +244,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     $"public sealed class {collectionItemName}IndirectReference : CollectionItemIndirectReference<{collectionItemName}>",
                     directives.Distinct().ToArray());
 
-                CodeGenerationUtility.AppendLine(writer, 0,
-                    $"#if UNITY_EDITOR");
-                
-                CodeGenerationUtility.AppendLine(writer, indentation,
-                    $"[SerializeField]");
-                
-                CodeGenerationUtility.AppendLine(writer, indentation,
-                    $"private {collectionItemName} editorAsset;");
-                
-                CodeGenerationUtility.AppendLine(writer, 0,
-                    $"#endif");
-                
                 CodeGenerationUtility.AppendLine(writer, indentation,
                     $"public {collectionItemName}IndirectReference() {{}}");
                 
@@ -348,6 +336,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             CreateCollectionWizzard openWindowInstance = GetWindow<CreateCollectionWizzard>();
             openWindowInstance.Close();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
     }
 }

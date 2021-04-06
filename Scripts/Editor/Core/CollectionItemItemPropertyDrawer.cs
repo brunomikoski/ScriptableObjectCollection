@@ -63,7 +63,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
         internal void DrawCollectionItemDrawer(Rect position, ScriptableObjectCollectionItem collectionItem, GUIContent label, 
-        Action<ScriptableObjectCollectionItem> callback)
+            Action<ScriptableObjectCollectionItem> callback)
         {
             position.height = 15;
             position = EditorGUI.PrefixLabel(position, label);
@@ -71,7 +71,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             EditorGUI.indentLevel = 0;
             if (collectionItem != null)
             {
-                DrawEditFoldoutButton(ref position);
+                if (currentObject == null)
+                    currentObject = collectionItem;
+                
+                DrawEditFoldoutButton(ref position, collectionItem);
                 DrawGotoButton(ref position);
             }
 
@@ -172,7 +175,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawEditFoldoutButton(ref Rect popupRect)
+        private void DrawEditFoldoutButton(ref Rect popupRect, ScriptableObjectCollectionItem targetItem)
         {
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
@@ -181,13 +184,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
 
             GUIContent guiContent = CollectionEditorGUI.EditGUIContent;
-            if (CollectionUtility.IsFoldoutOpen(item, currentObject))
+            if (CollectionUtility.IsFoldoutOpen(targetItem, currentObject))
                 guiContent = CollectionEditorGUI.CloseGUIContent;
 
             if (GUI.Button(buttonRect, guiContent))
             {
-                CollectionUtility.SetFoldoutOpen(!CollectionUtility.IsFoldoutOpen(item, currentObject), item, currentObject);
-                ObjectUtility.SetDirty(item);
+                CollectionUtility.SetFoldoutOpen(!CollectionUtility.IsFoldoutOpen(targetItem, currentObject), targetItem, currentObject);
+                ObjectUtility.SetDirty(targetItem);
             }
         }
 

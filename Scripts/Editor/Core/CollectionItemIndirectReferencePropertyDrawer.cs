@@ -11,13 +11,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string COLLECTION_ITEM_GUID_PROPERTY_PATH = "collectionItemGUID";
         private const string COLLECTION_GUID_PROPERTY_PATh = "collectionGUID";
 
-        private SerializedProperty collectionItemGUIDSerializedProperty;
-        private SerializedProperty collectionGUIDSerializedProperty;
+        private Type collectionItemType;
         private CollectionItemItemPropertyDrawer collectionItemPropertyDrawer;
 
-        private ScriptableObjectCollectionItem collectionItem;
-        private Type collectionItemType;
-        
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             if (collectionItemType == null)
@@ -30,40 +26,38 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItemPropertyDrawer == null)
             {
                 collectionItemPropertyDrawer = new CollectionItemItemPropertyDrawer();
-                collectionItemPropertyDrawer.Initialize(collectionItemType, property.serializedObject.targetObject);
+                collectionItemPropertyDrawer.Initialize(collectionItemType, null);
             }
             
+            SerializedProperty collectionItemGUIDSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_PROPERTY_PATH);
+            SerializedProperty collectionGUIDSerializedProperty = property.FindPropertyRelative(COLLECTION_GUID_PROPERTY_PATh);
             
-            collectionItemGUIDSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_PROPERTY_PATH);
-            collectionGUIDSerializedProperty = property.FindPropertyRelative(COLLECTION_GUID_PROPERTY_PATh);
-
-            if (collectionItem != null)
+            ScriptableObjectCollectionItem collectionItem = null;
+            
+            if (!string.IsNullOrEmpty(collectionItemGUIDSerializedProperty.stringValue)
+                && !string.IsNullOrEmpty(collectionGUIDSerializedProperty.stringValue))
             {
-                if (string.IsNullOrEmpty(collectionItemGUIDSerializedProperty.stringValue)
-                    || string.IsNullOrEmpty(collectionGUIDSerializedProperty.stringValue))
+                if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUIDSerializedProperty.stringValue,
+                    out ScriptableObjectCollection collection))
                 {
-                    collectionItemGUIDSerializedProperty.stringValue = collectionItem.GUID;
-                    collectionGUIDSerializedProperty.stringValue = collectionItem.Collection.GUID;
-                    property.serializedObject.ApplyModifiedProperties();
-                }
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(collectionItemGUIDSerializedProperty.stringValue)
-                    && !string.IsNullOrEmpty(collectionGUIDSerializedProperty.stringValue))
-                {
-                    if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUIDSerializedProperty.stringValue,
-                        out ScriptableObjectCollection collection))
+                    if (collection.TryGetItemByGUID(collectionItemGUIDSerializedProperty.stringValue,
+                        out ScriptableObjectCollectionItem resultCollection))
                     {
-                        if (collection.TryGetItemByGUID(collectionItemGUIDSerializedProperty.stringValue,
-                            out ScriptableObjectCollectionItem resultCollection))
-                        {
-                            collectionItem = resultCollection;
-                        }
+                        collectionItem = resultCollection;
                     }
                 }
             }
 
+            int indexOfArrayPart = property.propertyPath.IndexOf('[');
+
+            if (indexOfArrayPart > -1)
+            {
+                if (string.Equals(label.text, collectionItemGUIDSerializedProperty.stringValue, StringComparison.Ordinal))
+                {
+                    label.text = $"Element {property.propertyPath.Substring(indexOfArrayPart+1, 1)}";
+                }
+            }
+            
             collectionItemPropertyDrawer.DrawCollectionItemDrawer(
                 position, collectionItem, label,
                 item =>

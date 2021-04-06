@@ -59,6 +59,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(collection);
         }
 
+        private void OnDestroy()
+        {
+            if (Application.isPlaying)
+                return;
+            
+            CollectionsRegistry.Instance.DeleteCollection(collection);
+        }
+
         private void ValidateGUIDS()
         {
             collection.ValidateGUID();

@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [1.5.6]
+### Changed
+- Improved the Refreshing of the `CollectionRegistry` to try to refresh when items are deleted/created
+- Refactored the `IndirectReference` to not need a serialized version of the `CollectionItem` type, so avoid any serialization issues
+- Renamed some of the editor classes to match the standard
+
 ## [1.5.5]
 ### Changed
 - In order to support multiple collections of the same type the check of the `Values` I had to tweak how the instance of every instance its assigned, changed for the `OnEnable` of the collection item
@@ -21,7 +27,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a bunch of validation and verification for the Generation of the static access, making sure it only allows partial classes when is possible and other small checks.
 - The settings are now on the Project Preferences where you can define the default folder for the Scriptable Objects and default namespace.
 - Removed the `ReadOnlyList` on the `Collection`, the casting was expensive and was an unnecessary safety measure
-
 
 ## [1.5.3]
 ### Changed
@@ -240,6 +245,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Unreleased
 
 
+[1.5.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.6
 [1.5.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.5
 [1.5.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.4
 [1.5.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.3

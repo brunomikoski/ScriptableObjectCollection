@@ -59,6 +59,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(collection);
         }
 
+        private void OnDestroy()
+        {
+            if (Application.isPlaying)
+                return;
+            
+#if UNITY_EDITOR
+            CollectionsRegistry.Instance.DeleteCollection(collection);
+#endif
+        }
+
         private void ValidateGUIDS()
         {
             collection.ValidateGUID();

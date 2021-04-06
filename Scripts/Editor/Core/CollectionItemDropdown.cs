@@ -66,16 +66,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObjectCollection collection = collections.First();
                 ScriptableObjectCollectionItem collectionItem = collection.AddNew(itemType);
-                callback?.Invoke(collectionItem);
+                callback.Invoke(collectionItem);
                 Selection.objects = new Object[] {collection};
                 CollectionCustomEditor.SetLastAddedEnum(collectionItem);
                 return;
             }
             
             if (item is CollectionItemDropdownItem dropdownItem)
-                callback?.Invoke(dropdownItem.CollectionItem);
+                callback.Invoke(dropdownItem.CollectionItem);
             else
-                callback?.Invoke(null);
+                callback.Invoke(null);
         }
 
         public void Show(Rect rect, Action<ScriptableObjectCollectionItem> onSelectedCallback)

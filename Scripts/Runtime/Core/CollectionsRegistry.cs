@@ -204,21 +204,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
-        public void DeleteCollection(ScriptableObjectCollection collection)
-        {
-            if (Application.isPlaying)
-                return;
-            
-            if (!collections.Remove(collection))
-                return;
-            
-#if UNITY_EDITOR
-            for (int i = collection.Items.Count - 1; i >= 0; i--)
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(collection.Items[i]));
-#endif
-            ObjectUtility.SetDirty(this);
-        }
-        
         public void ReloadCollections()
         {
 #if UNITY_EDITOR

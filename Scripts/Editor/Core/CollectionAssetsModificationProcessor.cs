@@ -22,15 +22,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return AssetDeleteResult.DidNotDelete;
             }
             
-            if (type.IsSubclassOf(typeof(ScriptableObjectCollection)))
-            {
-                ScriptableObjectCollection collection =
-                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(targetAssetPath);
-
-                CollectionsRegistry.Instance.DeleteCollection(collection);
-                return AssetDeleteResult.DidNotDelete;
-            }
-            
             return AssetDeleteResult.DidNotDelete;
         }
         

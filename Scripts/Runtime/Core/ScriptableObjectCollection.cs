@@ -52,10 +52,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             guid = Guid.NewGuid().ToString();
 #if UNITY_EDITOR
-            guid = AssetDatabase.AssetPathToGUID(UnityEditor.AssetDatabase.GetAssetPath(this));
+            guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
             ObjectUtility.SetDirty(this);
 #endif
         }
+
+        internal void GenerateNewGUID()
+        {
+            guid = string.Empty;
+            SyncGUID();
+        }
+        
         
         public ScriptableObjectCollectionItem this[int index]
         {
@@ -165,8 +172,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string newFileName = Path.Combine(parentFolderPath, item.name + ".asset");
             
             this.Add(item);
+
             AssetDatabase.CreateAsset(item, newFileName);
             ObjectUtility.SetDirty(this);
+
+            SerializedObject serializedObject = new SerializedObject(this);
+            serializedObject.ApplyModifiedProperties();
+
             return item;
         }
 #endif
@@ -280,7 +292,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
-        public void ValidateGUID()
+        public void ValidateGUIDs()
         {
             SyncGUID();
             for (int i = 0; i < items.Count; i++)

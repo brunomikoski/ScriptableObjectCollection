@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return target.GetType() == source.GetType();
         }
         
-        public static void ApplySourceToStart(ScriptableObjectCollectionItem target)
+        public static void ApplySourceToTarget(ScriptableObjectCollectionItem target)
         {
             if (source == null)
                 return;

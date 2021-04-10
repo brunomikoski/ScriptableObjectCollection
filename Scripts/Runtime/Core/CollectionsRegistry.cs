@@ -50,17 +50,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collections.Remove(targetCollection);
         }
 
-        private void ValidateItems()
-        {
-            for (int i = collections.Count - 1; i >= 0; i--)
-            {
-                if (collections[i] == null)
-                {
-                    collections.RemoveAt(i);
-                }
-            }
-        }
-
         public List<T> GetAllCollectionItemsOfType<T>() where T : ScriptableObjectCollectionItem
         {
             return GetAllCollectionItemsOfType(typeof(T)).Cast<T>().ToList();
@@ -238,9 +227,38 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ObjectUtility.SetDirty(this);
             }
+
+            ValidateGUIDs();
 #endif
         }
-        
+
+        public void ValidateGUIDs()
+        {
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collectionA = collections[i];
+                for (int j = 0; j < collections.Count; j++)
+                {
+                    ScriptableObjectCollection collectionB = collections[j];
+
+                    if (i == j)
+                        continue;
+
+                    if (string.Equals(collectionA.GUID, collectionB.GUID, StringComparison.OrdinalIgnoreCase))
+                    {
+                        collectionB.GenerateNewGUID();
+                        ObjectUtility.SetDirty(collectionB);
+                        Debug.LogWarning(
+                            $"Found duplicated collection GUID, please regenerate code of collection {collectionB.name}",
+                            this
+                        );
+                    }
+                }
+                
+                collectionA.ValidateGUIDs();
+            }
+        }
+
         public void PreBuildProcess()
         {
             RemoveNonAutomaticallyInitializedCollections();

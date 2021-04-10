@@ -5,11 +5,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CollectionEditorGUI
     {
-        public const string DEFAULT_NONE_ITEM_TEXT = "None";
-        public const string ARROW_UP_CHAR = "\u2191";
-        public const string ARROW_DOWN_CHAR = "\u2193";
         public const string ARROW_RIGHT_CHAR = "\u25BA";
-        public const string X_CHAR = "\u00D7";
 
         private static GUIContent cachedEditGUIContent;
         public static GUIContent EditGUIContent
@@ -39,9 +35,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        public static readonly GUILayoutOption DEFAULT_HEIGHT = GUILayout.Height(16);
-        public static readonly Color DELETE_BUTTON_COLOR = new Color(0.75f, 0.2f, 0.2f, 1f);
-
         private static GUIStyle cachedItemNameStyle;
         public static GUIStyle ItemNameStyle
         {
@@ -58,24 +51,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     normal = {textColor = EditorStyles.label.normal.textColor},
                 };
                 return cachedItemNameStyle;
-            }
-        }
-        private static GUIStyle cachedSubTypeNameStyle;
-
-        public static GUIStyle SubtypeNameStyle
-        {
-            get
-            {
-                if (cachedSubTypeNameStyle != null)
-                    return cachedSubTypeNameStyle;
-
-                cachedSubTypeNameStyle = new GUIStyle
-                {
-                    fontStyle = FontStyle.Italic,
-                    alignment = TextAnchor.MiddleRight,
-                    normal = {textColor = EditorStyles.label.normal.textColor}
-                };
-                return cachedSubTypeNameStyle;
             }
         }
     }

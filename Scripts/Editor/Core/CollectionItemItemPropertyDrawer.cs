@@ -30,6 +30,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private CollectionItemDropdown collectionItemDropdown;
         private ScriptableObjectCollectionItem item;
+        private float totalHeight;
 
         private CollectionItemEditorOptionsAttribute GetOptionsAttribute()
         {
@@ -41,7 +42,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return attributes[0] as CollectionItemEditorOptionsAttribute;
             return DefaultAttribute;
         }
-        
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            return Mathf.Max(totalHeight, EditorGUIUtility.singleLineHeight);
+        }
+
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             Initialize(property);
@@ -65,8 +71,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         internal void DrawCollectionItemDrawer(Rect position, ScriptableObjectCollectionItem collectionItem, GUIContent label, 
             Action<ScriptableObjectCollectionItem> callback)
         {
+            float originY = position.y;
             position.height = 15;
-            position = EditorGUI.PrefixLabel(position, label);
+            Rect prefixPosition = EditorGUI.PrefixLabel(position, label);
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
             if (collectionItem != null)
@@ -74,16 +81,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (currentObject == null)
                     currentObject = collectionItem;
                 
-                DrawEditFoldoutButton(ref position, collectionItem);
-                DrawGotoButton(ref position);
+                DrawEditFoldoutButton(ref prefixPosition, collectionItem);
+                DrawGotoButton(ref prefixPosition);
             }
 
-            DrawCollectionItemDropDown(ref position, collectionItem, callback);
-            DrawEditorPreview(collectionItem);
+            DrawCollectionItemDropDown(ref prefixPosition, collectionItem, callback);
+            DrawEditorPreview(ref position, collectionItem);
             EditorGUI.indentLevel = indent;
+            totalHeight = position.y - originY;
         }
 
-        private void DrawEditorPreview(ScriptableObjectCollectionItem scriptableObjectCollectionItem)
+        private void DrawEditorPreview(ref Rect rect, ScriptableObjectCollectionItem scriptableObjectCollectionItem)
         {
             if (scriptableObjectCollectionItem == null)
                 return;
@@ -91,27 +99,46 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (!CollectionUtility.IsFoldoutOpen(scriptableObjectCollectionItem, currentObject))
                 return;
 
-            EditorGUI.indentLevel++;
-            using (new EditorGUILayout.VerticalScope("Box"))
-            {
-                Editor editor = EditorsCache.GetOrCreateEditorForItem(scriptableObjectCollectionItem);
-                using (EditorGUI.ChangeCheckScope changedCheck = new EditorGUI.ChangeCheckScope())
-                {
-                    GUILayout.Space(10);
-                    using (new EditorGUILayout.VerticalScope())
-                    {
-                        editor.OnInspectorGUI();
-                    }
+            rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+            rect.width -= 10;
+            rect.y += 10;
+            float beginPositionY = rect.y;
 
-                    EditorGUILayout.Space();
-                    if (changedCheck.changed)
-                    {
-                        EditorUtility.SetDirty(scriptableObjectCollectionItem);
-                    }
+            SerializedObject collectionItemSerializedObject = new SerializedObject(scriptableObjectCollectionItem);
+
+            EditorGUI.indentLevel++;
+            rect = EditorGUI.IndentedRect(rect);
+;            SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
+
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
+                {
+                    bool guiEnabled = GUI.enabled;
+                    if (iterator.displayName.Equals("Script"))
+                        GUI.enabled = false;
+
+                    EditorGUI.PropertyField(rect, iterator, true);
+
+                    GUI.enabled = guiEnabled;
+
+                    rect.y += EditorGUI.GetPropertyHeight(iterator, true) + EditorGUIUtility.standardVerticalSpacing;
                 }
+
+                if (changeCheck.changed)
+                    iterator.serializedObject.ApplyModifiedProperties();
             }
 
             EditorGUI.indentLevel--;
+            rect = EditorGUI.IndentedRect(rect);
+
+            Rect boxPosition = rect;
+            boxPosition.y = beginPositionY - 5;
+            boxPosition.height = (rect.y - beginPositionY)+10;
+            boxPosition.width += 10;
+            boxPosition.x += 5;
+            rect.y += 10;
+            GUI.Box(boxPosition, GUIContent.none, EditorStyles.helpBox);
         }
 
         private void Initialize(SerializedProperty property)
@@ -145,9 +172,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             initialized = true;
         }
 
-        private void DrawCollectionItemDropDown(
-            ref Rect position,
-            ScriptableObjectCollectionItem collectionItem,
+        private void DrawCollectionItemDropDown(ref Rect position, ScriptableObjectCollectionItem collectionItem,
             Action<ScriptableObjectCollectionItem> callback)
         {
             GUIContent displayValue = new GUIContent("None");

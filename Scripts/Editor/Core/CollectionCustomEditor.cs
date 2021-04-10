@@ -281,6 +281,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 SerializedProperty clonedItemSerializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index + 1);
                 clonedItemSerializedProperty.objectReferenceValue = clonedItem;
                 clonedItemSerializedProperty.serializedObject.ApplyModifiedProperties();
+                clonedItemSerializedProperty.isExpanded = true;
+                LAST_ADDED_COLLECTION_ITEM = clonedItem;
             }
         }
 

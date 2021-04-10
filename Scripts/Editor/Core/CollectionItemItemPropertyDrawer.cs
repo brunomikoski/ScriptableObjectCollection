@@ -107,8 +107,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             SerializedObject collectionItemSerializedObject = new SerializedObject(scriptableObjectCollectionItem);
 
             EditorGUI.indentLevel++;
-            rect = EditorGUI.IndentedRect(rect);
-;            SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
+            rect = EditorGUI.IndentedRect(rect); 
+            SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
 
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {

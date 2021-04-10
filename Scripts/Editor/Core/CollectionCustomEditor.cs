@@ -80,12 +80,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnListOrderChanged(ReorderableList list)
         {
-            itemsSerializedProperty.serializedObject.ApplyModifiedProperties();
+            list.serializedProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private void OnClickToRemoveItem(ReorderableList list)
         {
-            int selectedIndex = reorderableList.index;
+            int selectedIndex = list.index;
             RemoveItemAtIndex(selectedIndex);
         }
 

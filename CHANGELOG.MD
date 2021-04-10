@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0]
+### Changed
+- Refactored the `ScriptableObjectCollection` `Custom Editor` to use `ReorderableList` instead of the previous custom list drawer
+- Refactored the editor prefab property drawer to properly draw the `SerializedProperties` of the item instead of displaying the custom inspector
+- Removed some old files and methods that aren't necessary anymore.
+
+### Added
+- Added context click on the items, you can now <kbd>Copy</kbd> <kbd>Paste</kbd> values between collection items and <kbd>Duplicate</kbd> and <kbd>Delete</kbd> items when right click on it on the Editor
 
 ## [1.5.7]
 ### Changed
@@ -249,6 +257,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Unreleased
 
 
+[1.6.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.6.0
 [1.5.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.7
 [1.5.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.6
 [1.5.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.5.5

@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -176,6 +175,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
+            CollectionsRegistry.Instance.ValidateGUIDs();
             if (!CanGenerateStaticFile(collection, out string errorMessage))
             {
                 Debug.LogError(errorMessage);

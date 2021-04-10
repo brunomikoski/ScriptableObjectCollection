@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItemType == null)
             {
                 Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
-                Type properFieldType = arrayOrListType != null ? arrayOrListType : fieldInfo.FieldType;
+                Type properFieldType = arrayOrListType ?? fieldInfo.FieldType;
                 collectionItemType = GetGenericItemType(properFieldType).GetGenericArguments().First();
             }
 

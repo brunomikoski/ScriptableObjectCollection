@@ -144,6 +144,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (LAST_ADDED_COLLECTION_ITEM == collectionItemSerializedProperty.objectReferenceValue)
                 {
                     EditorGUI.FocusTextInControl( collectionItemSerializedProperty.objectReferenceValue.name);
+                    reorderableList.index = index;
                     LAST_ADDED_COLLECTION_ITEM = null;
                 }
                 
@@ -259,10 +260,28 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         RemoveItemAtIndex(index);
                     }
                 );
+                
+                menu.AddSeparator("");
+                menu.AddItem(
+                    new GUIContent("Select Asset"),
+                    false,
+                    () =>
+                    {
+                        SelectItemAtIndex(index);
+                    }
+                );
+                
                 menu.ShowAsContext();
  
                 current.Use(); 
             }
+        }
+
+        private void SelectItemAtIndex(int index)
+        {
+            SerializedProperty serializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index);
+            ScriptableObjectCollectionItem collectionItem = serializedProperty.objectReferenceValue as ScriptableObjectCollectionItem;
+            Selection.objects = new Object[] { collectionItem };
         }
 
         private void DuplicateItem(int index)

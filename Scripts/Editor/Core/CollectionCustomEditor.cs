@@ -7,6 +7,7 @@ using UnityEditor.Compilation;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -109,11 +110,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (itemHidden[index])
                 return 0;
             
-            SerializedProperty collectionItemSerializedProperty = reorderableList.serializedProperty.GetArrayElementAtIndex(index);
-
-            if (collectionItemSerializedProperty.objectReferenceValue == null)
-                return 0;
-
             return Mathf.Max(
                 heights[index],
                 EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing
@@ -509,6 +505,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawSettings()
         {
+            Profiler.BeginSample("Collection Editor");
             using (new GUILayout.VerticalScope("Box"))
             {
                 EditorGUI.indentLevel++;
@@ -528,6 +525,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     EditorGUI.indentLevel--;
                 }
             }
+            Profiler.EndSample();
         }
 
         private void DrawGeneratedFileName()

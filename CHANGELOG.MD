@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored the `ScriptableObjectCollection` `Custom Editor` to use `ReorderableList` instead of the previous custom list drawer
 - Refactored the editor prefab property drawer to properly draw the `SerializedProperties` of the item instead of displaying the custom inspector
 - Removed some old files and methods that aren't necessary anymore.
+- When using the inline visualizer of the CollectionItem, it should now respect position (if is inside an array or custom propery drawer)
 
 ### Added
 - Added context click on the items, you can now <kbd>Copy</kbd> <kbd>Paste</kbd> values between collection items and <kbd>Duplicate</kbd> and <kbd>Delete</kbd> items when right click on it on the Editor

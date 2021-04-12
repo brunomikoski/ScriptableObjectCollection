@@ -114,7 +114,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItemSerializedProperty.objectReferenceValue == null)
                 return 0;
 
-            return Mathf.Max(heights[index], EditorGUIUtility.singleLineHeight);
+            return Mathf.Max(
+                heights[index],
+                EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing
+            );
         }
 
         private void DrawCollectionItemAtIndex(Rect rect, int index, bool isActive, bool isFocused)
@@ -130,8 +133,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             rect.x += 10;
             rect.width -= 20;
 
+            Rect foldoutArrowRect = rect;
             collectionItemSerializedProperty.isExpanded = EditorGUI.Foldout(
-                rect,
+                foldoutArrowRect,
                 collectionItemSerializedProperty.isExpanded,
                 GUIContent.none
             );
@@ -139,7 +143,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
                 GUI.SetNextControlName(collectionItemSerializedProperty.objectReferenceValue.name);
-                string newName = EditorGUI.DelayedTextField(rect, collectionItemSerializedProperty.objectReferenceValue.name, CollectionEditorGUI.ItemNameStyle);
+                Rect nameRect = rect;
+                string newName = EditorGUI.DelayedTextField(nameRect, collectionItemSerializedProperty.objectReferenceValue.name, CollectionEditorGUI.ItemNameStyle);
                 
                 if (LAST_ADDED_COLLECTION_ITEM == collectionItemSerializedProperty.objectReferenceValue)
                 {

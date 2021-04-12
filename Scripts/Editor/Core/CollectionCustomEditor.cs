@@ -7,6 +7,7 @@ using UnityEditor.Compilation;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -109,12 +110,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (itemHidden[index])
                 return 0;
             
-            SerializedProperty collectionItemSerializedProperty = reorderableList.serializedProperty.GetArrayElementAtIndex(index);
-
-            if (collectionItemSerializedProperty.objectReferenceValue == null)
-                return 0;
-
-            return Mathf.Max(heights[index], EditorGUIUtility.singleLineHeight);
+            return Mathf.Max(
+                heights[index],
+                EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing
+            );
         }
 
         private void DrawCollectionItemAtIndex(Rect rect, int index, bool isActive, bool isFocused)
@@ -130,8 +129,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             rect.x += 10;
             rect.width -= 20;
 
+            Rect foldoutArrowRect = rect;
             collectionItemSerializedProperty.isExpanded = EditorGUI.Foldout(
-                rect,
+                foldoutArrowRect,
                 collectionItemSerializedProperty.isExpanded,
                 GUIContent.none
             );
@@ -139,11 +139,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
                 GUI.SetNextControlName(collectionItemSerializedProperty.objectReferenceValue.name);
-                string newName = EditorGUI.DelayedTextField(rect, collectionItemSerializedProperty.objectReferenceValue.name, CollectionEditorGUI.ItemNameStyle);
+                Rect nameRect = rect;
+                string newName = EditorGUI.DelayedTextField(nameRect, collectionItemSerializedProperty.objectReferenceValue.name, CollectionEditorGUI.ItemNameStyle);
                 
                 if (LAST_ADDED_COLLECTION_ITEM == collectionItemSerializedProperty.objectReferenceValue)
                 {
                     EditorGUI.FocusTextInControl( collectionItemSerializedProperty.objectReferenceValue.name);
+                    reorderableList.index = index;
                     LAST_ADDED_COLLECTION_ITEM = null;
                 }
                 
@@ -259,10 +261,28 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         RemoveItemAtIndex(index);
                     }
                 );
+                
+                menu.AddSeparator("");
+                menu.AddItem(
+                    new GUIContent("Select Asset"),
+                    false,
+                    () =>
+                    {
+                        SelectItemAtIndex(index);
+                    }
+                );
+                
                 menu.ShowAsContext();
  
                 current.Use(); 
             }
+        }
+
+        private void SelectItemAtIndex(int index)
+        {
+            SerializedProperty serializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index);
+            ScriptableObjectCollectionItem collectionItem = serializedProperty.objectReferenceValue as ScriptableObjectCollectionItem;
+            Selection.objects = new Object[] { collectionItem };
         }
 
         private void DuplicateItem(int index)
@@ -485,6 +505,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawSettings()
         {
+            Profiler.BeginSample("Collection Editor");
             using (new GUILayout.VerticalScope("Box"))
             {
                 EditorGUI.indentLevel++;
@@ -504,6 +525,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     EditorGUI.indentLevel--;
                 }
             }
+            Profiler.EndSample();
         }
 
         private void DrawGeneratedFileName()

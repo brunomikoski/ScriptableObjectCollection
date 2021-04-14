@@ -323,7 +323,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 DrawBottomMenu();
             }
             DrawSettings();
-       }
+            CheckForKeyboardShortcuts();
+        }
+
+        private void CheckForKeyboardShortcuts()
+        {
+            if (reorderableList.index == -1)
+                return;
+
+            if (!reorderableList.HasKeyboardControl())
+                return;
+            
+            if (Event.current.type == EventType.Layout || Event.current.type == EventType.Repaint)
+                return;
+            
+            SerializedProperty element = reorderableList.serializedProperty.GetArrayElementAtIndex(reorderableList.index);
+
+            if (Event.current.keyCode == KeyCode.RightArrow)
+            {
+                element.isExpanded = true; 
+                Event.current.Use();
+            }
+            else if (Event.current.keyCode == KeyCode.LeftArrow)
+            {
+                element.isExpanded = false; 
+                Event.current.Use();
+            }
+        }
 
         private void RemoveNullReferences()
         {

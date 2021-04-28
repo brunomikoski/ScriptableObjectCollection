@@ -130,11 +130,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
             rect.width -= 20;
 
             Rect foldoutArrowRect = rect;
+            bool wasExpanded = collectionItemSerializedProperty.isExpanded;
             collectionItemSerializedProperty.isExpanded = EditorGUI.Foldout(
                 foldoutArrowRect,
                 collectionItemSerializedProperty.isExpanded,
                 GUIContent.none
             );
+
+            if (!wasExpanded && collectionItemSerializedProperty.isExpanded)
+            {
+                if (Event.current.alt)
+                    SetAllExpanded(true);
+            }
+            else if (wasExpanded && !collectionItemSerializedProperty.isExpanded)
+            {
+                if (Event.current.alt)
+                    SetAllExpanded(false);
+            }
 
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
@@ -201,6 +213,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CheckForContextInputOnItem(collectionItemSerializedProperty, index, originY, rect);
             
             heights[index] = rect.y - originY;
+        }
+
+        private void SetAllExpanded(bool expanded)
+        {
+            for (int i = 0; i < reorderableList.count; i++)
+            {
+                SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(i);
+                property.isExpanded = expanded;
+            }
         }
 
         private void CheckForContextInputOnItem(SerializedProperty collectionItemSerializedProperty, int index, float originY, Rect rect)
@@ -531,7 +552,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawSettings()
         {
-            Profiler.BeginSample("Collection Editor");
             using (new GUILayout.VerticalScope("Box"))
             {
                 EditorGUI.indentLevel++;
@@ -551,7 +571,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     EditorGUI.indentLevel--;
                 }
             }
-            Profiler.EndSample();
         }
 
         private void DrawGeneratedFileName()

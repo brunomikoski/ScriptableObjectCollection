@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.1]
+### Added
+- Added arrow navigation on the Collection Editor, now you can navigate between items and expand/collapse it by <kbd>left</kbd> <kbd>right</kbd>
+- You can now expand/collapse all items by holding <kbd>alt</kbd> while clicking on the foldout arrow, like default unity controls
+
 ## [1.6.0]
 ### Changed
 - Refactored the `ScriptableObjectCollection` `Custom Editor` to use `ReorderableList` instead of the previous custom list drawer

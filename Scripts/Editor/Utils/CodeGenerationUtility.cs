@@ -190,6 +190,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
            
             string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
             bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
+            bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
 
 
             AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);
@@ -212,7 +213,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     false, directives.Distinct().ToArray()
                 );
 
-                WriteDirectAccessCollectionStatic(collection, writer, ref indentation);
+                WriteDirectAccessCollectionStatic(collection, writer, ref indentation, useBaseClass);
 
                 indentation--;
                 AppendFooter(writer, ref indentation, nameSpace);
@@ -264,7 +265,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
         
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
-            ref int indentation)
+            ref int indentation, bool useBaseClass)
         {
             string cachedValuesName = "values";
             AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
@@ -274,8 +275,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collection.Items.Count; i++)
             {
                 ScriptableObjectCollectionItem collectionItem = collection.Items[i];
-                AppendLine(writer, indentation,
-                    $"private static {collectionItem.GetType().Name} {collectionItem.name.Sanitize().FirstToLower()};");
+                Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
+                AppendLine(writer, indentation, 
+                    $"private static {type.Name} {collectionItem.name.Sanitize().FirstToLower()};");
             }
 
             AppendLine(writer, indentation);
@@ -309,9 +311,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ScriptableObjectCollectionItem collectionItem = collection.Items[i];
                 string collectionNameFirstUpper = collectionItem.name.Sanitize().FirstToUpper();
                 string privateStaticName = collectionItem.name.Sanitize().FirstToLower();
+                Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
 
                 AppendLine(writer, indentation,
-                    $"public static {collectionItem.GetType().Name} {collectionNameFirstUpper}");
+                    $"public static {type.Name} {collectionNameFirstUpper}");
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, "get");
@@ -321,7 +324,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({collectionItem.GetType().Name}){valuesName}.GetItemByGUID(\"{collectionItem.GUID}\");");
+                    $"{privateStaticName} = ({type.Name}){valuesName}.GetItemByGUID(\"{collectionItem.GUID}\");");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;

@@ -565,6 +565,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     DrawAutomaticallyLoaded();
                     DrawGeneratedClassParentFolder();
                     DrawPartialClassToggle();
+                    DrawUseBaseClassToggle();
                     DrawGeneratedFileName();
                     DrawGeneratedFileNamespace();
                     
@@ -652,6 +653,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             EditorGUI.EndDisabledGroup();
+        }
+        
+        private void DrawUseBaseClassToggle()
+        {
+            SerializedProperty useBaseClassProperty = serializedObject.FindProperty("generateAsBaseClass");
+    
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                bool useBaseClass = EditorGUILayout.Toggle("Use Base Class for items", useBaseClassProperty.boolValue);
+                if (changeCheck.changed)
+                {
+                    useBaseClassProperty.boolValue = useBaseClass;
+                    useBaseClassProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
         }
         
         private void CheckGeneratedStaticFileName()

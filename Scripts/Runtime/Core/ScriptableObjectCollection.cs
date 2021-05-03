@@ -37,6 +37,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private bool generateAsPartialClass = true;
         [SerializeField]
+        private bool generateAsBaseClass = false;
+        [SerializeField]
         private string generatedFileLocationPath;
         [SerializeField]
         private string generatedStaticClassFileName;

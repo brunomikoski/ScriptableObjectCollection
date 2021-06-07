@@ -59,7 +59,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             collectionItemPropertyDrawer.DrawCollectionItemDrawer(
-                position, collectionItem, label,
+                ref position, collectionItem, label,
                 item =>
                 {
                     string collectionItemGUID = string.Empty;

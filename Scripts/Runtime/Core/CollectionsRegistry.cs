@@ -40,6 +40,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             
             collections.Add(targetCollection);
+            
+            ObjectUtility.SetDirty(this);
         }
 
         public void UnregisterCollection(ScriptableObjectCollection targetCollection)
@@ -48,6 +50,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
 
             collections.Remove(targetCollection);
+            
+            ObjectUtility.SetDirty(this);
         }
 
         public List<T> GetAllCollectionItemsOfType<T>() where T : ScriptableObjectCollectionItem

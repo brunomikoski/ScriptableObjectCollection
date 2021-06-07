@@ -60,7 +60,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item = property.objectReferenceValue as ScriptableObjectCollectionItem;
 
-            DrawCollectionItemDrawer(position, item, label,
+            DrawCollectionItemDrawer(ref position, item, label,
                 newItem =>
                 {
                     property.objectReferenceValue = newItem;
@@ -68,7 +68,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 });
         }
 
-        internal void DrawCollectionItemDrawer(Rect position, ScriptableObjectCollectionItem collectionItem, GUIContent label, 
+        internal void DrawCollectionItemDrawer(ref Rect position, ScriptableObjectCollectionItem collectionItem, GUIContent label, 
             Action<ScriptableObjectCollectionItem> callback)
         {
             float originY = position.y;

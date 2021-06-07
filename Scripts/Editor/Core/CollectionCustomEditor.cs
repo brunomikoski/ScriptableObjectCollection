@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
-    public class CollectionCustomEditor : Editor
+    public sealed class CollectionCustomEditor : Editor
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         private static ScriptableObjectCollectionItem LAST_ADDED_COLLECTION_ITEM;
@@ -555,7 +555,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             using (new GUILayout.VerticalScope("Box"))
             {
                 EditorGUI.indentLevel++;
-                showSettings = EditorGUILayout.Foldout(showSettings, "Settings", true);
+                showSettings = EditorGUILayout.Foldout(showSettings, "Advanced", true);
                 EditorGUI.indentLevel--;
 
                 if (showSettings)
@@ -568,10 +568,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     DrawUseBaseClassToggle();
                     DrawGeneratedFileName();
                     DrawGeneratedFileNamespace();
+                    GUILayout.Space(10);
+                    DrawDeleteCollection();
                     
                     EditorGUI.indentLevel--;
                 }
             }
+        }
+
+        private void DrawDeleteCollection()
+        {
+            Color backgroundColor = GUI.backgroundColor;
+            GUI.backgroundColor = Color.red;
+            if (GUILayout.Button("Delete Collection"))
+            {
+                DeleteCollectionEditorWindow.DeleteCollection(collection);
+            }
+
+            GUI.backgroundColor = backgroundColor;
         }
 
         private void DrawGeneratedFileName()

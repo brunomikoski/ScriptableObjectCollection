@@ -11,15 +11,15 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             get
             {
                 if (instance == null)
-                    instance = LoadOrCreateInstance();
+                    instance = LoadOrCreateInstance<T>();
                 return instance;
             }
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        public static T LoadOrCreateInstance()
+        public static T LoadOrCreateInstance<T>() where T : ScriptableObject
         {
-            if (!TryToLoadInstance(out T resultInstance))
+            if (!TryToLoadInstance<T>(out T resultInstance))
             {
 #if !UNITY_EDITOR
                 return null;
@@ -39,10 +39,10 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
 
         public static bool Exist()
         {
-            return TryToLoadInstance(out _);
+            return TryToLoadInstance<T>(out _);
         }
 
-        private static bool TryToLoadInstance(out T result)
+        private static bool TryToLoadInstance<T>(out T result) where T: ScriptableObject
         {
             T newInstance = Resources.Load<T>(typeof(T).Name);
 

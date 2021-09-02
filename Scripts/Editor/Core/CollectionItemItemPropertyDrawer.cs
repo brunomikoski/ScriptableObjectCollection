@@ -82,7 +82,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     currentObject = collectionItem;
                 
                 DrawEditFoldoutButton(ref prefixPosition, collectionItem);
-                DrawGotoButton(ref prefixPosition);
+                DrawGotoButton(ref prefixPosition, collectionItem);
             }
 
             DrawCollectionItemDropDown(ref prefixPosition, collectionItem, callback);
@@ -149,13 +149,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type itemType = arrayOrListType != null ? arrayOrListType : fieldInfo.FieldType;
 
-            collectionItemDropdown = new CollectionItemDropdown(
-                new AdvancedDropdownState(),
-                itemType
-            );
-            
-            currentObject = property.serializedObject.targetObject;
-            initialized = true;
+            Initialize(itemType, property.serializedObject.targetObject);
         }
 
         internal void Initialize(Type collectionItemType, Object obj)
@@ -186,7 +180,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawGotoButton(ref Rect popupRect)
+        private void DrawGotoButton(ref Rect popupRect, ScriptableObjectCollectionItem collectionItem)
         {
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
@@ -195,8 +189,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
-                Selection.activeObject = item.Collection;
-                CollectionUtility.SetFoldoutOpen(true, item, item.Collection);
+                Selection.activeObject = collectionItem.Collection;
+                CollectionUtility.SetFoldoutOpen(true, item, collectionItem.Collection);
             }
         }
 

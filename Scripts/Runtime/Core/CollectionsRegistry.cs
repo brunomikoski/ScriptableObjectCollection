@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
+using UnityEngine.Scripting;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -15,6 +16,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
 
+        [Preserve]
         public void UsedOnlyForAOTCodeGeneration()
         {
             LoadOrCreateInstance<CollectionsRegistry>();

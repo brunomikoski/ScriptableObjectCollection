@@ -7,7 +7,7 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
-    public class CollectionItemItemPropertyDrawer : PropertyDrawer
+    public class CollectionItemPropertyDrawer : PropertyDrawer
     {
         private static readonly CollectionItemEditorOptionsAttribute DefaultAttribute
             = new CollectionItemEditorOptionsAttribute(DrawType.Dropdown);

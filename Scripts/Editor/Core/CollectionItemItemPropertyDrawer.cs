@@ -82,7 +82,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     currentObject = collectionItem;
                 
                 DrawEditFoldoutButton(ref prefixPosition, collectionItem);
-                DrawGotoButton(ref prefixPosition);
+                DrawGotoButton(ref prefixPosition, collectionItem);
             }
 
             DrawCollectionItemDropDown(ref prefixPosition, collectionItem, callback);
@@ -182,7 +182,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        protected virtual void DrawGotoButton(ref Rect popupRect)
+        protected virtual void DrawGotoButton(ref Rect popupRect, ScriptableObjectCollectionItem collectionItem)
         {
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
@@ -191,8 +191,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
-                Selection.activeObject = item.Collection;
-                CollectionUtility.SetFoldoutOpen(true, this.item, item.Collection);
+                Selection.activeObject = collectionItem.Collection;
+                CollectionUtility.SetFoldoutOpen(true, this.item, collectionItem.Collection);
             }
         }
 

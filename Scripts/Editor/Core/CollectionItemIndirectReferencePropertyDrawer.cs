@@ -12,7 +12,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string COLLECTION_GUID_PROPERTY_PATh = "collectionGUID";
 
         private Type collectionItemType;
-        private CollectionItemItemPropertyDrawer collectionItemPropertyDrawer;
+        private CollectionItemPropertyDrawer collectionItemPropertyDrawer;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -25,7 +25,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (collectionItemPropertyDrawer == null)
             {
-                collectionItemPropertyDrawer = new CollectionItemItemPropertyDrawer();
+                collectionItemPropertyDrawer = new CollectionItemPropertyDrawer();
                 collectionItemPropertyDrawer.Initialize(collectionItemType, null);
             }
             

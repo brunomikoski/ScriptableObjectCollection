@@ -7,20 +7,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         Dropdown = 0,
         AsReference = 1
     }
-    
-    [AttributeUsage(AttributeTargets.Field)]
-    public class CollectionItemEditorOptionsAttribute :Attribute
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class)]
+    public class CollectionItemEditorOptionsAttribute : Attribute
     {
-        private DrawType drawType = DrawType.Dropdown;
-        public DrawType DrawType
+        public DrawType DrawType { get; set; } = DrawType.Dropdown;
+
+        public bool ShouldDrawGotoButton { get; set; } = true;
+
+        public bool ShouldDrawPreviewButton { get; set; } = true;
+
+        public CollectionItemEditorOptionsAttribute()
         {
-            get => drawType;
-            set => drawType = value;
         }
 
         public CollectionItemEditorOptionsAttribute(DrawType drawType)
         {
-            this.drawType = drawType;
+            DrawType = drawType;
         }
     }
 }

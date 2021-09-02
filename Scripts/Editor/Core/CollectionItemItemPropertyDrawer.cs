@@ -14,7 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private CollectionItemEditorOptionsAttribute cachedOptionsAttribute;
 
-        private CollectionItemEditorOptionsAttribute OptionsAttribute
+        protected CollectionItemEditorOptionsAttribute OptionsAttribute
         {
             get
             {
@@ -68,7 +68,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 });
         }
 
-        internal void DrawCollectionItemDrawer(ref Rect position, ScriptableObjectCollectionItem collectionItem, GUIContent label, 
+        public virtual void DrawCollectionItemDrawer(ref Rect position, ScriptableObjectCollectionItem collectionItem, GUIContent label, 
             Action<ScriptableObjectCollectionItem> callback)
         {
             float originY = position.y;
@@ -91,7 +91,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             totalHeight = position.y - originY;
         }
 
-        private void DrawEditorPreview(ref Rect rect, ScriptableObjectCollectionItem scriptableObjectCollectionItem)
+        protected virtual void DrawEditorPreview(ref Rect rect, ScriptableObjectCollectionItem scriptableObjectCollectionItem)
         {
             if (scriptableObjectCollectionItem == null)
                 return;
@@ -141,7 +141,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             GUI.Box(boxPosition, GUIContent.none, EditorStyles.helpBox);
         }
 
-        private void Initialize(SerializedProperty property)
+        public virtual void Initialize(SerializedProperty property)
         {
             if (initialized)
                 return;
@@ -149,16 +149,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type itemType = arrayOrListType != null ? arrayOrListType : fieldInfo.FieldType;
 
-            collectionItemDropdown = new CollectionItemDropdown(
-                new AdvancedDropdownState(),
-                itemType
-            );
+            var obj = property.serializedObject.targetObject;
             
-            currentObject = property.serializedObject.targetObject;
-            initialized = true;
+            Initialize(itemType, obj);
         }
 
-        internal void Initialize(Type collectionItemType, Object obj)
+        public virtual void Initialize(Type collectionItemType, Object obj)
         {
             if (initialized)
                 return;
@@ -172,7 +168,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             initialized = true;
         }
 
-        private void DrawCollectionItemDropDown(ref Rect position, ScriptableObjectCollectionItem collectionItem,
+        protected virtual void DrawCollectionItemDropDown(ref Rect position, ScriptableObjectCollectionItem collectionItem,
             Action<ScriptableObjectCollectionItem> callback)
         {
             GUIContent displayValue = new GUIContent("None");
@@ -186,7 +182,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void DrawGotoButton(ref Rect popupRect)
+        protected virtual void DrawGotoButton(ref Rect popupRect)
         {
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
@@ -196,11 +192,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
                 Selection.activeObject = item.Collection;
-                CollectionUtility.SetFoldoutOpen(true, item, item.Collection);
+                CollectionUtility.SetFoldoutOpen(true, this.item, item.Collection);
             }
         }
 
-        private void DrawEditFoldoutButton(ref Rect popupRect, ScriptableObjectCollectionItem targetItem)
+        protected virtual void DrawEditFoldoutButton(ref Rect popupRect, ScriptableObjectCollectionItem targetItem)
         {
             Rect buttonRect = popupRect;
             buttonRect.width = 30;

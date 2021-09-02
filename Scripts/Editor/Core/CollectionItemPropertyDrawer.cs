@@ -12,20 +12,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly CollectionItemEditorOptionsAttribute DefaultAttribute
             = new CollectionItemEditorOptionsAttribute(DrawType.Dropdown);
 
-        private CollectionItemEditorOptionsAttribute cachedOptionsAttribute;
-
-        private CollectionItemEditorOptionsAttribute OptionsAttribute
-        {
-            get
-            {
-                if (cachedOptionsAttribute == null)
-                    cachedOptionsAttribute = GetOptionsAttribute();
-                return cachedOptionsAttribute;
-            }
-        }
+        internal CollectionItemEditorOptionsAttribute OptionsAttribute { get; private set; }
 
         private bool initialized;
-        
+
         private Object currentObject;
 
         private CollectionItemDropdown collectionItemDropdown;
@@ -36,8 +26,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (fieldInfo == null)
                 return DefaultAttribute;
-            object[] attributes
-                = fieldInfo.GetCustomAttributes(typeof(CollectionItemEditorOptionsAttribute), false);
+            object[] attributes = fieldInfo.GetCustomAttributes(typeof(CollectionItemEditorOptionsAttribute), false);
             if (attributes.Length > 0)
                 return attributes[0] as CollectionItemEditorOptionsAttribute;
             return DefaultAttribute;
@@ -51,11 +40,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             Initialize(property);
-            
+
             if (OptionsAttribute.DrawType == DrawType.AsReference)
             {
                 EditorGUI.PropertyField(position, property, label, true);
-                return;  
+                return;
             }
 
             item = property.objectReferenceValue as ScriptableObjectCollectionItem;
@@ -80,7 +69,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (currentObject == null)
                     currentObject = collectionItem;
-                
+
                 DrawEditFoldoutButton(ref prefixPosition, collectionItem);
                 DrawGotoButton(ref prefixPosition, collectionItem);
             }
@@ -95,7 +84,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (scriptableObjectCollectionItem == null)
                 return;
-            
+
             if (!CollectionUtility.IsFoldoutOpen(scriptableObjectCollectionItem, currentObject))
                 return;
 
@@ -107,7 +96,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             SerializedObject collectionItemSerializedObject = new SerializedObject(scriptableObjectCollectionItem);
 
             EditorGUI.indentLevel++;
-            rect = EditorGUI.IndentedRect(rect); 
+            rect = EditorGUI.IndentedRect(rect);
             SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
 
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
@@ -134,7 +123,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             Rect boxPosition = rect;
             boxPosition.y = beginPositionY - 5;
-            boxPosition.height = (rect.y - beginPositionY)+10;
+            boxPosition.height = (rect.y - beginPositionY) + 10;
             boxPosition.width += 10;
             boxPosition.x += 5;
             rect.y += 10;
@@ -145,25 +134,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (initialized)
                 return;
-            
+
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type itemType = arrayOrListType != null ? arrayOrListType : fieldInfo.FieldType;
 
             Initialize(itemType, property.serializedObject.targetObject);
         }
 
-        internal void Initialize(Type collectionItemType, Object obj)
+        internal void Initialize(Type collectionItemType, CollectionItemEditorOptionsAttribute optionsAttribute)
+        {
+            Initialize(collectionItemType, (Object)null);
+            OptionsAttribute = optionsAttribute;
+        }
+
+        internal virtual void Initialize(Type collectionItemType, Object obj)
         {
             if (initialized)
                 return;
-            
+
             collectionItemDropdown = new CollectionItemDropdown(
                 new AdvancedDropdownState(),
                 collectionItemType
             );
-            
+
             currentObject = obj;
             initialized = true;
+            
+            OptionsAttribute = GetOptionsAttribute();
         }
 
         private void DrawCollectionItemDropDown(ref Rect position, ScriptableObjectCollectionItem collectionItem,
@@ -173,7 +170,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (collectionItem != null)
                 displayValue = new GUIContent(collectionItem.name);
-            
+
             if (GUI.Button(position, displayValue, EditorStyles.popup))
             {
                 collectionItemDropdown.Show(position, callback.Invoke);
@@ -182,6 +179,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawGotoButton(ref Rect popupRect, ScriptableObjectCollectionItem collectionItem)
         {
+            if (!OptionsAttribute.ShouldDrawGotoButton) return;
+
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
             buttonRect.height = 18;
@@ -196,6 +195,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawEditFoldoutButton(ref Rect popupRect, ScriptableObjectCollectionItem targetItem)
         {
+            if (!OptionsAttribute.ShouldDrawPreviewButton) return;
+
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
             buttonRect.height = 18;
@@ -212,6 +213,5 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ObjectUtility.SetDirty(targetItem);
             }
         }
-
     }
 }

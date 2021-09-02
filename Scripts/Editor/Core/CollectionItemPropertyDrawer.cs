@@ -147,7 +147,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             OptionsAttribute = optionsAttribute ?? GetOptionsAttribute();
         }
 
-        internal virtual void Initialize(Type collectionItemType, Object obj)
+        internal void Initialize(Type collectionItemType, Object obj)
         {
             if (initialized)
                 return;

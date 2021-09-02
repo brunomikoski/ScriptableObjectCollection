@@ -189,7 +189,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
                 Selection.activeObject = collectionItem.Collection;
-                CollectionUtility.SetFoldoutOpen(true, item, collectionItem.Collection);
+                CollectionUtility.SetFoldoutOpen(true, collectionItem, collectionItem.Collection);
             }
         }
 

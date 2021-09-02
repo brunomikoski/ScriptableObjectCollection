@@ -144,7 +144,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         internal void Initialize(Type collectionItemType, CollectionItemEditorOptionsAttribute optionsAttribute)
         {
             Initialize(collectionItemType, (Object)null);
-            OptionsAttribute = optionsAttribute;
+            OptionsAttribute = optionsAttribute ?? GetOptionsAttribute();
         }
 
         internal virtual void Initialize(Type collectionItemType, Object obj)

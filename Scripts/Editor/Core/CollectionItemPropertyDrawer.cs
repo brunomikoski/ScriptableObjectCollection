@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -135,10 +136,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (initialized)
                 return;
 
-            Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
-            Type itemType = arrayOrListType != null ? arrayOrListType : fieldInfo.FieldType;
-
+            Type itemType;
+            if (fieldInfo == null)
+            {
+                Type parentType = property.serializedObject.targetObject.GetType();
+                itemType = GetFieldViaPath(parentType, property.propertyPath).FieldType;
+            }
+            else
+            {
+                Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
+                itemType = arrayOrListType ?? fieldInfo.FieldType;
+            }
+            
             Initialize(itemType, property.serializedObject.targetObject);
+        }
+
+        public static System.Reflection.FieldInfo GetFieldViaPath(Type parentType, string path)
+        {
+            FieldInfo fieldInfo = parentType.GetField(path);
+            string[] perDot = path.Split('.');
+            foreach (string fieldName in perDot)
+            {
+                fieldInfo = parentType.GetField(fieldName);
+                if (fieldInfo == null) return null;
+                parentType = fieldInfo.FieldType;
+            }
+            
+            return fieldInfo;
         }
 
         internal void Initialize(Type collectionItemType, CollectionItemEditorOptionsAttribute optionsAttribute)

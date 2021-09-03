@@ -13,7 +13,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [DefaultExecutionOrder(-1000)]
     public class CollectionsRegistry : ResourceScriptableObjectSingleton<CollectionsRegistry>
     {
-        [SerializeField]
+        [SerializeField] 
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
 
         [Preserve]
@@ -58,7 +58,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public List<T> GetAllCollectionItemsOfType<T>() where T : ScriptableObjectCollectionItem
         {
-            return GetAllCollectionItemsOfType(typeof(T)).Cast<T>().ToList();
+            return GetAllCollectionItemsOfType(typeof(T)).OfType<T>().ToList();
         }
 
         public List<ScriptableObjectCollectionItem> GetAllCollectionItemsOfType(Type itemType)
@@ -75,7 +75,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return results;
         }
-        
+
         public List<ScriptableObjectCollection> GetCollectionsByItemType<T>() where T : ScriptableObjectCollectionItem
         {
             return GetCollectionsByItemType(typeof(T));
@@ -96,7 +96,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return result;
         }
-        
+
         public ScriptableObjectCollection GetCollectionByGUID(string guid)
         {
             for (int i = 0; i < collections.Count; i++)
@@ -170,7 +170,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             scriptableObjectCollection = null;
             return false;
         }
-        
+
         public bool TryGetCollectionByGUID(string targetGUID, out ScriptableObjectCollection resultCollection)
         {
             for (int i = 0; i < collections.Count; i++)
@@ -296,14 +296,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             ReloadCollections();
         }
-        
+
 #if UNITY_EDITOR
         public void PrepareForPlayMode()
         {
             for (int i = 0; i < collections.Count; i++)
                 collections[i].PrepareForPlayMode();
         }
-        
+
         public void PrepareForEditorMode()
         {
             for (int i = 0; i < collections.Count; i++)

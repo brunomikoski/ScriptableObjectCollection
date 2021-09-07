@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -7,25 +8,15 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
-    public class CollectionItemItemPropertyDrawer : PropertyDrawer
+    public class CollectionItemPropertyDrawer : PropertyDrawer
     {
         private static readonly CollectionItemEditorOptionsAttribute DefaultAttribute
             = new CollectionItemEditorOptionsAttribute(DrawType.Dropdown);
 
-        private CollectionItemEditorOptionsAttribute cachedOptionsAttribute;
-
-        private CollectionItemEditorOptionsAttribute OptionsAttribute
-        {
-            get
-            {
-                if (cachedOptionsAttribute == null)
-                    cachedOptionsAttribute = GetOptionsAttribute();
-                return cachedOptionsAttribute;
-            }
-        }
+        internal CollectionItemEditorOptionsAttribute OptionsAttribute { get; private set; }
 
         private bool initialized;
-        
+
         private Object currentObject;
 
         private CollectionItemDropdown collectionItemDropdown;
@@ -36,8 +27,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (fieldInfo == null)
                 return DefaultAttribute;
-            object[] attributes
-                = fieldInfo.GetCustomAttributes(typeof(CollectionItemEditorOptionsAttribute), false);
+            object[] attributes = fieldInfo.GetCustomAttributes(typeof(CollectionItemEditorOptionsAttribute), false);
             if (attributes.Length > 0)
                 return attributes[0] as CollectionItemEditorOptionsAttribute;
             return DefaultAttribute;
@@ -51,11 +41,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             Initialize(property);
-            
+
             if (OptionsAttribute.DrawType == DrawType.AsReference)
             {
                 EditorGUI.PropertyField(position, property, label, true);
-                return;  
+                return;
             }
 
             item = property.objectReferenceValue as ScriptableObjectCollectionItem;
@@ -80,9 +70,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (currentObject == null)
                     currentObject = collectionItem;
-                
+
                 DrawEditFoldoutButton(ref prefixPosition, collectionItem);
-                DrawGotoButton(ref prefixPosition);
+                DrawGotoButton(ref prefixPosition, collectionItem);
             }
 
             DrawCollectionItemDropDown(ref prefixPosition, collectionItem, callback);
@@ -95,7 +85,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (scriptableObjectCollectionItem == null)
                 return;
-            
+
             if (!CollectionUtility.IsFoldoutOpen(scriptableObjectCollectionItem, currentObject))
                 return;
 
@@ -107,7 +97,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             SerializedObject collectionItemSerializedObject = new SerializedObject(scriptableObjectCollectionItem);
 
             EditorGUI.indentLevel++;
-            rect = EditorGUI.IndentedRect(rect); 
+            rect = EditorGUI.IndentedRect(rect);
             SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
 
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
@@ -134,7 +124,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             Rect boxPosition = rect;
             boxPosition.y = beginPositionY - 5;
-            boxPosition.height = (rect.y - beginPositionY)+10;
+            boxPosition.height = (rect.y - beginPositionY) + 10;
             boxPosition.width += 10;
             boxPosition.x += 5;
             rect.y += 10;
@@ -145,31 +135,56 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (initialized)
                 return;
-            
-            Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
-            Type itemType = arrayOrListType != null ? arrayOrListType : fieldInfo.FieldType;
 
-            collectionItemDropdown = new CollectionItemDropdown(
-                new AdvancedDropdownState(),
-                itemType
-            );
+            Type itemType;
+            if (fieldInfo == null)
+            {
+                Type parentType = property.serializedObject.targetObject.GetType();
+                itemType = GetFieldViaPath(parentType, property.propertyPath).FieldType;
+            }
+            else
+            {
+                Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
+                itemType = arrayOrListType ?? fieldInfo.FieldType;
+            }
             
-            currentObject = property.serializedObject.targetObject;
-            initialized = true;
+            Initialize(itemType, property.serializedObject.targetObject);
+        }
+
+        public static System.Reflection.FieldInfo GetFieldViaPath(Type parentType, string path)
+        {
+            FieldInfo fieldInfo = parentType.GetField(path);
+            string[] perDot = path.Split('.');
+            foreach (string fieldName in perDot)
+            {
+                fieldInfo = parentType.GetField(fieldName);
+                if (fieldInfo == null) return null;
+                parentType = fieldInfo.FieldType;
+            }
+            
+            return fieldInfo;
+        }
+
+        internal void Initialize(Type collectionItemType, CollectionItemEditorOptionsAttribute optionsAttribute)
+        {
+            Initialize(collectionItemType, (Object)null);
+            OptionsAttribute = optionsAttribute ?? GetOptionsAttribute();
         }
 
         internal void Initialize(Type collectionItemType, Object obj)
         {
             if (initialized)
                 return;
-            
+
             collectionItemDropdown = new CollectionItemDropdown(
                 new AdvancedDropdownState(),
                 collectionItemType
             );
-            
+
             currentObject = obj;
             initialized = true;
+            
+            OptionsAttribute = GetOptionsAttribute();
         }
 
         private void DrawCollectionItemDropDown(ref Rect position, ScriptableObjectCollectionItem collectionItem,
@@ -179,15 +194,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (collectionItem != null)
                 displayValue = new GUIContent(collectionItem.name);
-            
+
             if (GUI.Button(position, displayValue, EditorStyles.popup))
             {
                 collectionItemDropdown.Show(position, callback.Invoke);
             }
         }
 
-        private void DrawGotoButton(ref Rect popupRect)
+        private void DrawGotoButton(ref Rect popupRect, ScriptableObjectCollectionItem collectionItem)
         {
+            if (!OptionsAttribute.ShouldDrawGotoButton) return;
+
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
             buttonRect.height = 18;
@@ -195,13 +212,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
-                Selection.activeObject = item.Collection;
-                CollectionUtility.SetFoldoutOpen(true, item, item.Collection);
+                Selection.activeObject = collectionItem.Collection;
+                CollectionUtility.SetFoldoutOpen(true, collectionItem, collectionItem.Collection);
             }
         }
 
         private void DrawEditFoldoutButton(ref Rect popupRect, ScriptableObjectCollectionItem targetItem)
         {
+            if (!OptionsAttribute.ShouldDrawPreviewButton) return;
+
             Rect buttonRect = popupRect;
             buttonRect.width = 30;
             buttonRect.height = 18;
@@ -218,6 +237,5 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ObjectUtility.SetDirty(targetItem);
             }
         }
-
     }
 }

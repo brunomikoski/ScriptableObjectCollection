@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections.Core
@@ -53,8 +52,12 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             }
 
 #if UNITY_EDITOR
-            string registryGUID = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(TInstance).Name}")
-                .FirstOrDefault();
+            string[] assets = UnityEditor.AssetDatabase.FindAssets($"t:{typeof(TInstance).Name}");
+            
+            string registryGUID = "";
+
+            if (assets.Length > 0)
+                registryGUID = assets[0];
 
             if (!string.IsNullOrEmpty(registryGUID))
             {

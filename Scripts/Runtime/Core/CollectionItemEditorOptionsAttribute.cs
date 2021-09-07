@@ -20,10 +20,5 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public CollectionItemEditorOptionsAttribute()
         {
         }
-
-        public CollectionItemEditorOptionsAttribute(DrawType drawType)
-        {
-            DrawType = drawType;
-        }
     }
 }

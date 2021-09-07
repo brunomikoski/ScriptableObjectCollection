@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -20,15 +19,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            if(collectionItemType == null) SetCollectionItemType();
-            if (collectionItemPropertyDrawer == null) CreateCollectionItemPropertyDrawer(property);
+            if (collectionItemType == null)
+                SetCollectionItemType();
+            if (collectionItemPropertyDrawer == null) 
+                CreateCollectionItemPropertyDrawer();
 
             drawingProperty = property;
             itemGUIDSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_PROPERTY_PATH);
             collectionGUIDSerializedProperty = property.FindPropertyRelative(COLLECTION_GUID_PROPERTY_PATH);
 
-            var itemGUID = itemGUIDSerializedProperty.stringValue;
-            var collectionItem = GetCollectionItem(itemGUID, collectionGUIDSerializedProperty.stringValue);
+            string itemGUID = itemGUIDSerializedProperty.stringValue;
+            ScriptableObjectCollectionItem collectionItem = GetCollectionItem(itemGUID, collectionGUIDSerializedProperty.stringValue);
 
             int indexOfArrayPart = property.propertyPath.IndexOf('[');
             if (indexOfArrayPart > -1)
@@ -48,8 +49,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             EditorGUI.PropertyField(position, property, label, true);
         }
 
-        private void DrawItemDrawer(
-            Rect position, GUIContent label, ScriptableObjectCollectionItem collectionItem
+        private void DrawItemDrawer(Rect position, GUIContent label, ScriptableObjectCollectionItem collectionItem
         )
         {
             collectionItemPropertyDrawer.DrawCollectionItemDrawer(ref position, collectionItem, label, item =>
@@ -75,17 +75,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static ScriptableObjectCollectionItem GetCollectionItem(string itemGUID, string collectionGUID)
         {
-            if (string.IsNullOrEmpty(itemGUID)) return null;
-            if (string.IsNullOrEmpty(collectionGUID)) return null;
-            if (!CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID,
-                out ScriptableObjectCollection collection))
+            if (string.IsNullOrEmpty(itemGUID)) 
                 return null;
+            
+            if (string.IsNullOrEmpty(collectionGUID)) 
+                return null;
+            
+            if (!CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID, out ScriptableObjectCollection collection))
+                return null;
+            
             if (!collection.TryGetItemByGUID(itemGUID, out ScriptableObjectCollectionItem resultCollection))
                 return null;
             return resultCollection;
         }
 
-        private void CreateCollectionItemPropertyDrawer(SerializedProperty serializedProperty)
+        private void CreateCollectionItemPropertyDrawer()
         {
             collectionItemPropertyDrawer = new CollectionItemPropertyDrawer();
             collectionItemPropertyDrawer.Initialize(collectionItemType, GetOptionsAttribute());
@@ -95,7 +99,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type properFieldType = arrayOrListType ?? fieldInfo.FieldType;
-            collectionItemType = GetGenericItemType(properFieldType).GetGenericArguments().First();
+            collectionItemType = GetGenericItemType(properFieldType).GetGenericArguments()[0];
         }
 
         private Type GetGenericItemType(Type targetType)

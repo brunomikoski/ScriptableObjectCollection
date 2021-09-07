@@ -11,7 +11,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class CollectionItemPropertyDrawer : PropertyDrawer
     {
         private static readonly CollectionItemEditorOptionsAttribute DefaultAttribute
-            = new CollectionItemEditorOptionsAttribute(DrawType.Dropdown);
+            = new CollectionItemEditorOptionsAttribute();
 
         internal CollectionItemEditorOptionsAttribute OptionsAttribute { get; private set; }
 
@@ -151,14 +151,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Initialize(itemType, property.serializedObject.targetObject);
         }
 
-        public static System.Reflection.FieldInfo GetFieldViaPath(Type parentType, string path)
+        private static FieldInfo GetFieldViaPath(Type parentType, string path)
         {
             FieldInfo fieldInfo = parentType.GetField(path);
             string[] perDot = path.Split('.');
             foreach (string fieldName in perDot)
             {
                 fieldInfo = parentType.GetField(fieldName);
-                if (fieldInfo == null) return null;
+                if (fieldInfo == null) 
+                    return null;
+                
                 parentType = fieldInfo.FieldType;
             }
             
@@ -171,7 +173,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             OptionsAttribute = optionsAttribute ?? GetOptionsAttribute();
         }
 
-        internal void Initialize(Type collectionItemType, Object obj)
+        private void Initialize(Type collectionItemType, Object obj)
         {
             if (initialized)
                 return;
@@ -219,7 +221,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawEditFoldoutButton(ref Rect popupRect, ScriptableObjectCollectionItem targetItem)
         {
-            if (!OptionsAttribute.ShouldDrawPreviewButton) return;
+            if (!OptionsAttribute.ShouldDrawPreviewButton) 
+                return;
 
             Rect buttonRect = popupRect;
             buttonRect.width = 30;

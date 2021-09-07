@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 using UnityEngine.Scripting;
@@ -58,7 +57,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public List<T> GetAllCollectionItemsOfType<T>() where T : ScriptableObjectCollectionItem
         {
-            return GetAllCollectionItemsOfType(typeof(T)).OfType<T>().ToList();
+            List<T> result = new List<T>();
+            List<ScriptableObjectCollectionItem> items = GetAllCollectionItemsOfType(typeof(T));
+            for (int i = 0; i < items.Count; i++)
+            {
+                ScriptableObjectCollectionItem scriptableObjectCollectionItem = items[i];
+                result.Add((T)scriptableObjectCollectionItem);
+            }
+
+            return result;
         }
 
         public List<ScriptableObjectCollectionItem> GetAllCollectionItemsOfType(Type itemType)
@@ -144,7 +151,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (possibleCollections.Count == 1)
             {
-                scriptableObjectCollection = possibleCollections.First();
+                scriptableObjectCollection = possibleCollections[0];
                 return true;
             }
 

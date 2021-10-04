@@ -10,7 +10,7 @@ using UnityEditor;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class ScriptableObjectCollection : ScriptableObject, IList
+    public abstract class ScriptableObjectCollection : ScriptableObject, IList
     {
         [SerializeField]
         private string guid;
@@ -183,6 +183,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return item;
         }
+
+        public abstract void Synchronize();
 #endif
 
         public Type GetItemType()
@@ -552,5 +554,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
             cachedValues = null;
         }
 
+#if UNITY_EDITOR
+        public override void Synchronize()
+        {
+            var newList = new List<ObjectType>();
+
+            // purge all invalid entries, this calls GetEnumerator which skips invalid entries
+            using (var enumerator = GetEnumerator())
+            {
+                while (enumerator.MoveNext())
+                {
+                    var item = enumerator.Current;
+                    newList.Add(item);
+                }
+            }
+
+            // add any missing, but existing entries
+            var guids = AssetDatabase.FindAssets("t:" + typeof(ObjectType));
+            foreach (var guid in guids)
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                var asset = AssetDatabase.LoadAssetAtPath<ObjectType>(path);
+                if (newList.Contains(asset)) continue;
+
+                newList.Add(asset);
+            }
+
+            items.Clear();
+            items.AddRange(newList);
+
+            Debug.Log($"{typeof(ObjectType)}: {items.Count}");
+        }
+#endif
     }
 }

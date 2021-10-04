@@ -47,6 +47,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collection.ValidateGUIDs();
             ValidateCollectionItems();
 
+            CreateReorderableList();
+
+            CheckGeneratedCodeLocation();
+            CheckIfCanBePartial();
+            CheckGeneratedStaticFileName();
+            CheckGeneratedStaticFileNamespace();
+        }
+
+        private void CreateReorderableList()
+        {
             reorderableList = new ReorderableList(serializedObject, itemsSerializedProperty, true, true, true, true);
             reorderableList.drawElementCallback += DrawCollectionItemAtIndex;
             reorderableList.elementHeightCallback += GetCollectionItemHeight;
@@ -54,13 +64,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             reorderableList.onRemoveCallback += OnClickToRemoveItem;
             reorderableList.onReorderCallback += OnListOrderChanged;
             reorderableList.drawHeaderCallback += OnDrawerHeader;
-
-            CheckGeneratedCodeLocation();
-            CheckIfCanBePartial();
-            CheckGeneratedStaticFileName();
-            CheckGeneratedStaticFileNamespace();
         }
-        
+
         private void OnDisable()
         {
             if (reorderableList == null)
@@ -331,20 +336,36 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             RemoveNullReferences();
 
-            if (heights == null || heights.Length != itemsSerializedProperty.arraySize)
-                heights = new float[itemsSerializedProperty.arraySize];
+            CheckHeightsAndHiddenArraySizes();
 
-            if (itemHidden == null || itemHidden.Length != itemsSerializedProperty.arraySize)
-                itemHidden = new bool[itemsSerializedProperty.arraySize];
-            
             using (new GUILayout.VerticalScope("Box"))
             {
                 DrawSearchField();
+                DrawSynchronizeButton();
                 reorderableList.DoLayoutList();
                 DrawBottomMenu();
             }
             DrawSettings();
             CheckForKeyboardShortcuts();
+        }
+
+        private void CheckHeightsAndHiddenArraySizes()
+        {
+            if (heights == null || heights.Length != itemsSerializedProperty.arraySize)
+                heights = new float[itemsSerializedProperty.arraySize];
+
+            if (itemHidden == null || itemHidden.Length != itemsSerializedProperty.arraySize)
+                itemHidden = new bool[itemsSerializedProperty.arraySize];
+        }
+
+        private void DrawSynchronizeButton()
+        {
+            if (GUILayout.Button("Synchronize Assets"))
+            {
+                collection.Synchronize();
+                serializedObject.Update();
+                CheckHeightsAndHiddenArraySizes();
+            }
         }
 
         private void CheckForKeyboardShortcuts()

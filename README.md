@@ -92,8 +92,12 @@ You can use the Collection Creating Wizard by right click on the project panel a
  
   <details>
   <summary>Use a direct reference to the item instead of the dropdown</summary>
-When you add a reference to a Collectable you may choose how you want this to be displayed, there are two options for now: `DropDown` / `AsReference`, reference is exactly what you would expect: the user should assign this reference by selecting it inside the project, and the default one `DropDown` displays all the available options in a drop-down:
-![DropDown for selecting Collectable Values](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/property-drawer.gif)
+When you add a reference to a Collectable you may choose how you want this to be displayed by adding `[CollectionItemEditorOptions]`.<br />
+There are two Draw Types for now:<br /><br />
+	- <b>DropDown</b> the default option which displays all the available options in a convenient drop-down, like an enum field <br />
+- <b>AsReference</b> standard Scriptable Object field where you select the asset in a browser <br />
+<br />
+<img src="https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/property-drawer.gif" />
 </details>
  
  

@@ -750,7 +750,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
             string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
             string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(generatedCodePathSerializedProperty.stringValue);
-            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal);
+            
+            // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
+            // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
+            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
+                                string.IsNullOrEmpty(targetGeneratedCodePath);
+            
             if (usePartialClassSerializedProperty.boolValue && !canBePartial)
             {
                 usePartialClassSerializedProperty.boolValue = false;

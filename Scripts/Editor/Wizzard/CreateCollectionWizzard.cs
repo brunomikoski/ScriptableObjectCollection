@@ -222,6 +222,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (generateIndirectAccess)
                 CreateIndirectAccess();
+                
             WaitingRecompileForContinue = true;
             
             AssetDatabase.Refresh();

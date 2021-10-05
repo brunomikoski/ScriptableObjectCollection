@@ -34,9 +34,9 @@
 
 
 
-Most of the time when dealing with Scriptable Object they all belong to some sort of collections, let's say for example all your consumables on the game? Or maybe all your weapons? Or even all your in-app purchases. And dealing with this can be quite challenging since you have to rely on proper naming of those scriptable objects, this can become a problem super fast as the project continues to grow.
+Most of the time when dealing with Scriptable Objects they all belong to some sort of collection, let's say for example all your consumables on the game? Or maybe all your weapons? Or even all your in-app purchases. Dealing with this can be quite challenging since you have to rely on proper naming of those scriptable objects, this can become a problem super fast as the project continues to grow.
 
-The ScriptableObjectCollection exists to help you deal with scriptable objects without losing your sanity! Its a set of tools that will make your life a lot easier.
+The ScriptableObjectCollection exists to help you deal with scriptable objects without losing your sanity! It's a set of tools that will make your life a lot easier.
 
 
 ![wizard](/Documentation~/create-collection-wizzard.png)
@@ -48,7 +48,7 @@ Check the [FAQ](https://github.com/brunomikoski/ScriptableObjectCollection/wiki/
 
 ## Features
 - Allow access Scriptable Objects by code, reducing the number of references on the project
-- Group Scriptable Objects that bellows together in a simple coherent interface
+- Group Scriptable Objects that belong together in a simple coherent interface
 - Enable a dropdown selection of all the items inside a collection when the item is serialized through the inspector
 - Automatically generate static access code
 - Allow you to expose the entire object to be tweakable in any inspector
@@ -59,7 +59,7 @@ Check the [FAQ](https://github.com/brunomikoski/ScriptableObjectCollection/wiki/
 
 ## How to use
  1. Create new collections by the wizard `Assets/Create/Scriptable Object Collection/New Collection` 
- 2. Now you should treat your new `ScriptableObjectCollection` as a regular `ScriptableObject`, add any item you wan there  
+ 2. Now you should treat your new `ScriptableObjectCollection` as a regular `ScriptableObject`, add any item you want there  
  3. Now add new items to the collection by using the buttons on the Collection Inspector
  4. After you are done, click on Generate Code on the collection to generate the Static access to those objects
 
@@ -71,28 +71,28 @@ Check the [FAQ](https://github.com/brunomikoski/ScriptableObjectCollection/wiki/
 </details>
 
 <details>
-  <summary>How I can propery serialized this for Save Game or Backend data</summary>
-There's a couple of ways of dealing with this, the easiest one its to use the `IndirectReference` when you need this data to be serialized, this will only store 2 GUIDs.
- Another option its properly writing a proper parser using the ISerializationCallback.
+  <summary>How I can propery serialize this for Save Game or Backend data</summary>
+There's a couple of ways of dealing with this, the easiest one is to use the `IndirectReference` when you need this data to be serialized, this will only store 2 GUIDs.
+ Another option is writing a proper parser using the ISerializationCallback.
 </details>
 
 <details>
   <summary>Collection Registry on the Resources Folder</summary>
-Since the CollectionsRegistry is inside the Resources folder, every reference this has to a collection and to all the collectables will be inside the Unity Resources bundle, and if have a lot of references for expensive stuff, this can decrease your startup time significantly, there are 2 things you should keep in mind: 
+Since the CollectionsRegistry is inside the Resources folder, every reference this has to a collection and to all the collectables will be inside the Unity Resources bundle, and if you have a lot of references for expensive stuff, this can increase your startup time significantly, there are 2 things you should keep in mind: 
 1. Use the Automatically Loaded items for items that should be available for the lifetime of your game
 2. If you want to use this for more expensive stuff, let's say all the gameplay prefabs, you can uncheck the automatic initialization of this collection, and register the collection on your loading by using `CollectionsRegistry.Instance.RegisterCollection(Collection);` and removing it when they are not necessary anymore.
 </details>
  
  <details>
   <summary>How can I create a new collection</summary>
-You can use the Collection Creating Wizzard by right click on the project panel and going into: `Assets/Create/Scriptable Object Collection/New Collection` this will create 3 items and respective folder: `YourCollectionName.cs` `YourCollectableName.cs` and the Collection Scriptable Object
-![Create Collection Wizzard](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/create-collection-wizzard.png)
+You can use the Collection Creating Wizard by right click on the project panel and going into: `Assets/Create/Scriptable Object Collection/New Collection` this will create 3 items and respective folder: `YourCollectionName.cs` `YourCollectableName.cs` and the Collection Scriptable Object
+![Create Collection Wizard](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/create-collection-wizzard.png)
 </details>
  
  
   <details>
   <summary>Use a direct reference to the item instead of the dropdown</summary>
-When you add a reference to a Collectable you may choose how you want this to be displayed, there are two options for now: `DropDown` / `AsReference`, reference its exactly what you would expect, the user should assign this reference by selecting inside the project, and the default one `DropDown` display all the available options in a drop-down:
+When you add a reference to a Collectable you may choose how you want this to be displayed, there are two options for now: `DropDown` / `AsReference`, reference is exactly what you would expect: the user should assign this reference by selecting it inside the project, and the default one `DropDown` displays all the available options in a drop-down:
 ![DropDown for selecting Collectable Values](https://github.com/badawe/ScriptableObjectCollection/blob/master/Documentation~/property-drawer.gif)
 </details>
  
@@ -108,7 +108,7 @@ Unity 2018.4.0 or later versions
 
 This package is available on OpenUPM: https://openupm.com/packages/com.brunomikoski.scriptableobjectcollection
 
-To add it the package to your project:
+To add the package to your project:
 
 - open `Edit/Project Settings/Package Manager`
 - add a new Scoped Registry:

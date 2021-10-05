@@ -6,6 +6,7 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Compilation;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -132,7 +133,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return windowInstance;
         }
-        
+
+        private void OnEnable()
+        {
+            windowInstance = this;
+        }
+
         public static void Show(string targetPath)
         {
             targetFolder = targetPath;
@@ -213,8 +219,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 CreateIndirectAccess();
             WaitingRecompileForContinue = true;
 
-            ScriptableObjectCollection instance = ScriptableObjectCollectionUtils.CreateScriptableObjectOfType<ScriptableObjectCollection>(ScriptableObjectFolder, createFoldForThisCollection, collectionName);
-            LastCollectionScriptableObjectPath = AssetDatabase.GetAssetPath(instance);
+            // ScriptableObjectCollection instance = ScriptableObjectCollectionUtils.CreateScriptableObjectOfType<ScriptableObjectCollection>(ScriptableObjectFolder, createFoldForThisCollection, collectionName);
+             // LastCollectionScriptableObjectPath = AssetDatabase.GetAssetPath(instance);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
@@ -316,23 +322,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             WaitingRecompileForContinue = false;
 
-            ScriptableObjectCollection collectionAsset =
-                AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(LastCollectionScriptableObjectPath);
-
             string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(LastGeneratedCollectionScriptPath);
 
             Type targetType = Type.GetType($"{LastCollectionFullName}, {assemblyName}");
             
-            ScriptableObject tempScriptable = CreateInstance(targetType);
-            SerializedObject typeSerializedObj = new SerializedObject(tempScriptable);
-            int typeId = typeSerializedObj.FindProperty("m_Script").objectReferenceInstanceIDValue;
+            ScriptableObjectCollection collectionAsset =
+                ScriptableObjectCollectionUtils.CreateScriptableObjectOfType(targetType, 
+                    windowInstance.ScriptableObjectFolder, windowInstance.createFoldForThisCollection,
+                    windowInstance.collectionName) as ScriptableObjectCollection;
             
-            SerializedObject collectionScriptableObject = new SerializedObject(collectionAsset);
-            collectionScriptableObject.FindProperty("m_Script").objectReferenceInstanceIDValue = typeId;
-            collectionScriptableObject.ApplyModifiedProperties();
-
-            Selection.objects = new[] {collectionScriptableObject.targetObject};
-            EditorGUIUtility.PingObject(collectionScriptableObject.targetObject);
+            Selection.objects = new Object[] {collectionAsset};
+            EditorGUIUtility.PingObject(collectionAsset);
 
             CreateCollectionWizzard openWindowInstance = GetWindow<CreateCollectionWizzard>();
             openWindowInstance.Close();

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -16,7 +17,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static T CreateScriptableObjectOfType<T>(string parentFolderPath, bool createFolderForThisCollection,
             string targetName) where T : ScriptableObject
         {
-            T targetCollection = ScriptableObject.CreateInstance<T>();
+            return CreateScriptableObjectOfType(typeof(T), parentFolderPath, createFolderForThisCollection, targetName) as T;
+        }
+
+        public static ScriptableObject CreateScriptableObjectOfType(Type targetType, string parentFolderPath,
+            bool createFolderForThisCollection, string targetName)
+        {
+            ScriptableObject targetCollection = ScriptableObject.CreateInstance(targetType);
             targetCollection.name = targetName;
 
             string targetFolderPath = parentFolderPath;
@@ -28,6 +35,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string collectionAssetPath = Path.Combine(targetFolderPath, $"{targetName}.asset");
             AssetDatabase.CreateAsset(targetCollection, collectionAssetPath);
             return targetCollection;
+        }
+
+        public static ScriptableObject CreateScriptableObjectOfType(Type targetType, DefaultAsset parentFolder, bool createFoldForThisCollection, string collectionName)
+        {
+            return CreateScriptableObjectOfType(targetType, AssetDatabase.GetAssetPath(parentFolder),
+                createFoldForThisCollection, collectionName);
         }
     }
 }

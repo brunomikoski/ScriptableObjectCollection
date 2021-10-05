@@ -663,9 +663,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     typeof(DefaultAsset),
                     false
                 );
-                if (changeCheck.changed)
+                string assetPath = AssetDatabase.GetAssetPath(pathObject);
+
+                if (changeCheck.changed || !string.Equals(generatedCodePathSerializedProperty.stringValue, assetPath, StringComparison.Ordinal))
                 {
-                    generatedCodePathSerializedProperty.stringValue = AssetDatabase.GetAssetPath(pathObject);
+                    generatedCodePathSerializedProperty.stringValue = assetPath;
                     generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
                 }
             }

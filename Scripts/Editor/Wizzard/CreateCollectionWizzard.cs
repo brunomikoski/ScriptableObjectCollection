@@ -81,7 +81,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     cachedNameSpace = ScriptableObjectCollectionSettings.GetInstance().DefaultNamespace;
                 return cachedNameSpace;
             }
-            set => cachedNameSpace = value;
+            set
+            {
+                cachedNameSpace = value;
+                if (string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().DefaultNamespace))
+                    ScriptableObjectCollectionSettings.GetInstance().SetDefaultNamespace(cachedNameSpace);
+            }
         }
 
 
@@ -218,10 +223,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (generateIndirectAccess)
                 CreateIndirectAccess();
             WaitingRecompileForContinue = true;
-
-            // ScriptableObjectCollection instance = ScriptableObjectCollectionUtils.CreateScriptableObjectOfType<ScriptableObjectCollection>(ScriptableObjectFolder, createFoldForThisCollection, collectionName);
-             // LastCollectionScriptableObjectPath = AssetDatabase.GetAssetPath(instance);
-            AssetDatabase.SaveAssets();
+            
             AssetDatabase.Refresh();
 
             if (!scriptsGenerated)

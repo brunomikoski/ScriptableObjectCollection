@@ -7,7 +7,6 @@ using UnityEditor.Compilation;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Profiling;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -400,9 +399,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 SerializedProperty itemProperty = itemsSerializedProperty.GetArrayElementAtIndex(i);
                 if (itemProperty.objectReferenceValue == null)
+                {
                     itemsSerializedProperty.DeleteArrayElementAtIndex(i);
-                
-                modified = true;
+                    modified = true;
+                }
             }
 
             if (modified)
@@ -416,6 +416,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObjectCollectionItem collectionItem =
                     (ScriptableObjectCollectionItem) itemsSerializedProperty.GetArrayElementAtIndex(i).objectReferenceValue;
+
+                if (collectionItem == null)
+                    continue;
                 
                 collectionItem.ValidateGUID();
                 if (collectionItem.Collection != null)
@@ -443,9 +446,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void AddNewItem()
         {
-            List<Type> itemsSubclasses = TypeUtility.GetAllSubclasses(collection.GetItemType(), true);
+            List<Type> itemsSubclasses = new List<Type> {collection.GetItemType()};
 
-            itemsSubclasses.Add(collection.GetItemType());
+            TypeCache.TypeCollection sub = TypeCache.GetTypesDerivedFrom(collection.GetItemType());
+            for (int i = 0; i < sub.Count; i++)
+            {
+                itemsSubclasses.Add(sub[i]);
+            }
+
             GenericMenu optionsMenu = new GenericMenu();
 
             for (int i = 0; i < itemsSubclasses.Count; i++)
@@ -657,6 +665,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
                 DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedCodePathSerializedProperty.stringValue);
+                if (pathObject == null && !string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().DefaultGeneratedScriptsPath))
+                {
+                    pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(ScriptableObjectCollectionSettings
+                        .GetInstance().DefaultGeneratedScriptsPath);
+                }
+                
                 pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
                     "Generated Scripts Parent Folder",
                     pathObject,
@@ -669,6 +683,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     generatedCodePathSerializedProperty.stringValue = assetPath;
                     generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+
+                    if (string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().DefaultGeneratedScriptsPath))
+                        ScriptableObjectCollectionSettings.GetInstance().SetDefaultGeneratedScriptsPath(assetPath);
                 }
             }
         }

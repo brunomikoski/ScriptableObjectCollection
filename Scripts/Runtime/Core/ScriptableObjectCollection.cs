@@ -280,9 +280,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (targetIndex >= items.Count || newIndex >= items.Count)
                 return;
 
-            ScriptableObjectCollectionItem temp = items[targetIndex];
-            items[targetIndex] = items[newIndex];
-            items[newIndex] = temp;
+            (items[targetIndex], items[newIndex]) = (items[newIndex], items[targetIndex]);
             ObjectUtility.SetDirty(this);
         }
 
@@ -355,12 +353,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             items = items.Where(o => o != null).Distinct().ToList();
             ObjectUtility.SetDirty(this);
 #endif
-        }
-
-        [Obsolete("TryGetCollectableByGUID is deprecated, Use TryGetItemByGUID instead")]
-        public bool TryGetCollectableByGUID(string itemGUID, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
-        {
-            return TryGetItemByGUID(itemGUID, out scriptableObjectCollectionItem);
         }
 
         public bool TryGetItemByGUID(string itemGUID, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
@@ -474,12 +466,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         } 
 #endif
 
-        [Obsolete("GetCollectableByGUID is deprecated, Use GetItemByGUID instead")]
-        public ObjectType GetCollectableByGUID(string targetGUID)
-        {
-            return GetItemByGUID(targetGUID);   
-        }
-        
         public ObjectType GetItemByGUID(string targetGUID)
         {
             for (int i = 0; i < Items.Count; i++)
@@ -557,25 +543,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #if UNITY_EDITOR
         public override void Synchronize()
         {
-            var newList = new List<ObjectType>();
+            List<ObjectType> newList = new List<ObjectType>();
 
             // purge all invalid entries, this calls GetEnumerator which skips invalid entries
-            using (var enumerator = GetEnumerator())
+            using (IEnumerator<ObjectType> enumerator = GetEnumerator())
             {
                 while (enumerator.MoveNext())
                 {
-                    var item = enumerator.Current;
+                    ObjectType item = enumerator.Current;
                     newList.Add(item);
                 }
             }
 
             // add any missing, but existing entries
-            var guids = AssetDatabase.FindAssets("t:" + typeof(ObjectType));
-            foreach (var guid in guids)
+            string[] guids = AssetDatabase.FindAssets("t:" + typeof(ObjectType));
+            foreach (string guid in guids)
             {
-                var path = AssetDatabase.GUIDToAssetPath(guid);
-                var asset = AssetDatabase.LoadAssetAtPath<ObjectType>(path);
-                if (newList.Contains(asset)) continue;
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                ObjectType asset = AssetDatabase.LoadAssetAtPath<ObjectType>(path);
+                if (newList.Contains(asset)) 
+                    continue;
 
                 newList.Add(asset);
             }

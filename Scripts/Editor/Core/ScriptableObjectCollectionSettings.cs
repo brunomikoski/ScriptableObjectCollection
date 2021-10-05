@@ -19,6 +19,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return CreateSettingsProvider("ScriptableObject Collection/Settings", OnSettingsGUI);
         }
 
+
+        public void SetDefaultGeneratedScriptsPath(string targetPath)
+        {
+            defaultGeneratedScriptsPath = targetPath;
+        }
+        
+        public void SetDefaultNamespace(string targetNamespace)
+        {
+            defaultNamespace = targetNamespace;
+        }
+        
         private static void OnSettingsGUI(SerializedObject serializedObject)
         {
             SerializedProperty defaultGeneratedScriptsFolder = serializedObject.FindProperty("defaultGeneratedScriptsPath");

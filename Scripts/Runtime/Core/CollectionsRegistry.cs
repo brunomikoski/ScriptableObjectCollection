@@ -131,12 +131,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        [Obsolete("TryGetCollectionFromCollectableType is deprecated, use TryGetCollectionFromItemType instead")]
-        public bool TryGetCollectionFromCollectableType(Type targetType, out ScriptableObjectCollection scriptableObjectCollection)
-        {
-            return TryGetCollectionFromItemType(targetType, out scriptableObjectCollection);
-        }
-
         public bool TryGetCollectionFromItemType(Type targetType, out ScriptableObjectCollection scriptableObjectCollection)
         {
             List<ScriptableObjectCollection> possibleCollections = new List<ScriptableObjectCollection>();
@@ -157,13 +151,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             scriptableObjectCollection = null;
             return false;
-        }
-
-        [Obsolete("TryGetCollectionFromCollectableType is deprecated, use TryGetCollectionFromItemType instead")]
-        public bool TryGetCollectionFromCollectableType<TargetType>(out ScriptableObjectCollection<TargetType> scriptableObjectCollection)
-            where TargetType : ScriptableObjectCollectionItem
-        {
-            return TryGetCollectionFromItemType<TargetType>(out scriptableObjectCollection);
         }
 
         public bool TryGetCollectionFromItemType<TargetType>(out ScriptableObjectCollection<TargetType> scriptableObjectCollection) where TargetType : ScriptableObjectCollectionItem
@@ -215,7 +202,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collections.Clear();
 
             bool changed = false;
-            List<Type> types = TypeUtility.GetAllSubclasses(typeof(ScriptableObjectCollection));
+            TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom<ScriptableObjectCollection>();
             for (int i = 0; i < types.Count; i++)
             {
                 Type type = types[i];

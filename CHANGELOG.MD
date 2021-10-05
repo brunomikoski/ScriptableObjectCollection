@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0]
+### Changed
+ - **BREAKING CHANGE** Removed Obsolete methods related to Previous Naming, if you are still on version bellow [1.5.4] consider implementing the suggested warnings before upgrading
+ - `ScriptableObjectCollection` its now abstract to avoid issues mentioned here [here](https://github.com/brunomikoski/ScriptableObjectCollection/issues/85#issue-1009507869) 
+ - Fixed partial toggle been disabled when non target generated folder is set
+ - Fixed issue when its not possible to read the current `ScriptableObjectItem`  assembly [@RoyTheunissen](https://github.com/RoyTheunissen)
+ - Fixed a bunch of grammar mistakes on the Readme file [@RoyTheunissen](https://github.com/RoyTheunissen)
+ - Added more information to the faq [@RoyTheunissen](https://github.com/RoyTheunissen)
+ - Replaced TypeUtility by Unity [TypeCache](https://docs.unity3d.com/ScriptReference/TypeCache.html)
+ - Fixed issue when a broken script between a CollectionItem is missing would cause null references on the inspector
+
 ## [1.6.5]
 ### Added 
 - More display options (Hide Preview button / Hide GoTo Button) @FreezyExp
@@ -289,6 +300,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Unreleased
 
 
+[1.7.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.7.0
 [1.6.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.6.5
 [1.6.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.6.4
 [1.6.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.6.3
@@ -330,5 +342,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [1.1.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.1.0
 [1.0.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.0.1
 [1.0.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.0.0
-
-

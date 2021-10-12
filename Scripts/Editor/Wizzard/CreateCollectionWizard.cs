@@ -298,6 +298,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 windowInstance =  CreateInstance<CreateCollectionWizard>();
                 windowInstance.titleContent = new GUIContent("Create New Collection");
+                windowInstance.minSize = new Vector2(EditorGUIUtility.labelWidth + EditorGUIUtility.labelWidth, 250);
             }
 
             return windowInstance;

@@ -26,7 +26,46 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected const string EditorOnlyExceptionMessage = "Can only be called in the Editor.";
         
         private string path;
-        public string Path => path;
+        public string Path
+        {
+            get
+            {
+                if (IsProjectSpecific)
+                    return ProjectPrefix + path;
+                
+                return path;
+            }
+        }
+
+        private bool isProjectSpecific;
+        public bool IsProjectSpecific
+        {
+            get => isProjectSpecific;
+            set => isProjectSpecific = value;
+        }
+
+        private static string cachedProjectPrefix;
+
+        private static string ProjectPrefix
+        {
+            get
+            {
+                if (cachedProjectPrefix == null)
+                {
+                    string assetsFolder = Application.dataPath;
+                    string projectsFolder = assetsFolder.Substring(0, assetsFolder.Length - "/Assets".Length);
+                    
+                    // NOTE: If you only want the name of the project checkout, you can do that here. That would
+                    // conflate save data from checkouts in different drives/parent folders with the same name though,
+                    // so I'm choosing to include the path up until the project name too.
+                    //string projectName = System.IO.Path.GetFileName(projectsFolder);
+                 
+                    // Prefix ends up something like C:/Git/YourProjectName/ so it's unique to your checkout.
+                    cachedProjectPrefix = projectsFolder + "/";
+                }
+                return cachedProjectPrefix;
+            }
+        }
 
         private GUIContent label;
         public GUIContent Label => label;

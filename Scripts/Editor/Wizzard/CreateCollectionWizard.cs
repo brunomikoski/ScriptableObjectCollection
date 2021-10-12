@@ -25,7 +25,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string CREATE_FOLDER_FOR_THIS_COLLECTION_KEY = "CreateFolderForThisCollection";
         private const string CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY = "CreateFolderForThisCollectionScripts";
         private const string INFER_COLLECTION_NAME_KEY = "InferCollectionName";
-        private const string COLLECTION_SUFFIX_KEY = "CollectionSuffix";
+        private const string COLLECTION_FORMAT_KEY = "CollectionFormat";
         private const string INFER_SCRIPT_PATH_KEY = "InferScriptableObjectPath";
         private const string CUSTOM_NAMESPACE_KEY = "CustomNamespace";
         private const string INFER_NAMESPACE_KEY = "InferNamespace";
@@ -33,6 +33,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string ITEM_NAME_CONTROL = "CreateCollectionWizardItemName";
         private const string ITEM_NAME_DEFAULT = "Item";
         private const string COLLECTION_NAME_DEFAULT = "Collection";
+        private const string COLLECTION_FORMAT_DEFAULT = "{0}" + COLLECTION_NAME_DEFAULT;
         private const string NAMESPACE_DEFAULT = "ScriptableObjects";
 
         private const string SCRIPTS_FOLDER_NAME = "Scripts";
@@ -262,8 +263,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceBool CreateFolderForThisCollectionScripts =
             new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY);
         
-        private static readonly EditorPreferenceString CollectionSuffix =
-            new EditorPreferenceString(COLLECTION_SUFFIX_KEY, COLLECTION_NAME_DEFAULT);
+        private static readonly EditorPreferenceString CollectionFormat =
+            new EditorPreferenceString(COLLECTION_FORMAT_KEY, COLLECTION_FORMAT_DEFAULT);
 
         private string cachedCollectionName = COLLECTION_NAME_DEFAULT;
         private string CollectionName
@@ -271,7 +272,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get
             {
                 if (InferCollectionName.Value)
-                    return collectionItemName + CollectionSuffix.Value;
+                    return string.Format(CollectionFormat.Value, collectionItemName);
                 return cachedCollectionName;
             }
             set => cachedCollectionName = value;
@@ -386,13 +387,29 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUILayout.LabelField("Collection Name", CollectionName);
                     else
                         CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
-                    InferCollectionName.DrawGUILayout();
-                    if (InferCollectionName.Value)
+
+                    // Some basic controls for how the collection name is generated.
+                    EditorGUILayout.BeginHorizontal();
+                    InferCollectionName.DrawGUILayout(
+                        "Auto Collection Name", GUILayout.Width(EditorGUIUtility.labelWidth + 16));
+                    bool wasGuiEnabled = GUI.enabled;
+                    GUI.enabled = InferCollectionName.Value;
+                    string collectionFormatControlName = "CreateCollectionWizardCollectionFormat";
+                    GUI.SetNextControlName(collectionFormatControlName);
+                    CollectionFormat.DrawGUILayout(GUIContent.none, GUILayout.MinWidth(50));
+                    
+                    // Allow the format to be reset.
+                    bool reset = GUILayout.Button("R", EditorStyles.miniButton, GUILayout.Width(24));
+                    if (reset)
                     {
-                        EditorGUI.indentLevel++;
-                        CollectionSuffix.DrawGUILayout();
-                        EditorGUI.indentLevel--;
+                        CollectionFormat.Value = COLLECTION_FORMAT_DEFAULT;
+                        
+                        // Make sure to deselect the collection format otherwise you don't see it reset.
+                        if (GUI.GetNameOfFocusedControl() == collectionFormatControlName)
+                            GUI.FocusControl(string.Empty);
                     }
+                    GUI.enabled = wasGuiEnabled;
+                    EditorGUILayout.EndHorizontal();
 
                     EditorGUILayout.Space();
 
@@ -609,6 +626,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return false;
 
             if (string.IsNullOrEmpty(CollectionName))
+                return false;
+
+            if (collectionItemName == CollectionName)
                 return false;
 
             if (ScriptsFolderBase == null)

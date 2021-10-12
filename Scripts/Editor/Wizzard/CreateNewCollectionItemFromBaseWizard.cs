@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public sealed class CreateNewCollectionItemFromBaseWizzard : EditorWindow
+    public sealed class CreateNewCollectionItemFromBaseWizard : EditorWindow
     {
         private const string LAST_COLLECTION_ITEM_SCRIPT_PATH = "CollectionItemScriptPathKey";
         private const string LAST_COLLECTION_ITEM_FULL_NAME_KEY = "NewCollectionItemFullNameKey";
@@ -36,7 +36,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             onCreationCallback = targetOnCreationCallback;
             targetType = baseType;
-            CreateNewCollectionItemFromBaseWizzard newCollectionItemFromBaseWindow = GetWindow<CreateNewCollectionItemFromBaseWizzard>("Creating new derived item");
+            CreateNewCollectionItemFromBaseWizard newCollectionItemFromBaseWindow = GetWindow<CreateNewCollectionItemFromBaseWizard>("Creating new derived item");
             newCollectionItemFromBaseWindow.minSize = new Vector2(350, 120);
             newCollectionItemFromBaseWindow.maxSize = new Vector2(350, 120);
             newCollectionItemFromBaseWindow.ShowPopup();

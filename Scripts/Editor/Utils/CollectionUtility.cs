@@ -16,7 +16,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (Selection.objects.FirstOrDefault() is DefaultAsset folder)
                 targetPath = AssetDatabase.GetAssetPath(folder);
             
-            CreateCollectionWizzard.Show(targetPath);
+            CreateCollectionWizard.Show(targetPath);
         }
 
         private static int GetHasCount(Object[] objects)

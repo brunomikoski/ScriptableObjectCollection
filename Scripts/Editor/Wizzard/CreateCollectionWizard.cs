@@ -26,9 +26,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY = "CreateFolderForThisCollectionScripts";
         private const string INFER_COLLECTION_NAME_KEY = "InferCollectionName";
         private const string COLLECTION_SUFFIX_KEY = "CollectionSuffix";
+        private const string CUSTOM_NAMESPACE_KEY = "CustomNamespace";
+        private const string INFER_NAMESPACE_KEY = "InferNamespace";
         
         private const string COLLECTION_NAME_DEFAULT = "Collection";
-        
+        private const string NAMESPACE_DEFAULT = "ScriptableObjects";
+
         private static CreateCollectionWizard windowInstance;
         private static string targetFolder;
 
@@ -115,20 +118,78 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private string cachedNameSpace;
-        private string TargetNameSpace
+        private string cachedNamespacePrefix;
+        private string NamespacePrefix
         {
             get
             {
-                if (string.IsNullOrEmpty(cachedNameSpace))
-                    cachedNameSpace = ScriptableObjectCollectionSettings.GetInstance().DefaultNamespace;
-                return cachedNameSpace;
+                if (string.IsNullOrEmpty(cachedNamespacePrefix))
+                    cachedNamespacePrefix = ScriptableObjectCollectionSettings.GetInstance().NamespacePrefix;
+                return cachedNamespacePrefix;
             }
             set
             {
-                cachedNameSpace = value;
-                if (string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().DefaultNamespace))
-                    ScriptableObjectCollectionSettings.GetInstance().SetDefaultNamespace(cachedNameSpace);
+                if (cachedNamespacePrefix == value)
+                    return;
+                
+                cachedNamespacePrefix = value;
+                ScriptableObjectCollectionSettings.GetInstance().SetNamespacePrefix(cachedNamespacePrefix);
+            }
+        }
+
+        private string Namespace
+        {
+            get
+            {
+                string @namespace = NamespacePrefix;
+                if (!string.IsNullOrEmpty(@namespace))
+                    @namespace += NamespaceUtility.Separator;
+                @namespace += NamespaceSuffix;
+                return @namespace;
+            }
+        }
+        
+        private string cachedInferredNamespace;
+        private bool hasValidInferredNamespace;
+        public string InferredNamespace
+        {
+            get
+            {
+                if (!hasValidInferredNamespace)
+                {
+                    string pathToInferFrom = ScriptsFolderPathWithoutParentFolder;
+                    int maxDepth = UseMaximumNamespaceDepth ? MaximumNamespaceDepth : int.MaxValue;
+                    cachedInferredNamespace = NamespaceUtility.GetNamespaceForPath(pathToInferFrom, maxDepth);
+                    hasValidInferredNamespace = true;
+                }
+
+                return cachedInferredNamespace;
+            }
+        }
+
+        private string NamespaceSuffix => InferNamespace.Value ? InferredNamespace : CustomNamespace.Value;
+        
+        private bool UseMaximumNamespaceDepth
+        {
+            get => ScriptableObjectCollectionSettings.GetInstance().UseMaximumNamespaceDepth;
+            set
+            {
+                if (UseMaximumNamespaceDepth == value)
+                    return;
+                
+                ScriptableObjectCollectionSettings.GetInstance().SetUseMaximumNamespaceDepth(value);
+            }
+        }
+        
+        private int MaximumNamespaceDepth
+        {
+            get => ScriptableObjectCollectionSettings.GetInstance().MaximumNamespaceDepth;
+            set
+            {
+                if (MaximumNamespaceDepth == value)
+                    return;
+                
+                ScriptableObjectCollectionSettings.GetInstance().SetMaximumNamespaceDepth(value);
             }
         }
 
@@ -183,6 +244,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceBool InferCollectionName =
             new EditorPreferenceBool(INFER_COLLECTION_NAME_KEY, true);
 
+        private static readonly EditorPreferenceString CustomNamespace =
+            new EditorPreferenceString(CUSTOM_NAMESPACE_KEY, NAMESPACE_DEFAULT);
+        
+        private static readonly EditorPreferenceBool InferNamespace = new EditorPreferenceBool(
+            INFER_NAMESPACE_KEY, true);
+
         private static CreateCollectionWizard GetWindowInstance()
         {
             if (windowInstance == null)
@@ -207,6 +274,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnGUI()
         {
+            EditorGUI.BeginChangeCheck();
             using (new EditorGUILayout.VerticalScope("Box"))
             {
                 FoldoutSettings.Value = EditorGUILayout.BeginFoldoutHeaderGroup(FoldoutSettings.Value, "Settings");
@@ -278,12 +346,48 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     
                     EditorGUILayout.Space();
 
-                    TargetNameSpace = EditorGUILayout.TextField("Namespace", TargetNameSpace);
+                    const float dotWidth = 24;
+                    EditorGUILayout.LabelField("Namespace", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField(Namespace, EditorStyles.miniLabel);
+                    
+                    // Draw fields for the individual components of the namespace.
+                    EditorGUILayout.BeginHorizontal();
+                    NamespacePrefix = EditorGUILayout.TextField(
+                        NamespacePrefix, GUILayout.Width(EditorGUIUtility.labelWidth));
+                    EditorGUILayout.LabelField(NamespaceUtility.Separator.ToString(), GUILayout.Width(dotWidth));
+                    if (InferNamespace.Value)
+                        EditorGUILayout.LabelField(InferredNamespace);
+                    else
+                        CustomNamespace.Value = EditorGUILayout.TextField(CustomNamespace.Value);
+                    EditorGUILayout.EndHorizontal();
+                    
+                    // Draw a checkbox to make the namespace be inferred from the script folder, or specified manually.
+                    EditorGUILayout.BeginHorizontal();
+                    InferNamespace.Value = EditorGUILayout.ToggleLeft("Infer From Folder", InferNamespace.Value);
+                    EditorGUILayout.EndHorizontal();
+                    
+                    // You can also specify if it should be clamped to a certain depth.
+                    bool wasGuiEnabled = GUI.enabled;
+                    GUI.enabled = InferNamespace.Value;
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        UseMaximumNamespaceDepth = EditorGUILayout.ToggleLeft(
+                            "Max. Depth", UseMaximumNamespaceDepth, GUILayout.Width(EditorGUIUtility.labelWidth));
+                        GUI.enabled = GUI.enabled && UseMaximumNamespaceDepth;
+                        MaximumNamespaceDepth = EditorGUILayout.IntField(GUIContent.none, MaximumNamespaceDepth);
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    GUI.enabled = wasGuiEnabled;
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
                 EditorGUI.indentLevel--;
             }
-
+            bool didChange = EditorGUI.EndChangeCheck();
+            if (didChange)
+                hasValidInferredNamespace = false;
+            
+            EditorGUILayout.Space();
+            
             using (new EditorGUI.DisabledScope(!AreSettingsValid()))
             {
                 if (GUILayout.Button("Create", GUILayout.Height(35)))
@@ -320,11 +424,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 int indentation = 0;
                 List<string> directives = new List<string>();
                 directives.Add(typeof(ScriptableObjectCollectionItem).Namespace);
-                directives.Add(TargetNameSpace);
+                directives.Add(Namespace);
                 directives.Add("System");
                 directives.Add("UnityEngine");
 
-                CodeGenerationUtility.AppendHeader(writer, ref indentation, TargetNameSpace, "[Serializable]",
+                CodeGenerationUtility.AppendHeader(writer, ref indentation, Namespace, "[Serializable]",
                     $"public sealed class {collectionItemName}IndirectReference : CollectionItemIndirectReference<{collectionItemName}>",
                     directives.Distinct().ToArray());
 
@@ -335,7 +439,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     $"public {collectionItemName}IndirectReference({collectionItemName} collectionItemScriptableObject) : base(collectionItemScriptableObject) {{}}");
 
                 indentation--;
-                CodeGenerationUtility.AppendFooter(writer, ref indentation, TargetNameSpace);
+                CodeGenerationUtility.AppendFooter(writer, ref indentation, Namespace);
             }
         }
 
@@ -346,7 +450,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return CodeGenerationUtility.CreateNewEmptyScript(collectionItemName, 
                 folder,
-                TargetNameSpace, 
+                Namespace, 
                 string.Empty,
                 $"public partial class {collectionItemName} : ScriptableObjectCollectionItem", 
                     typeof(ScriptableObjectCollectionItem).Namespace);
@@ -358,14 +462,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             bool result = CodeGenerationUtility.CreateNewEmptyScript(CollectionName,
                 folder,
-                TargetNameSpace,
+                Namespace,
                 $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {CollectionName}\", fileName = \"{CollectionName}\", order = 0)]",
                 $"public class {CollectionName} : ScriptableObjectCollection<{collectionItemName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
 
-            if (string.IsNullOrEmpty(TargetNameSpace))
+            if (string.IsNullOrEmpty(Namespace))
                 LastCollectionFullName.Value = $"{CollectionName}";
             else
-                LastCollectionFullName.Value = $"{TargetNameSpace}.{CollectionName}";
+                LastCollectionFullName.Value = $"{Namespace}.{CollectionName}";
 
             LastGeneratedCollectionScriptPath.Value = Path.Combine(folder, $"{CollectionName}.cs");
             return result;

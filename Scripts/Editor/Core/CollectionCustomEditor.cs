@@ -751,9 +751,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             
             ScriptableObjectCollectionSettings settingsInstance = ScriptableObjectCollectionSettings.GetInstance();
-            if (!string.IsNullOrEmpty(settingsInstance.DefaultNamespace))
+            if (!string.IsNullOrEmpty(settingsInstance.NamespacePrefix))
             {
-                fileNamespaceSerializedProperty.stringValue = settingsInstance.DefaultNamespace;
+                fileNamespaceSerializedProperty.stringValue = settingsInstance.NamespacePrefix;
                 fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
                 return;
             }

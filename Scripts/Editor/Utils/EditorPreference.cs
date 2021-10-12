@@ -1,4 +1,3 @@
-using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -30,19 +29,30 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public string Path => path;
 
         private GUIContent label;
-        protected GUIContent Label => label;
+        public GUIContent Label => label;
 
         public abstract object ObjectValue { get; }
 
-        protected EditorPreference(string path)
+        protected EditorPreference(string path, bool isProjectSpecific = false)
         {
             this.path = path;
+            this.isProjectSpecific = isProjectSpecific;
 
             string name = System.IO.Path.GetFileName(path).ToHumanReadable();
             label = new GUIContent(name);
         }
 
-        public abstract void DrawGUILayout();
+        public abstract void DrawGUILayout(GUIContent label, params GUILayoutOption[] options);
+
+        public void DrawGUILayout(params GUILayoutOption[] layoutOptions)
+        {
+            DrawGUILayout(Label, layoutOptions);
+        }
+        
+        public void DrawGUILayout(string label, params GUILayoutOption[] options)
+        {
+            DrawGUILayout(new GUIContent(label), options);
+        }
     }
         
     public abstract class EditorPreferenceGeneric<ValueType>
@@ -82,7 +92,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private ValueType defaultValue;
 
-        protected EditorPreferenceGeneric(string path, ValueType defaultValue = default(ValueType)) : base(path)
+        protected EditorPreferenceGeneric(
+            string path, ValueType defaultValue = default(ValueType), bool isProjectSpecific = false)
+            : base(path, isProjectSpecific)
         {
             this.defaultValue = defaultValue;
         }
@@ -110,15 +122,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public EditorPreferenceBool(string path, bool defaultValue = default(bool)) : base(path, defaultValue)
+        public EditorPreferenceBool(string path, bool defaultValue = default(bool), bool isProjectSpecific = false)
+            : base(path, defaultValue, isProjectSpecific)
         {
         }
 
-        public override void DrawGUILayout()
+        public override void DrawGUILayout(GUIContent label, params GUILayoutOption[] options)
         {
 #if UNITY_EDITOR
-            Value = UnityEditor.EditorGUILayout.Toggle(Label, Value);
+            Value = UnityEditor.EditorGUILayout.Toggle(label, Value, options);
 #endif // UNITY_EDITOR
+        }
+
+        public void DrawGUILayoutLeft(params GUILayoutOption[] options)
+        {
+            DrawGUILayoutLeft(Label, options);
+        }
+
+        public void DrawGUILayoutLeft(GUIContent label, params GUILayoutOption[] options)
+        {
+#if UNITY_EDITOR
+            Value = UnityEditor.EditorGUILayout.ToggleLeft(label, Value, options);
+#endif // UNITY_EDITOR
+        }
+        
+        public void DrawGUILayoutLeft(string label, params GUILayoutOption[] options)
+        {
+            DrawGUILayoutLeft(new GUIContent(label), options);
         }
     }
     
@@ -144,14 +174,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public EditorPreferenceString(string path, string defaultValue = default(string)) : base(path, defaultValue)
+        public EditorPreferenceString(string path, string defaultValue = default(string), bool isProjectSpecific = false)
+            : base(path, defaultValue, isProjectSpecific)
         {
         }
 
-        public override void DrawGUILayout()
+        public override void DrawGUILayout(GUIContent label, params GUILayoutOption[] options)
         {
 #if UNITY_EDITOR
-            Value = UnityEditor.EditorGUILayout.TextField(Label, Value);
+            Value = UnityEditor.EditorGUILayout.TextField(label, Value, options);
 #endif // UNITY_EDITOR
         }
     }
@@ -178,14 +209,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public EditorPreferenceInt(string path, int defaultValue = default(int)) : base(path, defaultValue)
+        public EditorPreferenceInt(string path, int defaultValue = default(int), bool isProjectSpecific = false)
+            : base(path, defaultValue, isProjectSpecific)
         {
         }
 
-        public override void DrawGUILayout()
+        public override void DrawGUILayout(GUIContent label, params GUILayoutOption[] options)
         {
 #if UNITY_EDITOR
-            Value = UnityEditor.EditorGUILayout.IntField(Label, Value);
+            Value = UnityEditor.EditorGUILayout.IntField(label, Value, options);
 #endif // UNITY_EDITOR
         }
     }
@@ -212,14 +244,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public EditorPreferenceFloat(string path, float defaultValue = default(float)) : base(path, defaultValue)
+        public EditorPreferenceFloat(string path, float defaultValue = default(float), bool isProjectSpecific = false)
+            : base(path, defaultValue)
         {
         }
 
-        public override void DrawGUILayout()
+        public override void DrawGUILayout(GUIContent label, params GUILayoutOption[] options)
         {
 #if UNITY_EDITOR
-            Value = UnityEditor.EditorGUILayout.FloatField(Label, Value);
+            Value = UnityEditor.EditorGUILayout.FloatField(label, Value, options);
 #endif // UNITY_EDITOR
         }
     }
@@ -268,14 +301,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public EditorPreferenceObject(string path, T defaultValue = default(T)) : base(path, defaultValue)
+        public EditorPreferenceObject(string path, T defaultValue = default(T), bool isProjectSpecific = false)
+            : base(path, defaultValue, isProjectSpecific)
         {
         }
 
-        public override void DrawGUILayout()
+        public override void DrawGUILayout(GUIContent label, params GUILayoutOption[] options)
         {
 #if UNITY_EDITOR
-            Value = (T)UnityEditor.EditorGUILayout.ObjectField(Label, Value, typeof(T), false);
+            Value = (T)UnityEditor.EditorGUILayout.ObjectField(label, Value, typeof(T), false, options);
 #endif // UNITY_EDITOR
         }
     }

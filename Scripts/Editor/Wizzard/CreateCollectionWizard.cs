@@ -255,10 +255,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             new EditorPreferenceString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY);
 
         private static readonly EditorPreferenceBool CreateFolderForThisCollection =
-            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_KEY, true);
+            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_KEY);
 
         private static readonly EditorPreferenceBool CreateFolderForThisCollectionScripts =
-            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY, true);
+            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY);
         
         private static readonly EditorPreferenceString CollectionSuffix =
             new EditorPreferenceString(COLLECTION_SUFFIX_KEY, COLLECTION_NAME_DEFAULT);

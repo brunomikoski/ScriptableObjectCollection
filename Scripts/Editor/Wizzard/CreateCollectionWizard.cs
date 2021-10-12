@@ -292,6 +292,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceBool InferNamespace = new EditorPreferenceBool(
             INFER_NAMESPACE_KEY, true);
 
+        private Vector2 scrollPosition;
+
         private static CreateCollectionWizard GetWindowInstance()
         {
             if (windowInstance == null)
@@ -318,6 +320,38 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void OnGUI()
         {
             EditorGUI.BeginChangeCheck();
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
+            DrawSections();
+            
+            EditorGUILayout.EndScrollView();
+            bool didChange = EditorGUI.EndChangeCheck();
+            if (didChange)
+            {
+                hasValidInferredScriptFolder = false;
+                hasValidInferredNamespace = false;
+            }
+            
+            EditorGUILayout.Space();
+            
+            using (new EditorGUI.DisabledScope(!AreSettingsValid()))
+            {
+                if (GUILayout.Button("Create", GUILayout.Height(35)))
+                    CreateNewCollection();
+            }
+        }
+
+        private void DrawSections()
+        {
+            DrawSettingsSection();
+
+            DrawScriptableObjectSection();
+
+            DrawScriptsSection();
+        }
+
+        private void DrawSettingsSection()
+        {
             using (new EditorGUILayout.VerticalScope("Box"))
             {
                 FoldoutSettings.Value = EditorGUILayout.BeginFoldoutHeaderGroup(FoldoutSettings.Value, "Settings");
@@ -344,10 +378,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     GenerateIndirectAccess.DrawGUILayout();
                 }
+
                 EditorGUILayout.EndFoldoutHeaderGroup();
                 EditorGUI.indentLevel--;
             }
+        }
 
+        private void DrawScriptableObjectSection()
+        {
             using (new EditorGUILayout.VerticalScope("Box"))
             {
                 FoldoutScriptableObject.Value = EditorGUILayout.BeginFoldoutHeaderGroup(
@@ -368,7 +406,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 EditorGUILayout.EndFoldoutHeaderGroup();
                 EditorGUI.indentLevel--;
             }
-
+        }
+        
+        private void DrawScriptsSection()
+        {
             using (new EditorGUILayout.VerticalScope("Box"))
             {
                 FoldoutScript.Value = EditorGUILayout.BeginFoldoutHeaderGroup(FoldoutScript.Value, "Script");
@@ -388,7 +429,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         EditorGUILayout.LabelField("Base Folder", InferredScriptFolder);
                     }
-                    
+
                     InferScriptPath.Value = EditorGUILayout.ToggleLeft(
                         "Script Folder Mirrors Scriptable Object Folder", InferScriptPath.Value);
 
@@ -396,13 +437,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUILayout.ToggleLeft(
                             $"Create parent {CollectionName} folder",
                             CreateFolderForThisCollectionScripts.Value);
-                    
+
                     EditorGUILayout.Space();
 
                     const float dotWidth = 24;
                     EditorGUILayout.LabelField("Namespace", EditorStyles.boldLabel);
                     EditorGUILayout.LabelField(Namespace, EditorStyles.miniLabel);
-                    
+
                     // Draw fields for the individual components of the namespace.
                     EditorGUILayout.BeginHorizontal();
                     NamespacePrefix = EditorGUILayout.TextField(
@@ -413,12 +454,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     else
                         CustomNamespace.Value = EditorGUILayout.TextField(CustomNamespace.Value);
                     EditorGUILayout.EndHorizontal();
-                    
+
                     // Draw a checkbox to make the namespace be inferred from the script folder, or specified manually.
                     EditorGUILayout.BeginHorizontal();
                     InferNamespace.Value = EditorGUILayout.ToggleLeft("Infer From Folder", InferNamespace.Value);
                     EditorGUILayout.EndHorizontal();
-                    
+
                     // You can also specify if it should be clamped to a certain depth.
                     bool wasGuiEnabled = GUI.enabled;
                     GUI.enabled = InferNamespace.Value;
@@ -432,25 +473,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     }
                     GUI.enabled = wasGuiEnabled;
                 }
+
                 EditorGUILayout.EndFoldoutHeaderGroup();
                 EditorGUI.indentLevel--;
             }
-            bool didChange = EditorGUI.EndChangeCheck();
-            if (didChange)
-            {
-                hasValidInferredScriptFolder = false;
-                hasValidInferredNamespace = false;
-            }
-            
-            EditorGUILayout.Space();
-            
-            using (new EditorGUI.DisabledScope(!AreSettingsValid()))
-            {
-                if (GUILayout.Button("Create", GUILayout.Height(35)))
-                    CreateNewCollection();
-            }
         }
-        
+
         private string InferScriptFolderFromScriptableObjectFolder(string pathToInferFrom)
         {
             pathToInferFrom = pathToInferFrom.ToPathWithConsistentSeparators();

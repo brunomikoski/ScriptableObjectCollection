@@ -471,8 +471,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     CreateFolderForThisCollectionScripts.DrawGUILayoutLeft($"Create parent {CollectionName} folder");
 
                     EditorGUILayout.Space();
-
-                    const float dotWidth = 24;
+                    
                     EditorGUILayout.LabelField("Namespace", EditorStyles.boldLabel);
                     EditorGUILayout.LabelField(Namespace, EditorStyles.miniLabel);
 
@@ -480,7 +479,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     EditorGUILayout.BeginHorizontal();
                     NamespacePrefix = EditorGUILayout.TextField(
                         NamespacePrefix, GUILayout.Width(EditorGUIUtility.labelWidth));
-                    EditorGUILayout.LabelField(NamespaceUtility.Separator.ToString(), GUILayout.Width(dotWidth));
                     if (InferNamespace.Value)
                         EditorGUILayout.LabelField(InferredNamespace, GUILayout.MinWidth(30));
                     else

@@ -380,6 +380,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
 
                     EditorGUILayout.Space();
+                    
+                    // Allow the collection name to be entered manually for this particular collection, or be automatic.
                     if (InferCollectionName.Value)
                         EditorGUILayout.LabelField("Collection Name", CollectionName);
                     else
@@ -418,8 +420,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         "Base Folder",
                         ScriptableObjectFolderBase, typeof(DefaultAsset),
                         false);
-                    CreateFolderForThisCollection.Value = EditorGUILayout.ToggleLeft(
-                        $"Create parent {CollectionName} folder", CreateFolderForThisCollection.Value);
+                    CreateFolderForThisCollection.DrawGUILayoutLeft($"Create parent {CollectionName} folder");
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
                 EditorGUI.indentLevel--;
@@ -448,13 +449,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         EditorGUILayout.LabelField("Base Folder", InferredScriptFolder);
                     }
 
-                    InferScriptPath.Value = EditorGUILayout.ToggleLeft(
-                        "Script Folder Mirrors Scriptable Object Folder", InferScriptPath.Value);
+                    InferScriptPath.DrawGUILayoutLeft("Script Folder Mirrors Scriptable Object Folder");
 
-                    CreateFolderForThisCollectionScripts.Value =
-                        EditorGUILayout.ToggleLeft(
-                            $"Create parent {CollectionName} folder",
-                            CreateFolderForThisCollectionScripts.Value);
+                    CreateFolderForThisCollectionScripts.DrawGUILayoutLeft($"Create parent {CollectionName} folder");
 
                     EditorGUILayout.Space();
 
@@ -468,14 +465,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         NamespacePrefix, GUILayout.Width(EditorGUIUtility.labelWidth));
                     EditorGUILayout.LabelField(NamespaceUtility.Separator.ToString(), GUILayout.Width(dotWidth));
                     if (InferNamespace.Value)
-                        EditorGUILayout.LabelField(InferredNamespace);
+                        EditorGUILayout.LabelField(InferredNamespace, GUILayout.MinWidth(30));
                     else
-                        CustomNamespace.Value = EditorGUILayout.TextField(CustomNamespace.Value);
+                        CustomNamespace.DrawGUILayout(GUIContent.none, GUILayout.MinWidth(30));
                     EditorGUILayout.EndHorizontal();
 
                     // Draw a checkbox to make the namespace be inferred from the script folder, or specified manually.
                     EditorGUILayout.BeginHorizontal();
-                    InferNamespace.Value = EditorGUILayout.ToggleLeft("Infer From Folder", InferNamespace.Value);
+                    InferNamespace.DrawGUILayoutLeft("Infer From Folder");
                     EditorGUILayout.EndHorizontal();
 
                     // You can also specify if it should be clamped to a certain depth.
@@ -486,7 +483,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         UseMaximumNamespaceDepth = EditorGUILayout.ToggleLeft(
                             "Max. Depth", UseMaximumNamespaceDepth, GUILayout.Width(EditorGUIUtility.labelWidth));
                         GUI.enabled = GUI.enabled && UseMaximumNamespaceDepth;
-                        MaximumNamespaceDepth = EditorGUILayout.IntField(GUIContent.none, MaximumNamespaceDepth);
+                        MaximumNamespaceDepth = EditorGUILayout.IntField(
+                            GUIContent.none, MaximumNamespaceDepth, GUILayout.MinWidth(30));
                         EditorGUILayout.EndHorizontal();
                     }
                     GUI.enabled = wasGuiEnabled;

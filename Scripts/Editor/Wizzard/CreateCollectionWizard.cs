@@ -262,12 +262,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             using (new EditorGUI.DisabledScope(!AreSettingsValid()))
             {
-                Color color = GUI.color;
-                GUI.color = Color.green;
-                if (GUILayout.Button("Create"))
+                if (GUILayout.Button("Create", GUILayout.Height(35)))
                     CreateNewCollection();
-
-                GUI.color = color;
             }
         }
 

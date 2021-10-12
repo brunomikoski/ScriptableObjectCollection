@@ -5,8 +5,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Renamed uses of `Wizzard` to `Wizard`
+- Wizard foldouts now work
+- The collection name is now based on the item name by default. You can still override it.
+- The script folder now mirrors the Scriptable Object folder by default
+- The namespace is now inferred from the script folder by default, with options for how it should be formatted. Can still manually override.
+- Improved wizard readability by tweaking the layout, adding a help text, adding a scrollbar and defining a reasonable minimum size
+- Settings that are serialized using Editor Prefs now use the new EditorPreference utility class
 ### Changed
 - Renamed uses of `Wizzard` to `Wizard`
+- Wizard now focuses on Item Name by default so you can type immediately
+- Reformatted wizard to look more like a Unity built-in feature
+- Parent folders are no longer created by default in preference to mirroring the ScriptableObject hierarchy
+### Deprecated
+- ScriptableObjectCollectionUtils is no longer responsible for appending any parent directories. If you were using any of those methods, please use the recommended method instead.
+- ScriptableObjectCollectionSettings.SetDefaultNamespace has been renamed. Please use SetNamespacePrefix instead.
 
 ## [1.7.0]
 ### Changed

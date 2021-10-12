@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -238,6 +239,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             return result;
+        }
+
+        public static string ToPathWithConsistentSeparators(this string path)
+        {
+            return path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
     }
 }

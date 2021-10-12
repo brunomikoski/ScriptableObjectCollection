@@ -7,6 +7,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class ScriptableObjectCollectionUtils
     {
+        public static T CreateScriptableObjectOfType<T>(DefaultAsset parentFolder, string name) where T : ScriptableObject
+        {
+            return CreateScriptableObjectOfType(typeof(T), AssetDatabase.GetAssetPath(parentFolder), name) as T;
+        }
+        
+        public static T CreateScriptableObjectOfType<T>(string path, string name) where T : ScriptableObject
+        {
+            return CreateScriptableObjectOfType(typeof(T), path, name) as T;
+        }
+        
+        [Obsolete("Please use the overload that contains a complete path.")]
         public static T CreateScriptableObjectOfType<T>(DefaultAsset parentFolder, bool createFolderForThisCollection,
             string targetName) where T : ScriptableObject
         {
@@ -14,32 +25,44 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 createFolderForThisCollection, targetName);
         }
 
+        [Obsolete("Please use the overload that contains a complete path.")]
         public static T CreateScriptableObjectOfType<T>(string parentFolderPath, bool createFolderForThisCollection,
             string targetName) where T : ScriptableObject
         {
-            return CreateScriptableObjectOfType(typeof(T), parentFolderPath, createFolderForThisCollection, targetName) as T;
+            if (createFolderForThisCollection)
+                parentFolderPath = Path.Combine(parentFolderPath, $"{targetName}");
+            
+            return CreateScriptableObjectOfType<T>(parentFolderPath, targetName);
         }
-
-        public static ScriptableObject CreateScriptableObjectOfType(Type targetType, string parentFolderPath,
-            bool createFolderForThisCollection, string targetName)
+        
+        public static ScriptableObject CreateScriptableObjectOfType(Type targetType, string path, string name)
         {
             ScriptableObject targetCollection = ScriptableObject.CreateInstance(targetType);
-            targetCollection.name = targetName;
+            targetCollection.name = name;
+            
+            AssetDatabaseUtils.CreatePathIfDontExist(Path.Combine(path, "Items"));
 
-            string targetFolderPath = parentFolderPath;
-            if (createFolderForThisCollection)
-                targetFolderPath = Path.Combine(targetFolderPath, $"{targetName}");
-
-            AssetDatabaseUtils.CreatePathIfDontExist(Path.Combine(targetFolderPath, "Items"));
-
-            string collectionAssetPath = Path.Combine(targetFolderPath, $"{targetName}.asset");
+            string collectionAssetPath = Path.Combine(path, $"{name}.asset");
             AssetDatabase.CreateAsset(targetCollection, collectionAssetPath);
             return targetCollection;
         }
 
-        public static ScriptableObject CreateScriptableObjectOfType(Type targetType, DefaultAsset parentFolder, bool createFoldForThisCollection, string collectionName)
+        [Obsolete("Please use the overload that contains a complete path.")]
+        public static ScriptableObject CreateScriptableObjectOfType(Type targetType, string parentFolderPath,
+            bool createFolderForThisCollection, string targetName)
         {
-            return CreateScriptableObjectOfType(targetType, AssetDatabase.GetAssetPath(parentFolder),
+            if (createFolderForThisCollection)
+                parentFolderPath = Path.Combine(parentFolderPath, $"{targetName}");
+            
+            return CreateScriptableObjectOfType(targetType, parentFolderPath, targetName);
+        }
+
+        [Obsolete("Please use the overload that contains a complete path.")]
+        public static ScriptableObject CreateScriptableObjectOfType(
+            Type targetType, DefaultAsset parentFolder, bool createFoldForThisCollection, string collectionName)
+        {
+            return CreateScriptableObjectOfType(
+                targetType, AssetDatabase.GetAssetPath(parentFolder),
                 createFoldForThisCollection, collectionName);
         }
     }

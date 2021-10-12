@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public sealed class CreateCollectionWizzard : EditorWindow
+    public sealed class CreateCollectionWizard : EditorWindow
     {
         private const string WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY = "WaitingScriptsToRecompileToContinueKey";
         private const string LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY = "CollectionScriptableObjectPathKey";
@@ -18,7 +18,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY = "CollectionScriptPathKey";
         private const string LAST_TARGET_SCRIPTS_FOLDER_KEY = "LastTargetScriptsFolder";
         
-        private static CreateCollectionWizzard windowInstance;
+        private static CreateCollectionWizard windowInstance;
         private static string targetFolder;
 
 
@@ -128,11 +128,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool generateIndirectAccess = true;
         
 
-        private static CreateCollectionWizzard GetWindowInstance()
+        private static CreateCollectionWizard GetWindowInstance()
         {
             if (windowInstance == null)
             {
-                windowInstance =  CreateInstance<CreateCollectionWizzard>();
+                windowInstance =  CreateInstance<CreateCollectionWizard>();
                 windowInstance.titleContent = new GUIContent("Create New Collection");
             }
 
@@ -337,7 +337,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Selection.objects = new Object[] {collectionAsset};
             EditorGUIUtility.PingObject(collectionAsset);
 
-            CreateCollectionWizzard openWindowInstance = GetWindow<CreateCollectionWizzard>();
+            CreateCollectionWizard openWindowInstance = GetWindow<CreateCollectionWizard>();
             openWindowInstance.Close();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

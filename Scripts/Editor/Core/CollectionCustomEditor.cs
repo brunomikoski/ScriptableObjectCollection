@@ -488,7 +488,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateAndAddNewItemOfType(Type itemSubClass)
         {
-            CreateNewCollectionItemFromBaseWizzard.Show(itemSubClass, success =>
+            CreateNewCollectionItemFromBaseWizard.Show(itemSubClass, success =>
             {
                 if (success)
                 {
@@ -505,14 +505,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             IsWaitingForNewTypeBeCreated = false;
 
-            string lastGeneratedCollectionScriptPath = CreateNewCollectionItemFromBaseWizzard.LastGeneratedCollectionScriptPath;
-            string lastCollectionFullName = CreateNewCollectionItemFromBaseWizzard.LastCollectionFullName;
+            string lastGeneratedCollectionScriptPath = CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath;
+            string lastCollectionFullName = CreateNewCollectionItemFromBaseWizard.LastCollectionFullName;
 
             if (string.IsNullOrEmpty(lastGeneratedCollectionScriptPath))
                 return;
             
-            CreateNewCollectionItemFromBaseWizzard.LastCollectionFullName = string.Empty;
-            CreateNewCollectionItemFromBaseWizzard.LastGeneratedCollectionScriptPath = string.Empty;
+            CreateNewCollectionItemFromBaseWizard.LastCollectionFullName = string.Empty;
+            CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath = string.Empty;
 
             string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(lastGeneratedCollectionScriptPath);
 

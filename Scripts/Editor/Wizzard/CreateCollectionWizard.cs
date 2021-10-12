@@ -12,6 +12,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public sealed class CreateCollectionWizard : EditorWindow
     {
+        private const string FOLDOUT_SETTINGS_KEY = "FoldoutSettings";
+        private const string FOLDOUT_SCRIPTABLE_OBJECT_KEY = "FoldoutScriptableObject";
+        private const string FOLDOUT_SCRIPT_KEY = "FoldoutScript";
+        
         private const string WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY = "WaitingScriptsToRecompileToContinueKey";
         private const string LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY = "CollectionScriptableObjectPathKey";
         private const string LAST_COLLECTION_FULL_NAME_KEY = "CollectionFullNameKey";
@@ -99,6 +103,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        private static readonly EditorPreferenceBool FoldoutSettings =
+            new EditorPreferenceBool(FOLDOUT_SETTINGS_KEY, true);
+        private static readonly EditorPreferenceBool FoldoutScriptableObject =
+            new EditorPreferenceBool(FOLDOUT_SCRIPTABLE_OBJECT_KEY, true);
+        private static readonly EditorPreferenceBool FoldoutScript = new EditorPreferenceBool(FOLDOUT_SCRIPT_KEY, true);
+        
 
         private static readonly EditorPreferenceBool WaitingRecompileForContinue =
             new EditorPreferenceBool(WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY);
@@ -169,78 +179,95 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnGUI()
         {
-            using (new EditorGUI.DisabledScope(EditorApplication.isCompiling))
+            using (new EditorGUILayout.VerticalScope("Box"))
             {
-                using (new EditorGUILayout.VerticalScope("Box"))
+                FoldoutSettings.Value = EditorGUILayout.BeginFoldoutHeaderGroup(FoldoutSettings.Value, "Settings");
+
+                EditorGUI.indentLevel++;
+                if (FoldoutSettings.Value)
                 {
-                    using (new EditorGUILayout.VerticalScope("Box"))
+                    EditorGUILayout.Space();
+
+                    collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
+
+                    EditorGUILayout.Space();
+
+                    InferCollectionName.DrawGUILayout();
+                    if (InferCollectionName.Value)
                     {
-                        EditorGUILayout.LabelField("Settings", EditorStyles.foldoutHeader);
-                        EditorGUILayout.Space();
-
-                        collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
-                        
-                        EditorGUILayout.Space();
-                        
-                        InferCollectionName.DrawGUILayout();
-                        if (InferCollectionName.Value)
-                        {
-                            EditorGUILayout.LabelField("Collection Name", CollectionName);
-                            CollectionSuffix.DrawGUILayout();
-                        }
-                        else
-                        {
-                            CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
-                        }
-
-                        EditorGUILayout.Space();
-                        
-                        GenerateIndirectAccess.DrawGUILayout();
+                        EditorGUILayout.LabelField("Collection Name", CollectionName);
+                        CollectionSuffix.DrawGUILayout();
                     }
-                    using (new EditorGUILayout.VerticalScope("Box"))
+                    else
                     {
-                        EditorGUILayout.LabelField("Scriptable Object", EditorStyles.foldoutHeader);
-                        EditorGUILayout.Space();
-
-                        ScriptableObjectFolder = (DefaultAsset) EditorGUILayout.ObjectField("Scriptable Object Folder",
-                            ScriptableObjectFolder, typeof(DefaultAsset),
-                            false);
-                        if (ScriptableObjectFolder != null)
-                            EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(ScriptableObjectFolder));
-                        CreateFolderForThisCollection.Value = EditorGUILayout.ToggleLeft(
-                            $"Create parent {CollectionName} folder", CreateFolderForThisCollection.Value);
+                        CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
                     }
 
-                    using (new EditorGUILayout.VerticalScope("Box"))
-                    {
-                        EditorGUILayout.LabelField("Script", EditorStyles.foldoutHeader);
-                        EditorGUILayout.Space();
+                    EditorGUILayout.Space();
 
-                        ScriptsFolder = (DefaultAsset) EditorGUILayout.ObjectField("Script Folder", ScriptsFolder,
-                            typeof(DefaultAsset),
-                            false);
-                        if (ScriptsFolder != null)
-                        {
-                            EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(ScriptsFolder));
-                        }
-
-                        CreateFolderForThisCollectionScripts.Value =
-                            EditorGUILayout.ToggleLeft($"Create parent {CollectionName} folder",
-                                CreateFolderForThisCollectionScripts.Value);
-
-                        TargetNameSpace = EditorGUILayout.TextField("Namespace", TargetNameSpace);
-                    }
-
-                    using (new EditorGUI.DisabledScope(!AreSettingsValid()))
-                    {
-                        Color color = GUI.color;
-                        GUI.color = Color.green;
-                        if (GUILayout.Button("Create"))
-                            CreateNewCollection();
-
-                        GUI.color = color;
-                    }
+                    GenerateIndirectAccess.DrawGUILayout();
                 }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUI.indentLevel--;
+            }
+
+            using (new EditorGUILayout.VerticalScope("Box"))
+            {
+                FoldoutScriptableObject.Value = EditorGUILayout.BeginFoldoutHeaderGroup(
+                    FoldoutScriptableObject.Value, "Scriptable Object");
+
+                EditorGUI.indentLevel++;
+                if (FoldoutScriptableObject.Value)
+                {
+                    EditorGUILayout.Space();
+
+                    ScriptableObjectFolder = (DefaultAsset)EditorGUILayout.ObjectField(
+                        "Scriptable Object Folder",
+                        ScriptableObjectFolder, typeof(DefaultAsset),
+                        false);
+                    if (ScriptableObjectFolder != null)
+                        EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(ScriptableObjectFolder));
+                    CreateFolderForThisCollection.Value = EditorGUILayout.ToggleLeft(
+                        $"Create parent {CollectionName} folder", CreateFolderForThisCollection.Value);
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUI.indentLevel--;
+            }
+
+            using (new EditorGUILayout.VerticalScope("Box"))
+            {
+                FoldoutScript.Value = EditorGUILayout.BeginFoldoutHeaderGroup(FoldoutScript.Value, "Script");
+                EditorGUI.indentLevel++;
+                if (FoldoutScript.Value)
+                {
+                    ScriptsFolder = (DefaultAsset)EditorGUILayout.ObjectField(
+                        "Script Folder", ScriptsFolder,
+                        typeof(DefaultAsset),
+                        false);
+                    if (ScriptsFolder != null)
+                    {
+                        EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(ScriptsFolder));
+                    }
+
+                    CreateFolderForThisCollectionScripts.Value =
+                        EditorGUILayout.ToggleLeft(
+                            $"Create parent {CollectionName} folder",
+                            CreateFolderForThisCollectionScripts.Value);
+
+                    TargetNameSpace = EditorGUILayout.TextField("Namespace", TargetNameSpace);
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUI.indentLevel--;
+            }
+
+            using (new EditorGUI.DisabledScope(!AreSettingsValid()))
+            {
+                Color color = GUI.color;
+                GUI.color = Color.green;
+                if (GUILayout.Button("Create"))
+                    CreateNewCollection();
+
+                GUI.color = color;
             }
         }
 

@@ -217,16 +217,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
 
                     EditorGUILayout.Space();
-
+                    if (InferCollectionName.Value)
+                        EditorGUILayout.LabelField("Collection Name", CollectionName);
+                    else
+                        CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
                     InferCollectionName.DrawGUILayout();
                     if (InferCollectionName.Value)
                     {
-                        EditorGUILayout.LabelField("Collection Name", CollectionName);
+                        EditorGUI.indentLevel++;
                         CollectionSuffix.DrawGUILayout();
-                    }
-                    else
-                    {
-                        CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
+                        EditorGUI.indentLevel--;
                     }
 
                     EditorGUILayout.Space();

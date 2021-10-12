@@ -26,14 +26,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY = "CreateFolderForThisCollectionScripts";
         private const string INFER_COLLECTION_NAME_KEY = "InferCollectionName";
         private const string COLLECTION_SUFFIX_KEY = "CollectionSuffix";
+        private const string INFER_SCRIPT_PATH_KEY = "InferScriptableObjectPath";
         private const string CUSTOM_NAMESPACE_KEY = "CustomNamespace";
         private const string INFER_NAMESPACE_KEY = "InferNamespace";
         
         private const string COLLECTION_NAME_DEFAULT = "Collection";
         private const string NAMESPACE_DEFAULT = "ScriptableObjects";
 
+        private const string SCRIPTS_FOLDER_NAME = "Scripts";
+
         private static CreateCollectionWizard windowInstance;
         private static string targetFolder;
+
+        private static readonly List<string> ScriptableObjectFolderNames = new List<string>
+        {
+            "ScriptableObject", "ScriptableObjects", "ScriptableObjectCollection", "ScriptableObjectCollections",
+            "Database", "Databases", "Configuration", "Configurations", "Config", "Configs"
+        };
 
 
         private DefaultAsset cachedScriptableObjectFolderBase;
@@ -62,13 +71,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => cachedScriptableObjectFolderBase = value;
         }
         
+        private string ScriptableObjectFolderPathWithoutParentFolder =>
+            ScriptableObjectFolderBase == null
+                ? "Assets/"
+                : AssetDatabase.GetAssetPath(ScriptableObjectFolderBase);
+
         private string ScriptableObjectFolderPath
         {
             get
             {
-                string folder = ScriptableObjectFolderBase == null
-                    ? "Assets/"
-                    : AssetDatabase.GetAssetPath(ScriptableObjectFolderBase);
+                string folder = ScriptableObjectFolderPathWithoutParentFolder;
                 if (CreateFolderForThisCollection.Value)
                     folder = Path.Combine(folder, $"{CollectionName}");
                 return folder.ToPathWithConsistentSeparators();
@@ -102,10 +114,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => cachedScriptsFolderBase = value;
         }
         
-        private string ScriptsFolderPathWithoutParentFolder =>
-            ScriptsFolderBase == null
-                ? "Assets/"
-                : AssetDatabase.GetAssetPath(ScriptsFolderBase);
+        private string ScriptsFolderPathWithoutParentFolder
+        {
+            get
+            {
+                if (InferScriptPath.Value)
+                    return InferredScriptFolder;
+                
+                return ScriptsFolderBase == null
+                    ? "Assets/"
+                    : AssetDatabase.GetAssetPath(ScriptsFolderBase);
+            }
+        }
 
         private string ScriptsFolderPath
         {
@@ -115,6 +135,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (CreateFolderForThisCollectionScripts.Value)
                     folder = Path.Combine(folder, $"{CollectionName}");
                 return folder.ToPathWithConsistentSeparators();
+            }
+        }
+
+        private string cachedInferredScriptFolder;
+        private bool hasValidInferredScriptFolder;
+
+        private string InferredScriptFolder
+        {
+            get
+            {
+                if (!hasValidInferredScriptFolder)
+                {
+                    string pathToInferFrom = ScriptableObjectFolderPathWithoutParentFolder;
+                    cachedInferredScriptFolder = InferScriptFolderFromScriptableObjectFolder(pathToInferFrom);
+                    hasValidInferredScriptFolder = true;
+                }
+
+                return cachedInferredScriptFolder;
             }
         }
 
@@ -151,7 +189,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private string cachedInferredNamespace;
         private bool hasValidInferredNamespace;
-        public string InferredNamespace
+
+        private string InferredNamespace
         {
             get
             {
@@ -243,6 +282,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private static readonly EditorPreferenceBool InferCollectionName =
             new EditorPreferenceBool(INFER_COLLECTION_NAME_KEY, true);
+        
+        private static readonly EditorPreferenceBool InferScriptPath =
+            new EditorPreferenceBool(INFER_SCRIPT_PATH_KEY, true);
 
         private static readonly EditorPreferenceString CustomNamespace =
             new EditorPreferenceString(CUSTOM_NAMESPACE_KEY, NAMESPACE_DEFAULT);
@@ -334,10 +376,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     EditorGUILayout.LabelField(ScriptsFolderPath, EditorStyles.miniLabel);
 
-                    ScriptsFolderBase = (DefaultAsset)EditorGUILayout.ObjectField(
-                        "Base Folder", ScriptsFolderBase,
-                        typeof(DefaultAsset),
-                        false);
+                    if (!InferScriptPath.Value)
+                    {
+                        ScriptsFolderBase = (DefaultAsset)EditorGUILayout.ObjectField(
+                            "Base Folder", ScriptsFolderBase,
+                            typeof(DefaultAsset),
+                            false);
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField("Base Folder", InferredScriptFolder);
+                    }
+                    
+                    InferScriptPath.Value = EditorGUILayout.ToggleLeft(
+                        "Script Folder Mirrors Scriptable Object Folder", InferScriptPath.Value);
 
                     CreateFolderForThisCollectionScripts.Value =
                         EditorGUILayout.ToggleLeft(
@@ -384,7 +436,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             bool didChange = EditorGUI.EndChangeCheck();
             if (didChange)
+            {
+                hasValidInferredScriptFolder = false;
                 hasValidInferredNamespace = false;
+            }
             
             EditorGUILayout.Space();
             
@@ -393,6 +448,34 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (GUILayout.Button("Create", GUILayout.Height(35)))
                     CreateNewCollection();
             }
+        }
+        
+        private string InferScriptFolderFromScriptableObjectFolder(string pathToInferFrom)
+        {
+            pathToInferFrom = pathToInferFrom.ToPathWithConsistentSeparators();
+            string[] folders = pathToInferFrom.Split(Path.AltDirectorySeparatorChar);
+            bool didFindScriptableObjectsFolder = false;
+            
+            string scriptsFolder = string.Empty;
+            for (int i = 0; i < folders.Length; i++)
+            {
+                if (i > 0)
+                    scriptsFolder += Path.AltDirectorySeparatorChar;
+                
+                // The Scriptable Objects folder is expected to have a certain name. That particular name is to be
+                // replaced with the name of the scripts folder so that we create a folder that is on the same level as
+                // the configurations, but inside a Scripts folder instead.
+                if (!didFindScriptableObjectsFolder && ScriptableObjectFolderNames.Contains(folders[i]))
+                {
+                    scriptsFolder += SCRIPTS_FOLDER_NAME;
+                    didFindScriptableObjectsFolder = true;
+                    continue;
+                }
+                
+                scriptsFolder += folders[i];
+            }
+
+            return scriptsFolder;
         }
 
         private void CreateNewCollection()

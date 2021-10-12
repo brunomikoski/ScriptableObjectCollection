@@ -505,14 +505,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             IsWaitingForNewTypeBeCreated = false;
 
-            string lastGeneratedCollectionScriptPath = CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath;
-            string lastCollectionFullName = CreateNewCollectionItemFromBaseWizard.LastCollectionFullName;
+            string lastGeneratedCollectionScriptPath =
+                CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath.Value;
+            string lastCollectionFullName = CreateNewCollectionItemFromBaseWizard.LastCollectionFullName.Value;
 
             if (string.IsNullOrEmpty(lastGeneratedCollectionScriptPath))
                 return;
             
-            CreateNewCollectionItemFromBaseWizard.LastCollectionFullName = string.Empty;
-            CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath = string.Empty;
+            CreateNewCollectionItemFromBaseWizard.LastCollectionFullName.Value = string.Empty;
+            CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath.Value = string.Empty;
 
             string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(lastGeneratedCollectionScriptPath);
 

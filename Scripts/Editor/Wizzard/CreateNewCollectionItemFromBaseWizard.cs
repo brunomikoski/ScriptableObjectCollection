@@ -20,17 +20,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static Type targetType;
         private static Action<bool> onCreationCallback;
 
-        public static string LastGeneratedCollectionScriptPath
-        {
-            get => EditorPrefs.GetString(LAST_COLLECTION_ITEM_SCRIPT_PATH, String.Empty);
-            set => EditorPrefs.SetString(LAST_COLLECTION_ITEM_SCRIPT_PATH, value);
-        }
-        
-        public static string LastCollectionFullName
-        {
-            get => EditorPrefs.GetString(LAST_COLLECTION_ITEM_FULL_NAME_KEY, String.Empty);
-            set => EditorPrefs.SetString(LAST_COLLECTION_ITEM_FULL_NAME_KEY, value);
-        }
+        public static readonly EditorPreferenceString LastGeneratedCollectionScriptPath =
+            new EditorPreferenceString(LAST_COLLECTION_ITEM_SCRIPT_PATH);
+
+        public static readonly EditorPreferenceString LastCollectionFullName =
+            new EditorPreferenceString(LAST_COLLECTION_ITEM_FULL_NAME_KEY);
 
         public static void Show(Type baseType, Action<bool> targetOnCreationCallback)
         {
@@ -125,11 +119,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             AssetDatabase.Refresh();
                             
                             if (string.IsNullOrEmpty(targetNamespace))
-                                LastCollectionFullName = $"{newClassName}";
+                                LastCollectionFullName.Value = $"{newClassName}";
                             else
-                                LastCollectionFullName = $"{targetNamespace}.{newClassName}";
+                                LastCollectionFullName.Value = $"{targetNamespace}.{newClassName}";
                             
-                            LastGeneratedCollectionScriptPath = Path.Combine(parentFolder, $"{newClassName}.cs");
+                            LastGeneratedCollectionScriptPath.Value = Path.Combine(parentFolder, $"{newClassName}.cs");
                             Close();
                             onCreationCallback.Invoke(true);
                         }

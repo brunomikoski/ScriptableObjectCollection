@@ -30,6 +30,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string CUSTOM_NAMESPACE_KEY = "CustomNamespace";
         private const string INFER_NAMESPACE_KEY = "InferNamespace";
         
+        private const string ITEM_NAME_CONTROL = "CreateCollectionWizardItemName";
+        private const string ITEM_NAME_DEFAULT = "Item";
         private const string COLLECTION_NAME_DEFAULT = "Collection";
         private const string NAMESPACE_DEFAULT = "ScriptableObjects";
 
@@ -235,8 +237,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceBool FoldoutSettings =
             new EditorPreferenceBool(FOLDOUT_SETTINGS_KEY, true);
         private static readonly EditorPreferenceBool FoldoutScriptableObject =
-            new EditorPreferenceBool(FOLDOUT_SCRIPTABLE_OBJECT_KEY, true);
-        private static readonly EditorPreferenceBool FoldoutScript = new EditorPreferenceBool(FOLDOUT_SCRIPT_KEY, true);
+            new EditorPreferenceBool(FOLDOUT_SCRIPTABLE_OBJECT_KEY, false);
+        private static readonly EditorPreferenceBool FoldoutScript = new EditorPreferenceBool(FOLDOUT_SCRIPT_KEY, false);
         
 
         private static readonly EditorPreferenceBool WaitingRecompileForContinue =
@@ -275,7 +277,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             set => cachedCollectionName = value;
         }
 
-        private string collectionItemName = "Item";
+        private string collectionItemName = ITEM_NAME_DEFAULT;
 
         private static readonly EditorPreferenceBool GenerateIndirectAccess =
             new EditorPreferenceBool(GENERATE_INDIRECT_ACCESS_KEY, true);
@@ -293,6 +295,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             INFER_NAMESPACE_KEY, true);
 
         private Vector2 scrollPosition;
+        [NonSerialized] private bool didFocusDefaultControl;
 
         private static CreateCollectionWizard GetWindowInstance()
         {
@@ -300,7 +303,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 windowInstance =  CreateInstance<CreateCollectionWizard>();
                 windowInstance.titleContent = new GUIContent("Create New Collection");
-                windowInstance.minSize = new Vector2(EditorGUIUtility.labelWidth + EditorGUIUtility.labelWidth, 250);
+                windowInstance.minSize = new Vector2(EditorGUIUtility.labelWidth + EditorGUIUtility.labelWidth + 75, 370);
             }
 
             return windowInstance;
@@ -322,6 +325,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             EditorGUI.BeginChangeCheck();
             scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
 
+            EditorGUILayout.HelpBox(
+                "The recommended workflow is to open the wizard on the folder in which you want to create the " +
+                "Scriptable Object Collection, then fill in an Item Name and leave everything else to the defaults." +
+                "\n\nThat will create a collection with an appropriate suffix, and scripts will be created in a folder " +
+                "that mirrors the folder of the Collection." +
+                "\n\nFirst-time users should specify a namespace prefix in the Script section.",
+                MessageType.Info);
+
             DrawSections();
             
             EditorGUILayout.EndScrollView();
@@ -338,6 +349,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (GUILayout.Button("Create", GUILayout.Height(35)))
                     CreateNewCollection();
+            }
+
+            if (!didFocusDefaultControl)
+            {
+                EditorGUI.FocusTextInControl(ITEM_NAME_CONTROL);
+                didFocusDefaultControl = true;
             }
         }
 
@@ -359,6 +376,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 EditorGUI.indentLevel++;
                 if (FoldoutSettings.Value)
                 {
+                    GUI.SetNextControlName(ITEM_NAME_CONTROL);
                     collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
 
                     EditorGUILayout.Space();

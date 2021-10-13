@@ -12,6 +12,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public sealed class CreateCollectionWizard : EditorWindow
     {
+        [Flags]
+        private enum Fields
+        {
+            None = 0,
+            ItemName = 1 << 0,
+            CollectionName = 1 << 1,
+            ScriptsFolder = 1 << 2,
+        }
+
         private const string FOLDOUT_SETTINGS_KEY = "FoldoutSettings";
         private const string FOLDOUT_SCRIPTABLE_OBJECT_KEY = "FoldoutScriptableObject";
         private const string FOLDOUT_SCRIPT_KEY = "FoldoutScript";
@@ -298,6 +307,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private Vector2 scrollPosition;
         [NonSerialized] private bool didFocusDefaultControl;
 
+        private string warningText;
+        private Fields fieldsFilledInIncorrectly;
+
         private static CreateCollectionWizard GetWindowInstance()
         {
             if (windowInstance == null)
@@ -345,8 +357,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             EditorGUILayout.Space();
-            
-            using (new EditorGUI.DisabledScope(!AreSettingsValid()))
+
+            bool areSettingsInvalid = !CheckValidityOfSettings();
+
+            if (areSettingsInvalid)
+                EditorGUILayout.HelpBox(warningText, MessageType.Warning);
+
+            using (new EditorGUI.DisabledScope(areSettingsInvalid))
             {
                 if (GUILayout.Button("Create", GUILayout.Height(35)))
                     CreateNewCollection();
@@ -368,6 +385,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             DrawScriptsSection();
         }
 
+        private void SetColorBasedOnFieldValidity(Fields field)
+        {
+            GUI.color = (fieldsFilledInIncorrectly & field) == field ? Color.yellow : Color.white;
+        }
+        
+        private void ResetColorBasedOnFieldValidity()
+        {
+            GUI.color = Color.white;
+        }
+
         private void DrawSettingsSection()
         {
             using (new EditorGUILayout.VerticalScope("Box"))
@@ -378,15 +405,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (FoldoutSettings.Value)
                 {
                     GUI.SetNextControlName(ITEM_NAME_CONTROL);
+                    SetColorBasedOnFieldValidity(Fields.ItemName);
                     collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
+                    ResetColorBasedOnFieldValidity();
 
                     EditorGUILayout.Space();
                     
                     // Allow the collection name to be entered manually for this particular collection, or be automatic.
+                    SetColorBasedOnFieldValidity(Fields.CollectionName);
                     if (InferCollectionName.Value)
                         EditorGUILayout.LabelField("Collection Name", CollectionName);
                     else
                         CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
+                    ResetColorBasedOnFieldValidity();
 
                     // Some basic controls for how the collection name is generated.
                     EditorGUILayout.BeginHorizontal();
@@ -454,6 +485,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     EditorGUILayout.LabelField(ScriptsFolderPath, EditorStyles.miniLabel);
 
+                    SetColorBasedOnFieldValidity(Fields.ScriptsFolder);
                     if (!InferScriptPath.Value)
                     {
                         ScriptsFolderBase = (DefaultAsset)EditorGUILayout.ObjectField(
@@ -465,6 +497,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         EditorGUILayout.LabelField("Base Folder", InferredScriptFolder);
                     }
+                    ResetColorBasedOnFieldValidity();
 
                     InferScriptPath.DrawGUILayoutLeft("Script Folder Mirrors Scriptable Object Folder");
 
@@ -618,21 +651,42 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return result;
         }
 
-        private bool AreSettingsValid()
+        private bool CheckValidityOfSettings()
         {
+            warningText = string.Empty;
+            fieldsFilledInIncorrectly = Fields.None;
+            bool isValid = true;
+            
             if (string.IsNullOrEmpty(collectionItemName))
-                return false;
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |= Fields.ItemName;
+                warningText += "Item Name shouldn't be empty.\n";
+            }
 
             if (string.IsNullOrEmpty(CollectionName))
-                return false;
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |= Fields.CollectionName;
+                warningText += "Collection Name shouldn't be empty.\n";
+            }
 
             if (collectionItemName == CollectionName)
-                return false;
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |=
+                    Fields.ItemName | Fields.CollectionName;
+                warningText += "Item Name shouldn't be the same as the Collection Name.\n";
+            }
 
             if (ScriptsFolderBase == null)
-                return false;
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |= Fields.ScriptsFolder;
+                warningText += "Script folder isn't valid.\n";
+            }
 
-            return true;
+            return isValid;
         }
 
         [DidReloadScripts]

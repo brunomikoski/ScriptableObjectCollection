@@ -33,11 +33,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string GENERATE_INDIRECT_ACCESS_KEY = "GenerateIndirectAccess";
         private const string CREATE_FOLDER_FOR_THIS_COLLECTION_KEY = "CreateFolderForThisCollection";
         private const string CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY = "CreateFolderForThisCollectionScripts";
-        private const string INFER_COLLECTION_NAME_KEY = "InferCollectionName";
+        private const string AUTO_COLLECTION_NAME_KEY = "AutoCollectionName";
         private const string COLLECTION_FORMAT_KEY = "CollectionFormat";
-        private const string INFER_SCRIPT_PATH_KEY = "InferScriptableObjectPath";
+        private const string SCRIPT_FOLDER_MIRRORS_SCRIPTABLE_OBJECT_FOLDER_KEY =
+            "ScriptFolderMirrorsScriptableObjectFolder";
         private const string CUSTOM_NAMESPACE_KEY = "CustomNamespace";
-        private const string INFER_NAMESPACE_KEY = "InferNamespace";
+        private const string AUTOMATIC_NAMESPACE_BASED_ON_FOLDER_KEY = "AutomaticNamespaceBasedOnFolder";
         
         private const string ITEM_NAME_CONTROL = "CreateCollectionWizardItemName";
         private const string ITEM_NAME_DEFAULT = "Item";
@@ -130,8 +131,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             get
             {
-                if (InferScriptPath.Value)
-                    return InferredScriptFolder;
+                if (ScriptFolderMirrorsScriptableObjectFolder.Value)
+                    return AutomaticScriptFolder;
                 
                 return ScriptsFolderBase == null
                     ? "Assets/"
@@ -150,21 +151,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private string cachedInferredScriptFolder;
-        private bool hasValidInferredScriptFolder;
+        private string cachedAutomaticScriptFolder;
+        private bool hasValidAutomaticScriptFolder;
 
-        private string InferredScriptFolder
+        private string AutomaticScriptFolder
         {
             get
             {
-                if (!hasValidInferredScriptFolder)
+                if (!hasValidAutomaticScriptFolder)
                 {
                     string pathToInferFrom = ScriptableObjectFolderPathWithoutParentFolder;
-                    cachedInferredScriptFolder = InferScriptFolderFromScriptableObjectFolder(pathToInferFrom);
-                    hasValidInferredScriptFolder = true;
+                    cachedAutomaticScriptFolder = InferScriptFolderFromScriptableObjectFolder(pathToInferFrom);
+                    hasValidAutomaticScriptFolder = true;
                 }
 
-                return cachedInferredScriptFolder;
+                return cachedAutomaticScriptFolder;
             }
         }
 
@@ -199,26 +200,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        private string cachedInferredNamespace;
-        private bool hasValidInferredNamespace;
+        private string cachedAutomaticNamespace;
+        private bool hasValidAutomaticNamespace;
 
-        private string InferredNamespace
+        private string AutomaticNamespace
         {
             get
             {
-                if (!hasValidInferredNamespace)
+                if (!hasValidAutomaticNamespace)
                 {
                     string pathToInferFrom = ScriptsFolderPathWithoutParentFolder;
                     int maxDepth = UseMaximumNamespaceDepth ? MaximumNamespaceDepth : int.MaxValue;
-                    cachedInferredNamespace = NamespaceUtility.GetNamespaceForPath(pathToInferFrom, maxDepth);
-                    hasValidInferredNamespace = true;
+                    cachedAutomaticNamespace = NamespaceUtility.GetNamespaceForPath(pathToInferFrom, maxDepth);
+                    hasValidAutomaticNamespace = true;
                 }
 
-                return cachedInferredNamespace;
+                return cachedAutomaticNamespace;
             }
         }
 
-        private string NamespaceSuffix => InferNamespace.Value ? InferredNamespace : CustomNamespace.Value;
+        private string NamespaceSuffix =>
+            AutomaticNamespaceBasedOnFolder.Value ? AutomaticNamespace : CustomNamespace.Value;
         
         private bool UseMaximumNamespaceDepth
         {
@@ -280,7 +282,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             get
             {
-                if (InferCollectionName.Value)
+                if (AutoCollectionName.Value)
                     return string.Format(CollectionFormat.Value, collectionItemName);
                 return cachedCollectionName;
             }
@@ -292,17 +294,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceBool GenerateIndirectAccess =
             new EditorPreferenceBool(GENERATE_INDIRECT_ACCESS_KEY, true);
         
-        private static readonly EditorPreferenceBool InferCollectionName =
-            new EditorPreferenceBool(INFER_COLLECTION_NAME_KEY, true);
+        private static readonly EditorPreferenceBool AutoCollectionName =
+            new EditorPreferenceBool(AUTO_COLLECTION_NAME_KEY, true);
         
-        private static readonly EditorPreferenceBool InferScriptPath =
-            new EditorPreferenceBool(INFER_SCRIPT_PATH_KEY, true);
+        private static readonly EditorPreferenceBool ScriptFolderMirrorsScriptableObjectFolder =
+            new EditorPreferenceBool(SCRIPT_FOLDER_MIRRORS_SCRIPTABLE_OBJECT_FOLDER_KEY, true);
 
         private static readonly EditorPreferenceString CustomNamespace =
             new EditorPreferenceString(CUSTOM_NAMESPACE_KEY, NAMESPACE_DEFAULT);
         
-        private static readonly EditorPreferenceBool InferNamespace = new EditorPreferenceBool(
-            INFER_NAMESPACE_KEY, true);
+        private static readonly EditorPreferenceBool AutomaticNamespaceBasedOnFolder = new EditorPreferenceBool(
+            AUTOMATIC_NAMESPACE_BASED_ON_FOLDER_KEY, true);
 
         private Vector2 scrollPosition;
         [NonSerialized] private bool didFocusDefaultControl;
@@ -352,8 +354,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             bool didChange = EditorGUI.EndChangeCheck();
             if (didChange)
             {
-                hasValidInferredScriptFolder = false;
-                hasValidInferredNamespace = false;
+                hasValidAutomaticScriptFolder = false;
+                hasValidAutomaticNamespace = false;
             }
             
             EditorGUILayout.Space();
@@ -413,7 +415,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     
                     // Allow the collection name to be entered manually for this particular collection, or be automatic.
                     SetColorBasedOnFieldValidity(Fields.CollectionName);
-                    if (InferCollectionName.Value)
+                    if (AutoCollectionName.Value)
                         EditorGUILayout.LabelField("Collection Name", CollectionName);
                     else
                         CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
@@ -421,10 +423,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     // Some basic controls for how the collection name is generated.
                     EditorGUILayout.BeginHorizontal();
-                    InferCollectionName.DrawGUILayout(
+                    AutoCollectionName.DrawGUILayout(
                         "Auto Collection Name", GUILayout.Width(EditorGUIUtility.labelWidth + 16));
                     bool wasGuiEnabled = GUI.enabled;
-                    GUI.enabled = InferCollectionName.Value;
+                    GUI.enabled = AutoCollectionName.Value;
                     string collectionFormatControlName = "CreateCollectionWizardCollectionFormat";
                     GUI.SetNextControlName(collectionFormatControlName);
                     CollectionFormat.DrawGUILayout(GUIContent.none, GUILayout.MinWidth(50));
@@ -486,7 +488,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     EditorGUILayout.LabelField(ScriptsFolderPath, EditorStyles.miniLabel);
 
                     SetColorBasedOnFieldValidity(Fields.ScriptsFolder);
-                    if (!InferScriptPath.Value)
+                    if (!ScriptFolderMirrorsScriptableObjectFolder.Value)
                     {
                         ScriptsFolderBase = (DefaultAsset)EditorGUILayout.ObjectField(
                             "Base Folder", ScriptsFolderBase,
@@ -495,11 +497,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     }
                     else
                     {
-                        EditorGUILayout.LabelField("Base Folder", InferredScriptFolder);
+                        EditorGUILayout.LabelField("Base Folder", AutomaticScriptFolder);
                     }
                     ResetColorBasedOnFieldValidity();
 
-                    InferScriptPath.DrawGUILayoutLeft("Script Folder Mirrors Scriptable Object Folder");
+                    ScriptFolderMirrorsScriptableObjectFolder.DrawGUILayoutLeft("Script Folder Mirrors Scriptable Object Folder");
 
                     CreateFolderForThisCollectionScripts.DrawGUILayoutLeft($"Create parent {CollectionName} folder");
 
@@ -512,20 +514,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     EditorGUILayout.BeginHorizontal();
                     NamespacePrefix = EditorGUILayout.TextField(
                         NamespacePrefix, GUILayout.Width(EditorGUIUtility.labelWidth));
-                    if (InferNamespace.Value)
-                        EditorGUILayout.LabelField(InferredNamespace, GUILayout.MinWidth(30));
+                    if (AutomaticNamespaceBasedOnFolder.Value)
+                        EditorGUILayout.LabelField(AutomaticNamespace, GUILayout.MinWidth(30));
                     else
                         CustomNamespace.DrawGUILayout(GUIContent.none, GUILayout.MinWidth(30));
                     EditorGUILayout.EndHorizontal();
 
                     // Draw a checkbox to make the namespace be inferred from the script folder, or specified manually.
                     EditorGUILayout.BeginHorizontal();
-                    InferNamespace.DrawGUILayoutLeft("Automatic Based On Folder");
+                    AutomaticNamespaceBasedOnFolder.DrawGUILayoutLeft("Automatic Based On Folder");
                     EditorGUILayout.EndHorizontal();
 
                     // You can also specify if it should be clamped to a certain depth.
                     bool wasGuiEnabled = GUI.enabled;
-                    GUI.enabled = InferNamespace.Value;
+                    GUI.enabled = AutomaticNamespaceBasedOnFolder.Value;
                     {
                         EditorGUILayout.BeginHorizontal();
                         UseMaximumNamespaceDepth = EditorGUILayout.ToggleLeft(

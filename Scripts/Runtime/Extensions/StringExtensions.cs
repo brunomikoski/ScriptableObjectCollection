@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -14,6 +15,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         static readonly Regex FIRST_CHAR_FOLLOWED_BY_UPPER_CASES_ONLY = new Regex("(?<=[A-Z])[A-Z0-9]+$");
         static readonly Regex LOWER_CASE_NEXT_TO_NUMBER = new Regex("(?<=[0-9])[a-z]");
         static readonly Regex UPPER_CASE_INSIDE = new Regex("(?<=[A-Z])[A-Z]+?((?=[A-Z][a-z])|(?=[0-9]))");
+        
+        private const string HUNGARIAN_PREFIX = "m_";
+        private const char UNDERSCORE = '_';
+        private const char DEFAULT_SEPARATOR = ' ';
         
         private static string[] RESERVED_KEYWORDS =
         {
@@ -148,6 +153,97 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             return false;
+        }
+        
+        private static bool IsExcludedSymbol(char symbol, char wordSeparator = DEFAULT_SEPARATOR)
+        {
+            return char.IsWhiteSpace(symbol) || char.IsPunctuation(symbol) || symbol == wordSeparator;
+        }
+
+        /// <summary>
+        /// Gets the human readable version of programmer text, like a variable name.
+        /// </summary>
+        /// <param name="programmerText">The programmer text.</param>
+        /// <returns>The human readable equivalent of the programmer text.</returns>
+        public static string ToHumanReadable(this string programmerText, char wordSeparator = DEFAULT_SEPARATOR)
+        {
+            if (string.IsNullOrEmpty(programmerText))
+                return programmerText;
+
+            bool wasLetter = false;
+            bool wasUpperCase = false;
+            bool addedSpace = false;
+            string result = "";
+
+            // First remove the m_ prefix if it exists.
+            if (programmerText.StartsWith(HUNGARIAN_PREFIX))
+                programmerText = programmerText.Substring(HUNGARIAN_PREFIX.Length);
+
+            // Deal with any miscellanneous spaces.
+            if (wordSeparator != DEFAULT_SEPARATOR)
+                programmerText = programmerText.Replace(DEFAULT_SEPARATOR, wordSeparator);
+
+            // Deal with any miscellanneous underscores.
+            if (wordSeparator != UNDERSCORE)
+                programmerText = programmerText.Replace(UNDERSCORE, wordSeparator);
+
+            // Go through the original string and copy it with some modifications.
+            for (int i = 0; i < programmerText.Length; i++)
+            {
+                // If there was a change in caps add spaces.
+                if ((wasUpperCase != char.IsUpper(programmerText[i])
+                     || (wasLetter != char.IsLetter(programmerText[i])))
+                    && i > 0 && !addedSpace
+                    && !(IsExcludedSymbol(programmerText[i], wordSeparator) ||
+                         IsExcludedSymbol(programmerText[i - 1], wordSeparator)))
+                {
+                    // Upper case to lower case.
+                    // I added this so that something like 'GUIItem' turns into 'GUI Item', but that 
+                    // means we have to make sure that no symbols are involved. Also check that there 
+                    // isn't already a space where we want to add a space. Don't want to double space.
+                    if (wasUpperCase && i > 1 && !IsExcludedSymbol(programmerText[i - 1], wordSeparator)
+                        && !IsExcludedSymbol(result[result.Length - 2], wordSeparator))
+                    {
+                        // From letter to letter means we have to insert a space one character back.
+                        // Otherwise it's going from a letter to a symbol and we can just add a space.
+                        if (wasLetter && char.IsLetter(programmerText[i]))
+                            result = result.Insert(result.Length - 1, wordSeparator.ToString());
+                        else
+                            result += wordSeparator;
+                        addedSpace = true;
+                    }
+
+                    // Lower case to upper case.
+                    if (!wasUpperCase)
+                    {
+                        result += wordSeparator;
+                        addedSpace = true;
+                    }
+                }
+                else
+                {
+                    // No case change.
+                    addedSpace = false;
+                }
+
+                // Add the character.
+                result += programmerText[i];
+
+                // Capitalize the first character.
+                if (i == 0)
+                    result = result.ToUpper();
+
+                // Remember things about the previous letter.
+                wasLetter = char.IsLetter(programmerText[i]);
+                wasUpperCase = char.IsUpper(programmerText[i]);
+            }
+
+            return result;
+        }
+
+        public static string ToPathWithConsistentSeparators(this string path)
+        {
+            return path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
     }
 }

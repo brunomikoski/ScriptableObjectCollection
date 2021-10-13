@@ -12,121 +12,305 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public sealed class CreateCollectionWizard : EditorWindow
     {
+        [Flags]
+        private enum Fields
+        {
+            None = 0,
+            ItemName = 1 << 0,
+            CollectionName = 1 << 1,
+            ScriptsFolder = 1 << 2,
+        }
+
+        private const string FOLDOUT_SETTINGS_KEY = "FoldoutSettings";
+        private const string FOLDOUT_SCRIPTABLE_OBJECT_KEY = "FoldoutScriptableObject";
+        private const string FOLDOUT_SCRIPT_KEY = "FoldoutScript";
+        
         private const string WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY = "WaitingScriptsToRecompileToContinueKey";
         private const string LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY = "CollectionScriptableObjectPathKey";
         private const string LAST_COLLECTION_FULL_NAME_KEY = "CollectionFullNameKey";
         private const string LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY = "CollectionScriptPathKey";
         private const string LAST_TARGET_SCRIPTS_FOLDER_KEY = "LastTargetScriptsFolder";
+        private const string GENERATE_INDIRECT_ACCESS_KEY = "GenerateIndirectAccess";
+        private const string CREATE_FOLDER_FOR_THIS_COLLECTION_KEY = "CreateFolderForThisCollection";
+        private const string CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY = "CreateFolderForThisCollectionScripts";
+        private const string AUTO_COLLECTION_NAME_KEY = "AutoCollectionName";
+        private const string COLLECTION_FORMAT_KEY = "CollectionFormat";
+        private const string SCRIPT_FOLDER_MIRRORS_SCRIPTABLE_OBJECT_FOLDER_KEY =
+            "ScriptFolderMirrorsScriptableObjectFolder";
+        private const string CUSTOM_NAMESPACE_KEY = "CustomNamespace";
+        private const string AUTOMATIC_NAMESPACE_BASED_ON_FOLDER_KEY = "AutomaticNamespaceBasedOnFolder";
         
+        private const string ITEM_NAME_CONTROL = "CreateCollectionWizardItemName";
+        private const string ITEM_NAME_DEFAULT = "Item";
+        private const string COLLECTION_NAME_DEFAULT = "Collection";
+        private const string COLLECTION_FORMAT_DEFAULT = "{0}" + COLLECTION_NAME_DEFAULT;
+        private const string NAMESPACE_DEFAULT = "ScriptableObjects";
+
+        private const string SCRIPTS_FOLDER_NAME = "Scripts";
+
         private static CreateCollectionWizard windowInstance;
         private static string targetFolder;
 
+        private static readonly List<string> ScriptableObjectFolderNames = new List<string>
+        {
+            "ScriptableObject", "ScriptableObjects", "ScriptableObjectCollection", "ScriptableObjectCollections",
+            "Database", "Databases", "Configuration", "Configurations", "Config", "Configs"
+        };
 
-        private DefaultAsset cachedScriptableObjectFolder;
-        private DefaultAsset ScriptableObjectFolder
+
+        private DefaultAsset cachedScriptableObjectFolderBase;
+        private DefaultAsset ScriptableObjectFolderBase
         {
             get
             {
-                if (cachedScriptableObjectFolder != null) 
-                    return cachedScriptableObjectFolder;
+                if (cachedScriptableObjectFolderBase != null) 
+                    return cachedScriptableObjectFolderBase;
 
                 if (!string.IsNullOrEmpty(targetFolder))
                 {
-                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
-                    return cachedScriptableObjectFolder;
+                    cachedScriptableObjectFolderBase = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
+                    return cachedScriptableObjectFolderBase;
                 }
 
-                if (!string.IsNullOrEmpty(LastCollectionScriptableObjectPath))
+                if (!string.IsNullOrEmpty(LastCollectionScriptableObjectPath.Value))
                 {
-                    cachedScriptableObjectFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(LastCollectionScriptableObjectPath);
-                    return cachedScriptableObjectFolder;
+                    cachedScriptableObjectFolderBase =
+                        AssetDatabase.LoadAssetAtPath<DefaultAsset>(LastCollectionScriptableObjectPath.Value);
+                    return cachedScriptableObjectFolderBase;
                 }
                 
-                return cachedScriptableObjectFolder;
+                return cachedScriptableObjectFolderBase;
             }
-            set => cachedScriptableObjectFolder = value;
+            set => cachedScriptableObjectFolderBase = value;
         }
+        
+        private string ScriptableObjectFolderPathWithoutParentFolder =>
+            ScriptableObjectFolderBase == null
+                ? "Assets/"
+                : AssetDatabase.GetAssetPath(ScriptableObjectFolderBase);
 
-        private DefaultAsset cachedScriptsFolder;
-        private DefaultAsset ScriptsFolder
+        private string ScriptableObjectFolderPath
         {
             get
             {
-                if (cachedScriptsFolder != null) 
-                    return cachedScriptsFolder;
+                string folder = ScriptableObjectFolderPathWithoutParentFolder;
+                if (CreateFolderForThisCollection.Value)
+                    folder = Path.Combine(folder, $"{CollectionName}");
+                return folder.ToPathWithConsistentSeparators();
+            }
+        }
+
+        private DefaultAsset cachedScriptsFolderBase;
+        private DefaultAsset ScriptsFolderBase
+        {
+            get
+            {
+                if (cachedScriptsFolderBase != null) 
+                    return cachedScriptsFolderBase;
                 
-                if (!string.IsNullOrEmpty(LastScriptsTargetFolder))
+                if (!string.IsNullOrEmpty(LastScriptsTargetFolder.Value))
                 {
-                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(Path.GetDirectoryName(LastScriptsTargetFolder));
-                    return cachedScriptsFolder;
+                    cachedScriptsFolderBase =
+                        AssetDatabase.LoadAssetAtPath<DefaultAsset>(
+                            Path.GetDirectoryName(LastScriptsTargetFolder.Value));
+                    return cachedScriptsFolderBase;
                 }
                 
                 if (!string.IsNullOrEmpty(targetFolder))
                 {
-                    cachedScriptsFolder = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
-                    return cachedScriptsFolder;
+                    cachedScriptsFolderBase = AssetDatabase.LoadAssetAtPath<DefaultAsset>(targetFolder);
+                    return cachedScriptsFolderBase;
                 }
                 
-                return cachedScriptsFolder;
+                return cachedScriptsFolderBase;
             }
-            set => cachedScriptsFolder = value;
+            set => cachedScriptsFolderBase = value;
         }
-
-        private string cachedNameSpace;
-        private string TargetNameSpace
+        
+        private string ScriptsFolderPathWithoutParentFolder
         {
             get
             {
-                if (string.IsNullOrEmpty(cachedNameSpace))
-                    cachedNameSpace = ScriptableObjectCollectionSettings.GetInstance().DefaultNamespace;
-                return cachedNameSpace;
+                if (ScriptFolderMirrorsScriptableObjectFolder.Value)
+                    return AutomaticScriptFolder;
+                
+                return ScriptsFolderBase == null
+                    ? "Assets/"
+                    : AssetDatabase.GetAssetPath(ScriptsFolderBase);
+            }
+        }
+
+        private string ScriptsFolderPath
+        {
+            get
+            {
+                string folder = ScriptsFolderPathWithoutParentFolder;
+                if (CreateFolderForThisCollectionScripts.Value)
+                    folder = Path.Combine(folder, $"{CollectionName}");
+                return folder.ToPathWithConsistentSeparators();
+            }
+        }
+
+        private string cachedAutomaticScriptFolder;
+        private bool hasValidAutomaticScriptFolder;
+
+        private string AutomaticScriptFolder
+        {
+            get
+            {
+                if (!hasValidAutomaticScriptFolder)
+                {
+                    string pathToInferFrom = ScriptableObjectFolderPathWithoutParentFolder;
+                    cachedAutomaticScriptFolder = InferScriptFolderFromScriptableObjectFolder(pathToInferFrom);
+                    hasValidAutomaticScriptFolder = true;
+                }
+
+                return cachedAutomaticScriptFolder;
+            }
+        }
+
+        private string cachedNamespacePrefix;
+        private string NamespacePrefix
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(cachedNamespacePrefix))
+                    cachedNamespacePrefix = ScriptableObjectCollectionSettings.GetInstance().NamespacePrefix;
+                return cachedNamespacePrefix;
             }
             set
             {
-                cachedNameSpace = value;
-                if (string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().DefaultNamespace))
-                    ScriptableObjectCollectionSettings.GetInstance().SetDefaultNamespace(cachedNameSpace);
+                if (cachedNamespacePrefix == value)
+                    return;
+                
+                cachedNamespacePrefix = value;
+                ScriptableObjectCollectionSettings.GetInstance().SetNamespacePrefix(cachedNamespacePrefix);
             }
         }
 
-
-        private static bool WaitingRecompileForContinue
+        private string Namespace
         {
-            get => EditorPrefs.GetBool(WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY, false);
-            set => EditorPrefs.SetBool(WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY, value);
+            get
+            {
+                string @namespace = NamespacePrefix;
+                if (!string.IsNullOrEmpty(@namespace))
+                    @namespace += NamespaceUtility.Separator;
+                @namespace += NamespaceSuffix;
+                return @namespace;
+            }
         }
         
-        private static string LastCollectionScriptableObjectPath
+        private string cachedAutomaticNamespace;
+        private bool hasValidAutomaticNamespace;
+
+        private string AutomaticNamespace
         {
-            get => EditorPrefs.GetString(LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY, String.Empty);
-            set => EditorPrefs.SetString(LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY, value);
+            get
+            {
+                if (!hasValidAutomaticNamespace)
+                {
+                    string pathToInferFrom = ScriptsFolderPathWithoutParentFolder;
+                    int maxDepth = UseMaximumNamespaceDepth ? MaximumNamespaceDepth : int.MaxValue;
+                    cachedAutomaticNamespace = NamespaceUtility.GetNamespaceForPath(pathToInferFrom, maxDepth);
+                    hasValidAutomaticNamespace = true;
+                }
+
+                return cachedAutomaticNamespace;
+            }
         }
 
-        private static string LastCollectionFullName
+        private string NamespaceSuffix =>
+            AutomaticNamespaceBasedOnFolder.Value ? AutomaticNamespace : CustomNamespace.Value;
+        
+        private bool UseMaximumNamespaceDepth
         {
-            get => EditorPrefs.GetString(LAST_COLLECTION_FULL_NAME_KEY, String.Empty);
-            set => EditorPrefs.SetString(LAST_COLLECTION_FULL_NAME_KEY, value);
-        }
-
-        private static string LastScriptsTargetFolder
-        {
-            get => EditorPrefs.GetString(LAST_TARGET_SCRIPTS_FOLDER_KEY, String.Empty);
-            set => EditorPrefs.SetString(LAST_TARGET_SCRIPTS_FOLDER_KEY, value);
+            get => ScriptableObjectCollectionSettings.GetInstance().UseMaximumNamespaceDepth;
+            set
+            {
+                if (UseMaximumNamespaceDepth == value)
+                    return;
+                
+                ScriptableObjectCollectionSettings.GetInstance().SetUseMaximumNamespaceDepth(value);
+            }
         }
         
-        private static string LastGeneratedCollectionScriptPath
+        private int MaximumNamespaceDepth
         {
-            get => EditorPrefs.GetString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY, String.Empty);
-            set => EditorPrefs.SetString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY, value);
+            get => ScriptableObjectCollectionSettings.GetInstance().MaximumNamespaceDepth;
+            set
+            {
+                if (MaximumNamespaceDepth == value)
+                    return;
+                
+                ScriptableObjectCollectionSettings.GetInstance().SetMaximumNamespaceDepth(value);
+            }
         }
 
-        private bool createFoldForThisCollection = true;
-        private bool createFoldForThisCollectionScripts = true;
-
-        private string collectionName = "Collection";
-        private string collectionItemName = "Item";
-        private bool generateIndirectAccess = true;
+        private static readonly EditorPreferenceBool FoldoutSettings =
+            new EditorPreferenceBool(FOLDOUT_SETTINGS_KEY, true);
+        private static readonly EditorPreferenceBool FoldoutScriptableObject =
+            new EditorPreferenceBool(FOLDOUT_SCRIPTABLE_OBJECT_KEY, false);
+        private static readonly EditorPreferenceBool FoldoutScript = new EditorPreferenceBool(FOLDOUT_SCRIPT_KEY, false);
         
+
+        private static readonly EditorPreferenceBool WaitingRecompileForContinue =
+            new EditorPreferenceBool(WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY);
+
+        private static readonly EditorPreferenceString LastCollectionScriptableObjectPath =
+            new EditorPreferenceString(LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY);
+
+        private static readonly EditorPreferenceString LastCollectionFullName =
+            new EditorPreferenceString(LAST_COLLECTION_FULL_NAME_KEY);
+
+        private static readonly EditorPreferenceString LastScriptsTargetFolder =
+            new EditorPreferenceString(LAST_TARGET_SCRIPTS_FOLDER_KEY);
+
+        private static readonly EditorPreferenceString LastGeneratedCollectionScriptPath =
+            new EditorPreferenceString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY);
+
+        private static readonly EditorPreferenceBool CreateFolderForThisCollection =
+            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_KEY);
+
+        private static readonly EditorPreferenceBool CreateFolderForThisCollectionScripts =
+            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY);
+        
+        private static readonly EditorPreferenceString CollectionFormat =
+            new EditorPreferenceString(COLLECTION_FORMAT_KEY, COLLECTION_FORMAT_DEFAULT);
+
+        private string cachedCollectionName = COLLECTION_NAME_DEFAULT;
+        private string CollectionName
+        {
+            get
+            {
+                if (AutoCollectionName.Value)
+                    return string.Format(CollectionFormat.Value, collectionItemName);
+                return cachedCollectionName;
+            }
+            set => cachedCollectionName = value;
+        }
+
+        private string collectionItemName = ITEM_NAME_DEFAULT;
+
+        private static readonly EditorPreferenceBool GenerateIndirectAccess =
+            new EditorPreferenceBool(GENERATE_INDIRECT_ACCESS_KEY, true);
+        
+        private static readonly EditorPreferenceBool AutoCollectionName =
+            new EditorPreferenceBool(AUTO_COLLECTION_NAME_KEY, true);
+        
+        private static readonly EditorPreferenceBool ScriptFolderMirrorsScriptableObjectFolder =
+            new EditorPreferenceBool(SCRIPT_FOLDER_MIRRORS_SCRIPTABLE_OBJECT_FOLDER_KEY, true);
+
+        private static readonly EditorPreferenceString CustomNamespace =
+            new EditorPreferenceString(CUSTOM_NAMESPACE_KEY, NAMESPACE_DEFAULT);
+        
+        private static readonly EditorPreferenceBool AutomaticNamespaceBasedOnFolder = new EditorPreferenceBool(
+            AUTOMATIC_NAMESPACE_BASED_ON_FOLDER_KEY, true);
+
+        private Vector2 scrollPosition;
+        [NonSerialized] private bool didFocusDefaultControl;
+
+        private string warningText;
+        private Fields fieldsFilledInIncorrectly;
 
         private static CreateCollectionWizard GetWindowInstance()
         {
@@ -134,6 +318,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 windowInstance =  CreateInstance<CreateCollectionWizard>();
                 windowInstance.titleContent = new GUIContent("Create New Collection");
+                windowInstance.minSize = new Vector2(EditorGUIUtility.labelWidth + EditorGUIUtility.labelWidth + 75, 370);
             }
 
             return windowInstance;
@@ -152,66 +337,240 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnGUI()
         {
-            using (new EditorGUI.DisabledScope(EditorApplication.isCompiling))
+            EditorGUI.BeginChangeCheck();
+            scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition);
+
+            EditorGUILayout.HelpBox(
+                "The recommended workflow is to open the wizard on the folder in which you want to create the " +
+                "Scriptable Object Collection, then fill in an Item Name and leave everything else to the defaults." +
+                "\n\nThat will create a collection with an appropriate suffix, and scripts will be created in a folder " +
+                "that mirrors the folder of the Collection." +
+                "\n\nFirst-time users should specify a namespace prefix in the Script section.",
+                MessageType.Info);
+
+            DrawSections();
+            
+            EditorGUILayout.EndScrollView();
+            bool didChange = EditorGUI.EndChangeCheck();
+            if (didChange)
             {
-                using (new EditorGUILayout.VerticalScope("Box"))
+                hasValidAutomaticScriptFolder = false;
+                hasValidAutomaticNamespace = false;
+            }
+            
+            EditorGUILayout.Space();
+
+            bool areSettingsInvalid = !CheckValidityOfSettings();
+
+            if (areSettingsInvalid)
+                EditorGUILayout.HelpBox(warningText, MessageType.Warning);
+
+            using (new EditorGUI.DisabledScope(areSettingsInvalid))
+            {
+                if (GUILayout.Button("Create", GUILayout.Height(35)))
+                    CreateNewCollection();
+            }
+
+            if (!didFocusDefaultControl)
+            {
+                EditorGUI.FocusTextInControl(ITEM_NAME_CONTROL);
+                didFocusDefaultControl = true;
+            }
+        }
+
+        private void DrawSections()
+        {
+            DrawSettingsSection();
+
+            DrawScriptableObjectSection();
+
+            DrawScriptsSection();
+        }
+
+        private void SetColorBasedOnFieldValidity(Fields field)
+        {
+            GUI.color = (fieldsFilledInIncorrectly & field) == field ? Color.yellow : Color.white;
+        }
+        
+        private void ResetColorBasedOnFieldValidity()
+        {
+            GUI.color = Color.white;
+        }
+
+        private void DrawSettingsSection()
+        {
+            using (new EditorGUILayout.VerticalScope("Box"))
+            {
+                FoldoutSettings.Value = EditorGUILayout.BeginFoldoutHeaderGroup(FoldoutSettings.Value, "Settings");
+
+                EditorGUI.indentLevel++;
+                if (FoldoutSettings.Value)
                 {
-                    using (new EditorGUILayout.VerticalScope("Box"))
+                    GUI.SetNextControlName(ITEM_NAME_CONTROL);
+                    SetColorBasedOnFieldValidity(Fields.ItemName);
+                    collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
+                    ResetColorBasedOnFieldValidity();
+
+                    EditorGUILayout.Space();
+                    
+                    // Allow the collection name to be entered manually for this particular collection, or be automatic.
+                    SetColorBasedOnFieldValidity(Fields.CollectionName);
+                    if (AutoCollectionName.Value)
+                        EditorGUILayout.LabelField("Collection Name", CollectionName);
+                    else
+                        CollectionName = EditorGUILayout.TextField("Collection Name", CollectionName);
+                    ResetColorBasedOnFieldValidity();
+
+                    // Some basic controls for how the collection name is generated.
+                    EditorGUILayout.BeginHorizontal();
+                    AutoCollectionName.DrawGUILayout(
+                        "Auto Collection Name", GUILayout.Width(EditorGUIUtility.labelWidth + 16));
+                    bool wasGuiEnabled = GUI.enabled;
+                    GUI.enabled = AutoCollectionName.Value;
+                    string collectionFormatControlName = "CreateCollectionWizardCollectionFormat";
+                    GUI.SetNextControlName(collectionFormatControlName);
+                    CollectionFormat.DrawGUILayout(GUIContent.none, GUILayout.MinWidth(50));
+                    
+                    // Allow the format to be reset.
+                    bool reset = GUILayout.Button("R", EditorStyles.miniButton, GUILayout.Width(24));
+                    if (reset)
                     {
-                        EditorGUILayout.LabelField("Settings", EditorStyles.foldoutHeader);
-                        EditorGUILayout.Space();
-
-                        collectionItemName = EditorGUILayout.TextField("Item Name", collectionItemName);
-                        collectionName = EditorGUILayout.TextField("Collection Name", collectionName);
-
-                        generateIndirectAccess = EditorGUILayout.Toggle("Generate Indirect Access", generateIndirectAccess);
+                        CollectionFormat.Value = COLLECTION_FORMAT_DEFAULT;
+                        
+                        // Make sure to deselect the collection format otherwise you don't see it reset.
+                        if (GUI.GetNameOfFocusedControl() == collectionFormatControlName)
+                            GUI.FocusControl(string.Empty);
                     }
-                    using (new EditorGUILayout.VerticalScope("Box"))
+                    GUI.enabled = wasGuiEnabled;
+                    EditorGUILayout.EndHorizontal();
+
+                    EditorGUILayout.Space();
+
+                    GenerateIndirectAccess.DrawGUILayout();
+                }
+
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        private void DrawScriptableObjectSection()
+        {
+            using (new EditorGUILayout.VerticalScope("Box"))
+            {
+                FoldoutScriptableObject.Value = EditorGUILayout.BeginFoldoutHeaderGroup(
+                    FoldoutScriptableObject.Value, "Scriptable Object");
+
+                EditorGUI.indentLevel++;
+                if (FoldoutScriptableObject.Value)
+                {
+                    EditorGUILayout.LabelField(ScriptableObjectFolderPath, EditorStyles.miniLabel);
+
+                    ScriptableObjectFolderBase = (DefaultAsset)EditorGUILayout.ObjectField(
+                        "Base Folder",
+                        ScriptableObjectFolderBase, typeof(DefaultAsset),
+                        false);
+                    CreateFolderForThisCollection.DrawGUILayoutLeft($"Create parent {CollectionName} folder");
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUI.indentLevel--;
+            }
+        }
+        
+        private void DrawScriptsSection()
+        {
+            using (new EditorGUILayout.VerticalScope("Box"))
+            {
+                FoldoutScript.Value = EditorGUILayout.BeginFoldoutHeaderGroup(FoldoutScript.Value, "Script");
+                EditorGUI.indentLevel++;
+                if (FoldoutScript.Value)
+                {
+                    EditorGUILayout.LabelField(ScriptsFolderPath, EditorStyles.miniLabel);
+
+                    SetColorBasedOnFieldValidity(Fields.ScriptsFolder);
+                    if (!ScriptFolderMirrorsScriptableObjectFolder.Value)
                     {
-                        EditorGUILayout.LabelField("Scriptable Object", EditorStyles.foldoutHeader);
-                        EditorGUILayout.Space();
-
-                        ScriptableObjectFolder = (DefaultAsset) EditorGUILayout.ObjectField("Scriptable Object Folder",
-                            ScriptableObjectFolder, typeof(DefaultAsset),
-                            false);
-                        if (ScriptableObjectFolder != null)
-                            EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(ScriptableObjectFolder));
-                        createFoldForThisCollection =
-                            EditorGUILayout.ToggleLeft($"Create parent {collectionName} folder",
-                                createFoldForThisCollection);
-                    }
-
-                    using (new EditorGUILayout.VerticalScope("Box"))
-                    {
-                        EditorGUILayout.LabelField("Script", EditorStyles.foldoutHeader);
-                        EditorGUILayout.Space();
-
-                        ScriptsFolder = (DefaultAsset) EditorGUILayout.ObjectField("Script Folder", ScriptsFolder,
+                        ScriptsFolderBase = (DefaultAsset)EditorGUILayout.ObjectField(
+                            "Base Folder", ScriptsFolderBase,
                             typeof(DefaultAsset),
                             false);
-                        if (ScriptsFolder != null)
-                        {
-                            EditorGUILayout.LabelField(AssetDatabase.GetAssetPath(ScriptsFolder));
-                        }
-
-                        createFoldForThisCollectionScripts =
-                            EditorGUILayout.ToggleLeft($"Create parent {collectionName} folder",
-                                createFoldForThisCollectionScripts);
-
-                        TargetNameSpace = EditorGUILayout.TextField("Namespace", TargetNameSpace);
                     }
-
-                    using (new EditorGUI.DisabledScope(!AreSettingsValid()))
+                    else
                     {
-                        Color color = GUI.color;
-                        GUI.color = Color.green;
-                        if (GUILayout.Button("Create"))
-                            CreateNewCollection();
-
-                        GUI.color = color;
+                        EditorGUILayout.LabelField("Base Folder", AutomaticScriptFolder);
                     }
+                    ResetColorBasedOnFieldValidity();
+
+                    ScriptFolderMirrorsScriptableObjectFolder.DrawGUILayoutLeft("Script Folder Mirrors Scriptable Object Folder");
+
+                    CreateFolderForThisCollectionScripts.DrawGUILayoutLeft($"Create parent {CollectionName} folder");
+
+                    EditorGUILayout.Space();
+                    
+                    EditorGUILayout.LabelField("Namespace", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField(Namespace, EditorStyles.miniLabel);
+
+                    // Draw fields for the individual components of the namespace.
+                    EditorGUILayout.BeginHorizontal();
+                    NamespacePrefix = EditorGUILayout.TextField(
+                        NamespacePrefix, GUILayout.Width(EditorGUIUtility.labelWidth));
+                    if (AutomaticNamespaceBasedOnFolder.Value)
+                        EditorGUILayout.LabelField(AutomaticNamespace, GUILayout.MinWidth(30));
+                    else
+                        CustomNamespace.DrawGUILayout(GUIContent.none, GUILayout.MinWidth(30));
+                    EditorGUILayout.EndHorizontal();
+
+                    // Draw a checkbox to make the namespace be inferred from the script folder, or specified manually.
+                    EditorGUILayout.BeginHorizontal();
+                    AutomaticNamespaceBasedOnFolder.DrawGUILayoutLeft("Automatic Based On Folder");
+                    EditorGUILayout.EndHorizontal();
+
+                    // You can also specify if it should be clamped to a certain depth.
+                    bool wasGuiEnabled = GUI.enabled;
+                    GUI.enabled = AutomaticNamespaceBasedOnFolder.Value;
+                    {
+                        EditorGUILayout.BeginHorizontal();
+                        UseMaximumNamespaceDepth = EditorGUILayout.ToggleLeft(
+                            "Max. Depth", UseMaximumNamespaceDepth, GUILayout.Width(EditorGUIUtility.labelWidth));
+                        GUI.enabled = GUI.enabled && UseMaximumNamespaceDepth;
+                        MaximumNamespaceDepth = EditorGUILayout.IntField(
+                            GUIContent.none, MaximumNamespaceDepth, GUILayout.MinWidth(30));
+                        EditorGUILayout.EndHorizontal();
+                    }
+                    GUI.enabled = wasGuiEnabled;
                 }
+
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUI.indentLevel--;
             }
+        }
+
+        private string InferScriptFolderFromScriptableObjectFolder(string pathToInferFrom)
+        {
+            pathToInferFrom = pathToInferFrom.ToPathWithConsistentSeparators();
+            string[] folders = pathToInferFrom.Split(Path.AltDirectorySeparatorChar);
+            bool didFindScriptableObjectsFolder = false;
+            
+            string scriptsFolder = string.Empty;
+            for (int i = 0; i < folders.Length; i++)
+            {
+                if (i > 0)
+                    scriptsFolder += Path.AltDirectorySeparatorChar;
+                
+                // The Scriptable Objects folder is expected to have a certain name. That particular name is to be
+                // replaced with the name of the scripts folder so that we create a folder that is on the same level as
+                // the configurations, but inside a Scripts folder instead.
+                if (!didFindScriptableObjectsFolder && ScriptableObjectFolderNames.Contains(folders[i]))
+                {
+                    scriptsFolder += SCRIPTS_FOLDER_NAME;
+                    didFindScriptableObjectsFolder = true;
+                    continue;
+                }
+                
+                scriptsFolder += folders[i];
+            }
+
+            return scriptsFolder;
         }
 
         private void CreateNewCollection()
@@ -220,10 +579,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             scriptsGenerated |= CreateCollectionItemScript();
             scriptsGenerated |= CreateCollectionScript();
 
-            if (generateIndirectAccess)
+            if (GenerateIndirectAccess.Value)
                 CreateIndirectAccess();
                 
-            WaitingRecompileForContinue = true;
+            WaitingRecompileForContinue.Value = true;
             
             AssetDatabase.Refresh();
 
@@ -233,9 +592,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateIndirectAccess()
         {
-            string folderPath = AssetDatabase.GetAssetPath(ScriptsFolder);
-            if (createFoldForThisCollectionScripts)
-                folderPath = Path.Combine(folderPath, $"{collectionName}");
+            string folderPath = ScriptsFolderPath;
 
             string fileName = $"{collectionItemName}IndirectReference";
 
@@ -245,11 +602,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 int indentation = 0;
                 List<string> directives = new List<string>();
                 directives.Add(typeof(ScriptableObjectCollectionItem).Namespace);
-                directives.Add(TargetNameSpace);
+                directives.Add(Namespace);
                 directives.Add("System");
                 directives.Add("UnityEngine");
 
-                CodeGenerationUtility.AppendHeader(writer, ref indentation, TargetNameSpace, "[Serializable]",
+                CodeGenerationUtility.AppendHeader(writer, ref indentation, Namespace, "[Serializable]",
                     $"public sealed class {collectionItemName}IndirectReference : CollectionItemIndirectReference<{collectionItemName}>",
                     directives.Distinct().ToArray());
 
@@ -260,20 +617,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     $"public {collectionItemName}IndirectReference({collectionItemName} collectionItemScriptableObject) : base(collectionItemScriptableObject) {{}}");
 
                 indentation--;
-                CodeGenerationUtility.AppendFooter(writer, ref indentation, TargetNameSpace);
+                CodeGenerationUtility.AppendFooter(writer, ref indentation, Namespace);
             }
         }
 
         private bool CreateCollectionItemScript()
         {
-            string folder = AssetDatabase.GetAssetPath(ScriptsFolder);
-            LastScriptsTargetFolder = folder;
-            if (createFoldForThisCollectionScripts)
-                folder = Path.Combine(folder, $"{collectionName}");
-            
+            string folder = ScriptsFolderPath;
+            LastScriptsTargetFolder.Value = ScriptsFolderPathWithoutParentFolder;
+
             return CodeGenerationUtility.CreateNewEmptyScript(collectionItemName, 
                 folder,
-                TargetNameSpace, 
+                Namespace, 
                 string.Empty,
                 $"public partial class {collectionItemName} : ScriptableObjectCollectionItem", 
                     typeof(ScriptableObjectCollectionItem).Namespace);
@@ -281,58 +636,77 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private bool CreateCollectionScript()
         {
-            string folder = AssetDatabase.GetAssetPath(ScriptsFolder);
-            if (createFoldForThisCollectionScripts)
-                folder = Path.Combine(folder, $"{collectionName}");
+            string folder = ScriptsFolderPath;
 
-            bool result = CodeGenerationUtility.CreateNewEmptyScript(collectionName,
+            bool result = CodeGenerationUtility.CreateNewEmptyScript(CollectionName,
                 folder,
-                TargetNameSpace,
-                $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {collectionName}\", fileName = \"{collectionName}\", order = 0)]",
-                $"public class {collectionName} : ScriptableObjectCollection<{collectionItemName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
+                Namespace,
+                $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {CollectionName}\", fileName = \"{CollectionName}\", order = 0)]",
+                $"public class {CollectionName} : ScriptableObjectCollection<{collectionItemName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
 
-            if (string.IsNullOrEmpty(TargetNameSpace))
-                LastCollectionFullName = $"{collectionName}";
+            if (string.IsNullOrEmpty(Namespace))
+                LastCollectionFullName.Value = $"{CollectionName}";
             else
-                LastCollectionFullName = $"{TargetNameSpace}.{collectionName}";
+                LastCollectionFullName.Value = $"{Namespace}.{CollectionName}";
 
-            LastGeneratedCollectionScriptPath = Path.Combine(folder, $"{collectionName}.cs");
+            LastGeneratedCollectionScriptPath.Value = Path.Combine(folder, $"{CollectionName}.cs");
             return result;
         }
 
-        private bool AreSettingsValid()
+        private bool CheckValidityOfSettings()
         {
+            warningText = string.Empty;
+            fieldsFilledInIncorrectly = Fields.None;
+            bool isValid = true;
+            
             if (string.IsNullOrEmpty(collectionItemName))
-                return false;
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |= Fields.ItemName;
+                warningText += "Item Name shouldn't be empty.\n";
+            }
 
-            if (string.IsNullOrEmpty(collectionName))
-                return false;
+            if (string.IsNullOrEmpty(CollectionName))
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |= Fields.CollectionName;
+                warningText += "Collection Name shouldn't be empty.\n";
+            }
 
-            if (ScriptsFolder == null)
-                return false;
+            if (collectionItemName == CollectionName)
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |=
+                    Fields.ItemName | Fields.CollectionName;
+                warningText += "Item Name shouldn't be the same as the Collection Name.\n";
+            }
 
-            if (ScriptableObjectFolder == null)
-                return false;
+            if (ScriptsFolderBase == null)
+            {
+                isValid = false;
+                fieldsFilledInIncorrectly |= Fields.ScriptsFolder;
+                warningText += "Script folder isn't valid.\n";
+            }
 
-            return true;
+            return isValid;
         }
 
         [DidReloadScripts]
         static void OnAfterScriptsReloading()
         {
-            if (!WaitingRecompileForContinue)
+            if (!WaitingRecompileForContinue.Value)
                 return;
 
-            WaitingRecompileForContinue = false;
+            WaitingRecompileForContinue.Value = false;
 
-            string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(LastGeneratedCollectionScriptPath);
+            string assemblyName =
+                CompilationPipeline.GetAssemblyNameFromScriptPath(LastGeneratedCollectionScriptPath.Value);
 
-            Type targetType = Type.GetType($"{LastCollectionFullName}, {assemblyName}");
+            Type targetType = Type.GetType($"{LastCollectionFullName.Value}, {assemblyName}");
             
             ScriptableObjectCollection collectionAsset =
                 ScriptableObjectCollectionUtils.CreateScriptableObjectOfType(targetType, 
-                    windowInstance.ScriptableObjectFolder, windowInstance.createFoldForThisCollection,
-                    windowInstance.collectionName) as ScriptableObjectCollection;
+                    windowInstance.ScriptableObjectFolderPath, windowInstance.CollectionName) as ScriptableObjectCollection;
             
             Selection.objects = new Object[] {collectionAsset};
             EditorGUIUtility.PingObject(collectionAsset);

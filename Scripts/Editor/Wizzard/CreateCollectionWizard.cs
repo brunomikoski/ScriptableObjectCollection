@@ -646,7 +646,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string assemblyName =
                 CompilationPipeline.GetAssemblyNameFromScriptPath(LastGeneratedCollectionScriptPath.Value);
 
-            Type targetType = Type.GetType($"{LastCollectionFullName}, {assemblyName}");
+            Type targetType = Type.GetType($"{LastCollectionFullName.Value}, {assemblyName}");
             
             ScriptableObjectCollection collectionAsset =
                 ScriptableObjectCollectionUtils.CreateScriptableObjectOfType(targetType, 

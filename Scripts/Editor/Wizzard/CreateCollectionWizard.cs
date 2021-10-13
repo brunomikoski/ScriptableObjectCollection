@@ -520,7 +520,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     // Draw a checkbox to make the namespace be inferred from the script folder, or specified manually.
                     EditorGUILayout.BeginHorizontal();
-                    InferNamespace.DrawGUILayoutLeft("Infer From Folder");
+                    InferNamespace.DrawGUILayoutLeft("Automatic Based On Folder");
                     EditorGUILayout.EndHorizontal();
 
                     // You can also specify if it should be clamped to a certain depth.

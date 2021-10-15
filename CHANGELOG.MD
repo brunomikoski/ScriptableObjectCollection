@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.8.0]
 ### Added
 - Renamed uses of `Wizzard` to `Wizard`
 - Wizard foldouts now work
@@ -36,7 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.5]
 ### Added 
 - More display options (Hide Preview button / Hide GoTo Button) @FreezyExp
-
 ### Changed
 - Fixed null reference on the GoTo button on the indirect references. @FreezyExp
 - Fixed warning from ResourceLoading @FreezyExp
@@ -50,7 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.6.3]
 ### Added
 - Added Delete Collection button under advanced settings, I will delete all the related assets and unregister from the registry
-
 ### Changed
 - Renamed the `Settings` menu on the Collection Editor to `Advanced`
 - Fixed an issue when drawing indirect references inside arrays.
@@ -70,7 +70,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored the editor prefab property drawer to properly draw the `SerializedProperties` of the item instead of displaying the custom inspector
 - Removed some old files and methods that aren't necessary anymore.
 - When using the inline visualizer of the CollectionItem, it should now respect position (if is inside an array or custom propery drawer)
-
 ### Added
 - Added context click on the items, you can now <kbd>Copy</kbd> <kbd>Paste</kbd> values between collection items and <kbd>Duplicate</kbd> and <kbd>Delete</kbd> items when right click on it on the Editor
 
@@ -123,7 +122,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `CollectionRegistry` now will only load Collections that are inside an active Assembly.
 - Exposed the `Collections` list on the Registry
 - Simplified the CollectionItem Dropdown (removed the type grouping)
- 
 ### Added
 - A new information on the Collection custom editor to show the base class if is different from the collection type (Disabled for now)
 - Exposed the namespace to be customized by the custom static file
@@ -139,7 +137,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added quick access to the .Values from the collection, to be used without code generation, you can now use `CustomCollection.Values` to gett all your items
 - Added a `GetValues()` to the generated static file, you can quickly get a filtered list of items that you need
-
 ### Changed
 - Changed Create Collection Wizzard to behave like a modal window that can loose focus.
 - Removed the TryGet static access generation, was not been used and was causing some problems
@@ -150,14 +147,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Automatically selection of the newly created item, for renaming
  - Added keyword validation for names
  - Added ability to create new items from the selection dropdown.
-
 ### Changed
  - Fixed issue when trying to play without the `CollectionRegistry` created 
 
 ## [1.3.1]
 ### Added
  - Added basic copy/paste functionality between colelctables
-
 ### Changed
  - Removed multiple `AssetDatabase.SaveAssets();` to improve general performance when adding / removing objects
  - Fixed indirect reference issues with the new Advanced Dropdown search
@@ -173,7 +168,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - Improved the ADD New on the collection and what is displayed, and the the creation of new types is on a subfolder.
  - Added static access to the `ScriptableObjectCollection<>.Values`
  - Renamed the generated Static value back to the `.Values` to keep in line with the static access. so you can now access by `Collection.Values` or `Collectable.Values`
- 
 ### Added
  - Support to create Collections / Collectables based on a Utils script, useful for another packages creating the necessary Collection.
  
@@ -316,6 +310,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
  - First initial working version 
 
 
+[1.8.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.8.0
 [1.7.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.7.0
 [1.6.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.6.5
 [1.6.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.6.4

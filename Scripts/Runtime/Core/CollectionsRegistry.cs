@@ -217,6 +217,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (collection == null)
                         continue;
 
+                    if (collections.Contains(collection))
+                        continue;
+
                     collection.RefreshCollection();
                     collections.Add(collection);
                     changed = true;

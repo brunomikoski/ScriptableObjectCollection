@@ -1,7 +1,9 @@
 using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace BrunoMikoski.ScriptableObjectCollections.Core
 {
+    [Preserve]
     public class ResourceScriptableObjectSingleton<T> : ScriptableObject where T: ScriptableObject
     {
         private static T instance;

@@ -10,6 +10,7 @@ using UnityEditor;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [DefaultExecutionOrder(-1000)]
+    [Preserve]
     public class CollectionsRegistry : ResourceScriptableObjectSingleton<CollectionsRegistry>
     {
         [SerializeField] 

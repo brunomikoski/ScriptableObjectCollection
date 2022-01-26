@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.8.1]
+### Changed
+- Added `[Preseve]`attribute to both `ResourceScriptableObjectSingleton` and `CollectionsRegistry` to avoid AOT errors
+- Added check if item already exist in the collection before adding it 
+
 ## [1.8.0]
 ### Added
 - Renamed uses of `Wizzard` to `Wizard`

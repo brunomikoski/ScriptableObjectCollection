@@ -277,6 +277,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
+                if (collection == null)
+                {
+                    collections.Remove(collection);
+                    continue;
+                }
 
                 SerializedObject serializedObject = new SerializedObject(collection);
                 SerializedProperty automaticallyLoaded = serializedObject.FindProperty("automaticallyLoaded");

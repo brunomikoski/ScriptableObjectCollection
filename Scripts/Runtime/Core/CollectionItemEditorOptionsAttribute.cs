@@ -17,6 +17,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool ShouldDrawPreviewButton { get; set; } = true;
 
+        public string ValidateMethod { get; set; }
+
         public CollectionItemEditorOptionsAttribute()
         {
         }

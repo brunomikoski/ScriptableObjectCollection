@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -15,12 +16,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private readonly List<ScriptableObjectCollection> collections;
 
         private readonly Type itemType;
+        private readonly CollectionItemEditorOptionsAttribute options;
+        private readonly Object owner;
+        private readonly MethodInfo validationMethod;
 
-        public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType) : base(state)
+        public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType,
+            CollectionItemEditorOptionsAttribute options, Object owner) : base(state)
         {
             itemType = targetItemType;
             collections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType);
             minimumSize = new Vector2(200, 300);
+            this.options = options;
+            this.owner = owner;
+
+
+            if (!string.IsNullOrEmpty(options.ValidateMethod))
+            {
+                validationMethod = owner.GetType().GetMethod(options.ValidateMethod, new[] {itemType});
+            }
         }
 
         protected override AdvancedDropdownItem BuildRoot()
@@ -35,7 +48,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection collection = collections[i];
-                
+
                 if (multipleCollections)
                 {
                     AdvancedDropdownItem collectionParent = new AdvancedDropdownItem(collection.name);
@@ -46,6 +59,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 for (int j = 0; j < collection.Count; j++)
                 {
                     ScriptableObjectCollectionItem collectionItem = collection[j];
+                    
+                    if (validationMethod != null)
+                    {
+                        bool result = (bool) validationMethod.Invoke(owner, new object[] {collectionItem});
+                        if (!result)
+                            continue;
+                    }
+                    
                     targetParent.AddChild(new CollectionItemDropdownItem(collectionItem));
                 }
             }

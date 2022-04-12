@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -22,7 +23,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItemType == null)
                 SetCollectionItemType();
             if (collectionItemPropertyDrawer == null) 
-                CreateCollectionItemPropertyDrawer();
+                CreateCollectionItemPropertyDrawer(property.serializedObject.targetObject);
 
             drawingProperty = property;
             itemGUIDSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_PROPERTY_PATH);
@@ -89,10 +90,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return resultCollection;
         }
 
-        private void CreateCollectionItemPropertyDrawer()
+        private void CreateCollectionItemPropertyDrawer(Object serializedObjectTargetObject)
         {
             collectionItemPropertyDrawer = new CollectionItemPropertyDrawer();
-            collectionItemPropertyDrawer.Initialize(collectionItemType, GetOptionsAttribute());
+            collectionItemPropertyDrawer.Initialize(collectionItemType, serializedObjectTargetObject,
+                GetOptionsAttribute());
         }
 
         private void SetCollectionItemType()

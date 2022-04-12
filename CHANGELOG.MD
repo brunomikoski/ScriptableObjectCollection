@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.8.2]
+### Changed
+- Added validation method as an `CollectionItemEditorOptions` option, you can now define a method to validate what CollectionItem can appear, like this:
+```csharp
+[SerializeField, CollectionItemEditorOptions(ValidateMethod = nameof(IsValidConsumable))]
+private Consumable onlyUnlockedHardCurrency;
+
+public bool IsValidConsumable(Consumable consumable)
+{
+    if (consumable is HardCurrency hardCurrency)
+        return hardCurrency.IsUnlocked;
+    return true;
+}
+```
+
 # [1.8.1]
 ### Changed
 - Added `[Preseve]`attribute to both `ResourceScriptableObjectSingleton` and `CollectionsRegistry` to avoid AOT errors

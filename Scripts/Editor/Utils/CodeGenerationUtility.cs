@@ -10,7 +10,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
-        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace, string classAttributes, string classDeclarationString, params string[] directives)
+        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace,
+            string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
         {
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolder);
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
@@ -45,7 +46,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 writer.WriteLine($"{GetIndentation(indentation)}{classDeclarationString}");
                 writer.WriteLine(GetIndentation(indentation)+"{");
                 indentation++;
-                
+                if(innerContent != null)
+                {
+                    foreach (var content in innerContent)
+                    {
+                        if (content == "}") indentation--;
+                        writer.WriteLine(GetIndentation(indentation)+content);
+                        if (content == "{") indentation++;
+                    }
+                }
                 indentation--;
                 writer.WriteLine(GetIndentation(indentation)+"}");
                 
@@ -203,11 +212,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.Add(collection.GetType().Namespace);
                 directives.Add(typeof(List<>).Namespace);
                 directives.Add("System.Linq");
+                directives.Add("System");
                 directives.AddRange(GetCollectionDirectives(collection));
                 string className = collection.GetItemType().Name;
+
+                if (className.Contains(ReferenceConverter.BaseClassNamePostFix) && collection.Items.Count(item => item.IsReference()) > 0)
+                {
+                    int baseClassPostFixLength = ReferenceConverter.BaseClassNamePostFix.Length;
+                    if (className.Length > baseClassPostFixLength)
+                        className = className.Remove(className.Length - baseClassPostFixLength, baseClassPostFixLength);
+                }
                 if (!writeAsPartial)
                     className = fileName;
-                
+                else if (className.Equals(nameof(ScriptableObjectCollectionItem)))
+                {
+                    Debug.LogWarning($"Cannot create static class using the collection type name ({nameof(ScriptableObjectCollectionItem)})"+
+                        $"The \"Static File Name\" ({fileName}) will be used as its class name instead.");
+                    className = fileName;
+                }
+
                 AppendHeader(writer, ref indentation, nameSpace, "", className,
                     writeAsPartial,
                     false, directives.Distinct().ToArray()
@@ -332,6 +355,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation--;
                 AppendLine(writer, indentation, "}");
                 AppendLine(writer, indentation);
+                if (collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference))
+                    GenerateLoadUtilForReferences(writer, ref indentation, reference, collectionItem.name);
             }
             
             
@@ -343,6 +368,46 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AppendLine(writer, indentation, "}");
             
             AppendLine(writer, indentation);
+        }
+
+        private static void GenerateLoadUtilForReferences(StreamWriter writer, ref int indentation,
+            ScriptableObjectReferenceItem referenceItem, string name)
+        {
+            string staticGetter = name.Sanitize().FirstToUpper();
+            ScriptableObjectCollectionItem item = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(
+                AssetDatabase.GUIDToAssetPath(referenceItem.targetGuid));
+            string itemName = item.name.Sanitize().FirstToUpper();
+            
+            AppendLine(writer, indentation, $"[Obsolete(\"Items are no longer automatically loaded. Use Load{itemName} instead.\", true)]");
+            AppendLine(writer, indentation, $"public static {item.GetType()} {itemName};");
+            AppendLine(writer, indentation);
+            AppendLine(writer, indentation,
+                $"public static {item.GetType()} Load{itemName}()");
+            AppendLine(writer, indentation, "{");
+            indentation++;
+            AppendLine(writer, indentation, $"return {staticGetter}.Load();");
+            indentation--;
+            AppendLine(writer, indentation, "}");
+            AppendLine(writer, indentation);
+        }
+
+        public static string[] ReferenceClassCode(string itemClassName)
+        {
+            return new[]
+            {
+                "[SerializeField] private ScriptableObjectReferenceItem referenceItem = new ScriptableObjectReferenceItem();",
+                "public ScriptableObjectReferenceItem Reference => referenceItem;",
+
+                $"public static implicit operator ScriptableObjectReferenceItem({itemClassName}Reference {itemClassName.FirstToLower()}) => {itemClassName.FirstToLower()}.Reference;",
+
+                "public override bool TryGetReference(out ScriptableObjectReferenceItem reference)",
+                "{",
+                "reference = referenceItem;",
+                "return true;",
+                "}",
+                $"public {itemClassName} Load() => referenceItem.Load<{itemClassName}>();",
+                $"public Task<{itemClassName}> LoadAsync() => referenceItem.LoadAsync<{itemClassName}>();"
+            };
         }
     }
 }

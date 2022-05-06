@@ -630,7 +630,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 folder,
                 Namespace, 
                 string.Empty,
-                $"public partial class {collectionItemName} : ScriptableObjectCollectionItem", 
+                $"public partial class {collectionItemName} : {nameof(ScriptableObjectCollectionItem)}", null, 
                     typeof(ScriptableObjectCollectionItem).Namespace);
         }
         
@@ -642,7 +642,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 folder,
                 Namespace,
                 $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {CollectionName}\", fileName = \"{CollectionName}\", order = 0)]",
-                $"public class {CollectionName} : ScriptableObjectCollection<{collectionItemName}>", typeof(ScriptableObjectCollection).Namespace, "UnityEngine");
+                $"public class {CollectionName} : ScriptableObjectCollection<{collectionItemName}>",
+                null,
+                typeof(ScriptableObjectCollection).Namespace, "UnityEngine", "System.Collections.Generic");
 
             if (string.IsNullOrEmpty(Namespace))
                 LastCollectionFullName.Value = $"{CollectionName}";

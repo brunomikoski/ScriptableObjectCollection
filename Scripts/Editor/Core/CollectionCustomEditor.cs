@@ -55,7 +55,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CheckGeneratedCodeLocation();
             CheckIfCanBePartial();
             CheckGeneratedStaticFileName();
-            CheckGeneratedStaticFileNamespace();
             editorInstance = this;
         }
 
@@ -767,26 +766,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 fileNameSerializedProperty.stringValue = $"{collection.name}Static".Sanitize().FirstToUpper();
             }
             fileNameSerializedProperty.serializedObject.ApplyModifiedProperties();
-        }
-        
-        private void CheckGeneratedStaticFileNamespace()
-        {
-            SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
-            if (!string.IsNullOrEmpty(fileNamespaceSerializedProperty.stringValue))
-                return;
-            
-            
-            ScriptableObjectCollectionSettings settingsInstance = ScriptableObjectCollectionSettings.GetInstance();
-            if (!string.IsNullOrEmpty(settingsInstance.NamespacePrefix))
-            {
-                fileNamespaceSerializedProperty.stringValue = settingsInstance.NamespacePrefix;
-                fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
-                return;
-            }
-
-
-            fileNamespaceSerializedProperty.stringValue = collection.GetItemType().Namespace;
-            fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private bool CheckIfCanBePartial()

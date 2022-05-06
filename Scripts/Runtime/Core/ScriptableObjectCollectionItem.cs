@@ -46,6 +46,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        public bool IsReference()
+        {
+            return TryGetReference(out _);
+        }
+        
+        public virtual bool TryGetReference(out ScriptableObjectReferenceItem reference)
+        {
+            reference = null;
+            return false;
+        }
+
         public void SetCollection(ScriptableObjectCollection collection)
         {
             cachedScriptableObjectCollection = collection;

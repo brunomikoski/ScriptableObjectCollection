@@ -146,7 +146,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             ScriptableObjectCollectionItem item = (ScriptableObjectCollectionItem)CreateInstance(collectionType);
             string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
-            string parentFolderPath = Path.Combine(assetPath, "Items");
+            string parentFolderPath = Path.Combine(assetPath, item.IsReference() ? "References" : "Items");
             AssetDatabaseUtils.CreatePathIfDontExist(parentFolderPath);
 
             string itemName = assetName;

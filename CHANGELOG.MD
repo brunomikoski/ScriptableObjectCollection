@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Fix issue where entering in playmode with a missing collection reference in the CollectionRegistry would throw a nullref and not reload collections
+
 # [1.8.1]
 ### Changed
 - Added `[Preseve]`attribute to both `ResourceScriptableObjectSingleton` and `CollectionsRegistry` to avoid AOT errors

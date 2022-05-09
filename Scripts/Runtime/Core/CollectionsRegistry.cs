@@ -308,8 +308,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collections[i].PrepareForEditorMode();
         }
 
+        public void ClearBadItems()
+        {
+            for (int i = 0; i < collections.Count; i++)
+            {
+                collections[i].ClearBadItems();
+            }
+        }
 #endif
-
     }
 }
 

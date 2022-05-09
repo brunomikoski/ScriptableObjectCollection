@@ -1,13 +1,11 @@
 ﻿using UnityEditor;
-using UnityEditor.Callbacks;
-using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [InitializeOnLoad]
-    public static class RegistryEditorBehaviour
+    public static class EditorBehaviour
     {
-        static RegistryEditorBehaviour()
+        static EditorBehaviour()
         {
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
@@ -18,10 +16,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {                
                 CollectionsRegistry.Instance.ReloadCollections();
                 CollectionsRegistry.Instance.RemoveNonAutomaticallyInitializedCollections();
+                CollectionsRegistry.Instance.PrepareForPlayMode();
+
             }
             else if (playModeStateChange == PlayModeStateChange.EnteredEditMode)
             {
                 CollectionsRegistry.Instance.ReloadCollections();
+                CollectionsRegistry.Instance.PrepareForEditorMode();
             }
         }
     }

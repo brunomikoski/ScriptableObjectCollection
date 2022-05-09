@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Fix issue where entering in playmode with a missing collection reference in the CollectionRegistry would throw a nullref and not reload collections
 - Added new condition to consider an item as a "Bad Item" and for it to be cleared. This fixed an edge case where a collection can have a non existing item but it is not being cleared out from the collection
 
 # [1.8.1]

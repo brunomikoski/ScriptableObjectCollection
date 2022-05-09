@@ -356,7 +356,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, "}");
                 AppendLine(writer, indentation);
                 if (collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference))
-                    GenerateLoadUtilForReferences(writer, ref indentation, reference, collectionItem.name);
+                {
+                    if (reference.targetGuid != null)
+                    {
+                        GenerateLoadUtilForReferences(writer, ref indentation, reference, collectionItem.name);
+                    }
+                    else
+                    {
+                        string warningMessage =
+                            $"Item \"{collectionItem.name}\" does not contain a valid reference! " +
+                            $"Assign a valid reference and regenerate the static class!";
+                        Debug.LogWarning(warningMessage);
+                        AppendLine(writer, indentation, $"// {warningMessage}");
+                    }
+                }
             }
             
             

@@ -36,6 +36,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         internal static void StartProcessInternal(ReorderableList reorderableList)
         {
             if (reorderableList.count == 0) throw new Exception("Collection is empty!");
+            StopProcessIfCollectionContainsReferences(reorderableList);
             ShowProgressBar("Reloading collections...", 0.1f);
             CollectionsRegistry.Instance.ReloadCollections();
             string referenceClassQualifiedName;
@@ -45,8 +46,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ShowProgressBar("Creating base and reference class...", 0.2f);
                 baseClassName = CreateItemBaseClass(reorderableList);
-                SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(0);
-                referenceClassQualifiedName = CreateReferenceClass(baseClassName, property);
+                referenceClassQualifiedName = CreateReferenceClass(baseClassName, reorderableList);
             }
             finally
             {
@@ -60,11 +60,36 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ShowProgressBar("Recompiling player scripts...", 0.3f);
             CompilationPipeline.RequestScriptCompilation();
         }
+
+        private static void StopProcessIfCollectionContainsReferences(ReorderableList reorderableList)
+        {
+            for (int index = 0; index < reorderableList.count; index++)
+            {
+                SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(index);
+                if (property.objectReferenceValue is ScriptableObjectCollectionItem collectionItem && collectionItem.IsReference())
+                    throw new Exception("Collection has already been converted to use references!...\n" +
+                                        "To update the static class, select the \"Generate Static Access File\" button.\n" +
+                                        "To add a new reference or item, select the create \"+\" (plus) button.");
+            }
+        }
+        
+        private static SerializedProperty GetFirstNonReferenceItemProperty(ReorderableList reorderableList)
+        {
+            for (int index = 0; index < reorderableList.count; index++)
+            {
+                SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(index);
+                if (property.objectReferenceValue is ScriptableObjectCollectionItem collectionItem &&
+                    !collectionItem.IsReference())
+                    return property;
+            }
+
+            return null;
+        }
         
         private static string CreateItemBaseClass(ReorderableList reorderableList)
         {
             if (reorderableList.count == 0) throw new Exception("Collection is empty!");
-            SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(0);
+            SerializedProperty property = GetFirstNonReferenceItemProperty(reorderableList);
             string classNamespace = property.objectReferenceValue.GetType().Namespace;
             (string scriptPath, string scriptName) = GetAssociatedScriptMetaData(new SerializedObject(property.objectReferenceValue));
             string parentFolder = Directory.GetParent(scriptPath)?.ToString();
@@ -87,8 +112,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return baseClassName;
         }
         
-        private static string CreateReferenceClass(string baseClassName, SerializedProperty property)
+        private static string CreateReferenceClass(string baseClassName, ReorderableList reorderableList)
         {
+            SerializedProperty property = GetFirstNonReferenceItemProperty(reorderableList);
             string classNamespace = property.objectReferenceValue.GetType().Namespace;
             (string scriptPath, string scriptName) = GetAssociatedScriptMetaData(new SerializedObject(property.objectReferenceValue));
             string parentFolder = Directory.GetParent(scriptPath)?.ToString();
@@ -247,6 +273,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void ConvertToReferencesItemsInternal(ReorderableList reorderableList, string referenceClassName)
         {
             Type referenceType = Type.GetType(referenceClassName);
+            if (referenceType == null) throw new Exception($"Reference type \"{referenceClassName}\" does not exist in the project!");
             for (int index = 0; index < reorderableList.count; index++)
             {
                 SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(index);

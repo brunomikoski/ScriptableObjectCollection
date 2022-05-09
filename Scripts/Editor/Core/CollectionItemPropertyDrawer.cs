@@ -148,7 +148,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 itemType = arrayOrListType ?? fieldInfo.FieldType;
             }
             
-            Initialize(itemType, property.serializedObject.targetObject);
+            Initialize(itemType, property.serializedObject.targetObject, GetOptionsAttribute());
         }
 
         private static FieldInfo GetFieldViaPath(Type parentType, string path)
@@ -169,24 +169,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         internal void Initialize(Type collectionItemType, CollectionItemEditorOptionsAttribute optionsAttribute)
         {
-            Initialize(collectionItemType, (Object)null);
-            OptionsAttribute = optionsAttribute ?? GetOptionsAttribute();
+            Initialize(collectionItemType, null, optionsAttribute ?? GetOptionsAttribute());
         }
 
-        private void Initialize(Type collectionItemType, Object obj)
+        internal void Initialize(Type collectionItemType, Object obj, CollectionItemEditorOptionsAttribute optionsAttribute)
         {
             if (initialized)
                 return;
 
+            OptionsAttribute = optionsAttribute;
+
             collectionItemDropdown = new CollectionItemDropdown(
                 new AdvancedDropdownState(),
-                collectionItemType
+                collectionItemType,
+                OptionsAttribute,
+                obj
             );
 
             currentObject = obj;
             initialized = true;
             
-            OptionsAttribute = GetOptionsAttribute();
         }
 
         private void DrawCollectionItemDropDown(ref Rect position, ScriptableObjectCollectionItem collectionItem,

@@ -6,8 +6,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+# [1.8.2]
+### Changed
 - Fix issue where entering in playmode with a missing collection reference in the CollectionRegistry would throw a nullref and not reload collections
 - Added new condition to consider an item as a "Bad Item" and for it to be cleared. This fixed an edge case where a collection can have a non existing item but it is not being cleared out from the collection
+- Added validation method as an `CollectionItemEditorOptions` option, you can now define a method to validate what CollectionItem can appear, like this:
+```csharp
+[SerializeField, CollectionItemEditorOptions(ValidateMethod = nameof(IsValidConsumable))]
+private Consumable onlyUnlockedHardCurrency;
+
+public bool IsValidConsumable(Consumable consumable)
+{
+    if (consumable is HardCurrency hardCurrency)
+        return hardCurrency.IsUnlocked;
+    return true;
+}
+```
 
 # [1.8.1]
 ### Changed

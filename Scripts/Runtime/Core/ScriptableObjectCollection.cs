@@ -288,9 +288,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             for (int i = items.Count - 1; i >= 0; i--)
             {
-                if (items[i].IsNull() || items[i] == null)
+                if (items[i].IsNull() || items[i] == null || items[i].Collection.IsNull() || items[i].Collection == null)
                     items.RemoveAt(i);
             }
+            
             ObjectUtility.SetDirty(this);
         }
 
@@ -534,7 +535,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return base.GetEnumerator();
         }
-        
+
         protected override void ClearCachedValues()
         {
             cachedValues = null;

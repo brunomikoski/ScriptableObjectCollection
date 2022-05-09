@@ -357,7 +357,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation);
                 if (collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference))
                 {
-                    if (reference.targetGuid != null)
+                    if (reference.TargetGuid != null)
                     {
                         GenerateLoadUtilForReferences(writer, ref indentation, reference, collectionItem.name);
                     }
@@ -388,7 +388,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string staticGetter = name.Sanitize().FirstToUpper();
             ScriptableObjectCollectionItem item = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(
-                AssetDatabase.GUIDToAssetPath(referenceItem.targetGuid));
+                AssetDatabase.GUIDToAssetPath(referenceItem.TargetGuid));
             string itemName = item.name.Sanitize().FirstToUpper();
             
             AppendLine(writer, indentation, $"[Obsolete(\"Items are no longer automatically loaded. Use Load{itemName} instead.\", true)]");

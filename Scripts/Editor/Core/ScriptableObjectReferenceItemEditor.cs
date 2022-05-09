@@ -13,7 +13,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            itemGuidSerializedProperty = property.FindPropertyRelative(nameof(ScriptableObjectReferenceItem.targetGuid));
+            itemGuidSerializedProperty = property.FindPropertyRelative(nameof(ScriptableObjectReferenceItem.TargetGuid));
             if (item == null && !String.IsNullOrEmpty(itemGuidSerializedProperty.stringValue))
             {
                 item = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(

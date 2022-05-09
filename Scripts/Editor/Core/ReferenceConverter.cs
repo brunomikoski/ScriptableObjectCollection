@@ -296,7 +296,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 item.SetCollection(collectionItem.Collection);
                 if (!item.TryGetReference(out var referenceItem))
                     throw new Exception("Something went wrong!");
-                referenceItem.targetGuid = collectionItem.GUID;
+                referenceItem.TargetGuid = collectionItem.GUID;
                 
                 string referencesDirectory = Path.Combine(baseDirectory.ToString(), "References");
                 Directory.CreateDirectory(referencesDirectory);

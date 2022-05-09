@@ -232,7 +232,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool ContainsReferenceTo(ScriptableObjectCollectionItem item)
         {
             return items.Exists(collectionItem =>
-                collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference) && reference.targetGuid == item.GUID);
+                collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference) && reference.TargetGuid == item.GUID);
         }
 
         public int IndexOf(object value)

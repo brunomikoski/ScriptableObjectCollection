@@ -18,8 +18,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [System.NonSerialized]
         public AsyncOperationHandle handle;
 #endif
-        [SerializeField]
-        public string targetGuid;
+        [SerializeField] private string targetGuid;
+
+        public string TargetGuid
+        {
+            get => targetGuid;
+            set => targetGuid = value;
+        }
 
         public TObject Load<TObject>()
 #if UNITY_EDITOR && !SOC_ADDRESSABLES
@@ -27,12 +32,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         {
             TObject asset = default;
-            if (!string.IsNullOrEmpty(targetGuid))
+            if (!string.IsNullOrEmpty(TargetGuid))
             {
 #if SOC_ADDRESSABLES
                 try
                 {
-                    var typeHandle = Addressables.LoadAssetAsync<TObject>(targetGuid);
+                    var typeHandle = Addressables.LoadAssetAsync<TObject>(TargetGuid);
                     asset = typeHandle.WaitForCompletion();
                     handle = typeHandle;
                 }
@@ -55,10 +60,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public async Task<TObject> LoadAsync<TObject>()
         {
             TObject asset = default;
-            if (!string.IsNullOrEmpty(targetGuid))
+            if (!string.IsNullOrEmpty(TargetGuid))
             {
                 var typeHandle = 
-                    Addressables.LoadAssetAsync<TObject>(targetGuid);
+                    Addressables.LoadAssetAsync<TObject>(TargetGuid);
                 await typeHandle.Task;
                 asset = typeHandle.Result;
                 handle = typeHandle;

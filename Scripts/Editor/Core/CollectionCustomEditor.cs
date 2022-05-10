@@ -207,7 +207,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         GUI.enabled = guiEnabled;
                         rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                     }
-                    else 
+                    else
+                    {
                         for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
                         {
                             bool guiEnabled = GUI.enabled;
@@ -217,8 +218,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             EditorGUI.PropertyField(rect, iterator, true);
                             GUI.enabled = guiEnabled;
 
-                            rect.y += EditorGUI.GetPropertyHeight(iterator, true) + EditorGUIUtility.standardVerticalSpacing;
+                            rect.y += EditorGUI.GetPropertyHeight(iterator, true) +
+                                      EditorGUIUtility.standardVerticalSpacing;
                         }
+                    }
 
                     if (changeCheck.changed)
                         iterator.serializedObject.ApplyModifiedProperties();

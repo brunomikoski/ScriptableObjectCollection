@@ -220,10 +220,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     int baseClassPostFixLength = ReferenceConverter.BaseClassNamePostFix.Length;
                     if (className.Length > baseClassPostFixLength)
+                    {
                         className = className.Remove(className.Length - baseClassPostFixLength, baseClassPostFixLength);
+                    }
                 }
                 if (!writeAsPartial)
+                {
                     className = fileName;
+                }
                 else if (className.Equals(nameof(ScriptableObjectCollectionItem)))
                 {
                     Debug.LogWarning($"Cannot create static class using the collection type name ({nameof(ScriptableObjectCollectionItem)})"+

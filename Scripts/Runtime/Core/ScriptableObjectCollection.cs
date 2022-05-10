@@ -232,7 +232,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool ContainsReferenceTo(ScriptableObjectCollectionItem item)
         {
             return items.Exists(collectionItem =>
-                collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference) && reference.TargetGuid == item.GUID);
+                collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference) && 
+                String.Equals(reference.TargetGuid, item.GUID, StringComparison.OrdinalIgnoreCase));
         }
 
         public int IndexOf(object value)
@@ -354,6 +355,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 
                 if (item.Collection.ContainsReferenceTo(item))
                     continue;
+                
                 Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");
                 Add(item);
             }

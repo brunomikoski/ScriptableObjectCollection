@@ -19,23 +19,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string REFERENCE_QUALIFIED_CLASS_KEY = "SessionReferenceAssemblyQualifiedClassName";
         private const string BASE_CLASS_KEY = "SessionBaseClassName";
         internal const string BaseClassNamePostFix = "Base";
+
         internal static void StartProcess(ReorderableList reorderableList)
         {
             try
             {
                 StartProcessInternal(reorderableList);
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                Debug.LogError($"Failed to convert items to references! {e}");
+                Debug.LogError($"Failed to convert items to references! {exception}");
                 EditorUtility.ClearProgressBar();
                 SessionState.SetBool(CollectionCustomEditor.ENABLE_GUI_KEY, true);
                 throw;
             }
         }
-        internal static void StartProcessInternal(ReorderableList reorderableList)
+
+        private static void StartProcessInternal(ReorderableList reorderableList)
         {
-            if (reorderableList.count == 0) throw new Exception("Collection is empty!");
+            if (reorderableList.count == 0) 
+                throw new Exception("Collection is empty!");
             StopProcessIfCollectionContainsReferences(reorderableList);
             ShowProgressBar("Reloading collections...", 0.1f);
             CollectionsRegistry.Instance.ReloadCollections();
@@ -88,15 +91,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private static string CreateItemBaseClass(ReorderableList reorderableList)
         {
-            if (reorderableList.count == 0) throw new Exception("Collection is empty!");
+            if (reorderableList.count == 0) 
+                throw new Exception("Collection is empty!");
             SerializedProperty property = GetFirstNonReferenceItemProperty(reorderableList);
             string classNamespace = property.objectReferenceValue.GetType().Namespace;
             (string scriptPath, string scriptName) = GetAssociatedScriptMetaData(new SerializedObject(property.objectReferenceValue));
             string parentFolder = Directory.GetParent(scriptPath)?.ToString();
             string baseClassName = $"{scriptName}{BaseClassNamePostFix}";
-            
             string baseClassPath = $"{parentFolder}/{baseClassName}.cs";
-            if (File.Exists(baseClassPath)) File.Delete(baseClassPath);
+            if (File.Exists(baseClassPath)) 
+                File.Delete(baseClassPath);
+            
             bool result = CodeGenerationUtility.CreateNewEmptyScript(baseClassName,
                 parentFolder,
                 classNamespace,
@@ -120,9 +125,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string parentFolder = Directory.GetParent(scriptPath)?.ToString();
             string itemClassName = scriptName;
             string className = $"{itemClassName}Reference";
-            
             string referenceClassPath = $"{parentFolder}/{className}.cs";
-            if (File.Exists(referenceClassPath)) File.Delete(referenceClassPath);
+            
+            if (File.Exists(referenceClassPath)) 
+                File.Delete(referenceClassPath);
             bool result = CodeGenerationUtility.CreateNewEmptyScript(className,
                 parentFolder,
                 classNamespace,
@@ -144,7 +150,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             string qualifiedName = property.objectReferenceValue.GetType().AssemblyQualifiedName;
             string[] typeProperties = qualifiedName?.Split(',');
-            if (typeProperties != null && typeProperties.Length >= 1) typeProperties[0] = typeProperties[0].Replace(itemClassName, className);
+            if (typeProperties == null || typeProperties.Length == 0)
+                throw new InvalidOperationException("Failed to retrieve reference class qualified name!");
+            typeProperties[0] = typeProperties[0].Replace(itemClassName, className);
             return String.Join(",", typeProperties);
         }
 
@@ -153,13 +161,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string referenceClassName = SessionState.GetString(REFERENCE_QUALIFIED_CLASS_KEY, string.Empty);
             string baseClassName = SessionState.GetString(BASE_CLASS_KEY, string.Empty);
-            if (String.IsNullOrEmpty(referenceClassName) || String.IsNullOrEmpty(baseClassName)) return;
+            if (String.IsNullOrEmpty(referenceClassName) || String.IsNullOrEmpty(baseClassName)) 
+                return;
             SessionState.EraseString(REFERENCE_QUALIFIED_CLASS_KEY);
             SessionState.EraseString(BASE_CLASS_KEY);
 
+            int waitedTimeInMilliseconds = 0;
+            const int millisecondsDelay = 100;
+            const int timeoutInMilliseconds = 5000;
             while (CollectionCustomEditor.editorInstance == null)
             {
-                await Task.Delay(100);
+                await Task.Delay(millisecondsDelay);
+                waitedTimeInMilliseconds += millisecondsDelay;
+                if (waitedTimeInMilliseconds >= timeoutInMilliseconds)
+                {
+                    Debug.LogError("Failed to get collection editor instance!");
+                    return;
+                }
             }
             EditorApplication.delayCall += () =>
                 ResumeReferencesConversion(CollectionCustomEditor.editorInstance, referenceClassName, baseClassName);
@@ -248,7 +266,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             File.WriteAllText(scriptPath, updatedFileContents);
         }
         
-        
         private static void RecreateCollectionClass(string baseClassName, ScriptableObjectCollection collection, SerializedObject serializedObject)
         {
             string classNamespace = collection.GetType().Namespace;
@@ -273,7 +290,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void ConvertToReferencesItemsInternal(ReorderableList reorderableList, string referenceClassName)
         {
             Type referenceType = Type.GetType(referenceClassName);
-            if (referenceType == null) throw new Exception($"Reference type \"{referenceClassName}\" does not exist in the project!");
+            if (referenceType == null) 
+                throw new Exception($"Reference type \"{referenceClassName}\" does not exist in the project!");
             for (int index = 0; index < reorderableList.count; index++)
             {
                 SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(index);

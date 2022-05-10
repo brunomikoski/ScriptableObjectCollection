@@ -1,9 +1,9 @@
 using UnityEngine;
+using System;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 #if SOC_ADDRESSABLES
-using System;
 using System.Threading.Tasks;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -70,14 +70,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             return asset;
         }
-#endif
 
         public void Unload()
         {
-#if SOC_ADDRESSABLES
             if (handle.IsValid())
                 Addressables.Release(handle);
-#endif
         }
+#endif
     }
 }

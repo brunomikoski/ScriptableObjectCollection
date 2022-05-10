@@ -1,5 +1,6 @@
 #if SOC_ADDRESSABLES
 using System;
+using System.Data;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void StartProcessInternal(ReorderableList reorderableList)
         {
             if (reorderableList.count == 0) 
-                throw new Exception("Collection is empty!");
+                throw new ArgumentException("Collection is empty!");
             StopProcessIfCollectionContainsReferences(reorderableList);
             ShowProgressBar("Reloading collections...", 0.1f);
             CollectionsRegistry.Instance.ReloadCollections();
@@ -70,9 +71,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(index);
                 if (property.objectReferenceValue is ScriptableObjectCollectionItem collectionItem && collectionItem.IsReference())
-                    throw new Exception("Collection has already been converted to use references!...\n" +
-                                        "To update the static class, select the \"Generate Static Access File\" button.\n" +
-                                        "To add a new reference or item, select the create \"+\" (plus) button.");
+                    throw new InvalidOperationException("Collection has already been converted to use references!...\n" +
+                                                        "To update the static class, select the \"Generate Static Access File\" button.\n" +
+                                                        "To add a new reference or item, select the create \"+\" (plus) button.");
             }
         }
         
@@ -92,7 +93,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static string CreateItemBaseClass(ReorderableList reorderableList)
         {
             if (reorderableList.count == 0) 
-                throw new Exception("Collection is empty!");
+                throw new ArgumentException("Collection is empty!");
             SerializedProperty property = GetFirstNonReferenceItemProperty(reorderableList);
             string classNamespace = property.objectReferenceValue.GetType().Namespace;
             (string scriptPath, string scriptName) = GetAssociatedScriptMetaData(new SerializedObject(property.objectReferenceValue));
@@ -111,7 +112,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 property.objectReferenceValue.GetType().Namespace, "BrunoMikoski.ScriptableObjectCollections");
             if (!result)
             {
-                throw new Exception($"Failed to create item base class \"{baseClassName}.cs\"!");
+                throw new InvalidOperationException($"Failed to create item base class \"{baseClassName}.cs\"!");
             }
 
             return baseClassName;
@@ -139,7 +140,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 "UnityEngine", "System.Threading.Tasks");
             if (!result)
             {
-                throw new Exception($"Failed to create item base class \"{className}.cs\"!");
+                throw new InvalidOperationException($"Failed to create item base class \"{className}.cs\"!");
             }
 
             if (!string.IsNullOrEmpty(classNamespace))
@@ -244,7 +245,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             UnityEngine.Object scriptProperty = itemObject.FindProperty("m_Script").objectReferenceValue;
             if (!AssetDatabase.TryGetGUIDAndLocalFileIdentifier(scriptProperty, out string scriptGuid, out long _))
-                throw new Exception($"Failed to convert to references. This collection does not have an associated script!");
+                throw new InvalidOperationException($"Failed to convert to references. This collection does not have an associated script!");
             return (AssetDatabase.GUIDToAssetPath(scriptGuid), scriptProperty.name);
         }
 
@@ -283,7 +284,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 typeof(ScriptableObjectCollection).Namespace, "UnityEngine", "System.Collections.Generic");
             if (!result)
             {
-                throw new Exception($"Failed to create collection class \"{collection.name}.cs\"!");
+                throw new InvalidOperationException($"Failed to create collection class \"{collection.name}.cs\"!");
             }
         }
         
@@ -291,7 +292,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Type referenceType = Type.GetType(referenceClassName);
             if (referenceType == null) 
-                throw new Exception($"Reference type \"{referenceClassName}\" does not exist in the project!");
+                throw new ArgumentException($"Reference type \"{referenceClassName}\" does not exist in the project!");
             for (int index = 0; index < reorderableList.count; index++)
             {
                 SerializedProperty property = reorderableList.serializedProperty.GetArrayElementAtIndex(index);
@@ -313,7 +314,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 item.name = $"{collectionItem.name}Reference";
                 item.SetCollection(collectionItem.Collection);
                 if (!item.TryGetReference(out var referenceItem))
-                    throw new Exception("Something went wrong!");
+                    throw new InvalidOperationException($"Couldn't obtain reference from the item {item.name}!");
                 referenceItem.TargetGuid = collectionItem.GUID;
                 
                 string referencesDirectory = Path.Combine(baseDirectory.ToString(), "References");

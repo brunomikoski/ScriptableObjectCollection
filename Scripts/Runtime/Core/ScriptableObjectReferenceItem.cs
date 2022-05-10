@@ -50,7 +50,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #elif UNITY_EDITOR
                 asset = AssetDatabase.LoadAssetAtPath<TObject>(AssetDatabase.GUIDToAssetPath(targetGuid));
 #else
-                throw new Exception("Addressables wasn't detected! Please install it in order to use ScriptableObjectReferenceItems.")
+                throw new InvalidOperationException("Addressables wasn't detected! Please install it in order to use ScriptableObjectReferenceItems.")
 #endif
             }
             return asset;

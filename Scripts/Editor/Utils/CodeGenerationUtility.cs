@@ -216,6 +216,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.AddRange(GetCollectionDirectives(collection));
                 string className = collection.GetItemType().Name;
 
+#if SOC_ADDRESSABLES
                 if (className.Contains(ReferenceConverter.BaseClassNamePostFix) && collection.Items.Count(item => item.IsReference()) > 0)
                 {
                     int baseClassPostFixLength = ReferenceConverter.BaseClassNamePostFix.Length;
@@ -224,6 +225,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         className = className.Remove(className.Length - baseClassPostFixLength, baseClassPostFixLength);
                     }
                 }
+#endif
                 if (!writeAsPartial)
                 {
                     className = fileName;

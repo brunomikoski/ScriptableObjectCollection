@@ -16,14 +16,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField] 
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
 
-        [Preserve]
-        public void UsedOnlyForAOTCodeGeneration()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Initialize()
         {
             LoadOrCreateInstance<CollectionsRegistry>();
-            // Include an exception so we can be sure to know if this method is ever called.
-            throw new InvalidOperationException("This method is used for AOT code generation only. Do not call it at runtime.");
         }
-
+        
         public bool IsKnowCollection(ScriptableObjectCollection targetCollection)
         {
             for (int i = 0; i < collections.Count; i++)

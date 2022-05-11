@@ -17,7 +17,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
             }
         }
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         public static TInstance LoadOrCreateInstance<TInstance>() where TInstance : ScriptableObject
         {
             if (!TryToLoadInstance<TInstance>(out TInstance resultInstance))

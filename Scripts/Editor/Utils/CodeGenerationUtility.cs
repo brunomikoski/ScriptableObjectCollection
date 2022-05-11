@@ -425,7 +425,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 "return true;",
                 "}",
                 $"public {itemClassName} Load() => referenceItem.Load<{itemClassName}>();",
-                $"public Task<{itemClassName}> LoadAsync() => referenceItem.LoadAsync<{itemClassName}>();"
+                $"public Task<{itemClassName}> LoadAsync() => referenceItem.LoadAsync<{itemClassName}>();",
+                "public void Unload() => referenceItem.Unload();"
             };
         }
     }

@@ -15,6 +15,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public sealed class CollectionCustomEditor : Editor
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
+        internal const string ENABLE_GUI_KEY = "EnableGuiKey";
         private static ScriptableObjectCollectionItem LAST_ADDED_COLLECTION_ITEM;
 
         private ScriptableObjectCollection collection;
@@ -26,13 +27,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private float[] heights;
         private bool[] itemHidden;
         private ReorderableList reorderableList;
+        internal ReorderableList ReorderableList => reorderableList;
         private SerializedProperty itemsSerializedProperty;
+        internal ScriptableObjectCollection Collection => collection;
 
         private static bool IsWaitingForNewTypeBeCreated
         {
             get => EditorPrefs.GetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, false);
             set => EditorPrefs.SetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, value);
         }
+        internal static CollectionCustomEditor editorInstance;
 
         public void OnEnable()
         {
@@ -51,7 +55,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CheckGeneratedCodeLocation();
             CheckIfCanBePartial();
             CheckGeneratedStaticFileName();
-            CheckGeneratedStaticFileNamespace();
+            editorInstance = this;
         }
 
         private void CreateReorderableList()
@@ -67,6 +71,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnDisable()
         {
+            editorInstance = null;
             if (reorderableList == null)
                 return;
 
@@ -194,17 +199,28 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                 {
-                    for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
+                    if (collectionItemSerializedObject.targetObject is ScriptableObjectCollectionItem refItem && refItem.IsReference())
                     {
                         bool guiEnabled = GUI.enabled;
-                        if (iterator.displayName.Equals("Script"))
-                            GUI.enabled = false;
-
-                        EditorGUI.PropertyField(rect, iterator, true);
-
+                        GUI.enabled = false;
+                        EditorGUI.ObjectField(rect, refItem, typeof(ScriptableObjectReferenceItem));
                         GUI.enabled = guiEnabled;
+                        rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                    }
+                    else
+                    {
+                        for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
+                        {
+                            bool guiEnabled = GUI.enabled;
+                            if (iterator.displayName.Equals("Script"))
+                                GUI.enabled = false;
 
-                        rect.y += EditorGUI.GetPropertyHeight(iterator, true) + EditorGUIUtility.standardVerticalSpacing;
+                            EditorGUI.PropertyField(rect, iterator, true);
+                            GUI.enabled = guiEnabled;
+
+                            rect.y += EditorGUI.GetPropertyHeight(iterator, true) +
+                                      EditorGUIUtility.standardVerticalSpacing;
+                        }
                     }
 
                     if (changeCheck.changed)
@@ -333,6 +349,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override void OnInspectorGUI()
         {
+            GUI.enabled = SessionState.GetBool(ENABLE_GUI_KEY, true);
             RemoveNullReferences();
 
             CheckHeightsAndHiddenArraySizes();
@@ -343,9 +360,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 DrawSynchronizeButton();
                 reorderableList.DoLayoutList();
                 DrawBottomMenu();
+#if SOC_ADDRESSABLES
+                using (new EditorGUILayout.HorizontalScope("Box"))
+                {
+                    if (GUILayout.Button($"Convert To References", EditorStyles.miniButtonRight))
+                    {
+                        SessionState.SetBool(ENABLE_GUI_KEY, false);
+                        EditorApplication.delayCall += () => ReferenceConverter.StartProcess(reorderableList);
+                    }
+                }
+#endif
             }
             DrawSettings();
             CheckForKeyboardShortcuts();
+            GUI.enabled = true;
         }
 
         private void CheckHeightsAndHiddenArraySizes()
@@ -623,7 +651,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             SerializedProperty fileNameSerializedProperty = serializedObject.FindProperty("generatedStaticClassFileName");
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                string newFileName = EditorGUILayout.DelayedTextField("File Name", fileNameSerializedProperty.stringValue);
+                string newFileName = EditorGUILayout.DelayedTextField("Static File Name", fileNameSerializedProperty.stringValue);
                 if (changeCheck.changed)
                 {
                     fileNameSerializedProperty.stringValue = newFileName;
@@ -741,26 +769,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 fileNameSerializedProperty.stringValue = $"{collection.name}Static".Sanitize().FirstToUpper();
             }
             fileNameSerializedProperty.serializedObject.ApplyModifiedProperties();
-        }
-        
-        private void CheckGeneratedStaticFileNamespace()
-        {
-            SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
-            if (!string.IsNullOrEmpty(fileNamespaceSerializedProperty.stringValue))
-                return;
-            
-            
-            ScriptableObjectCollectionSettings settingsInstance = ScriptableObjectCollectionSettings.GetInstance();
-            if (!string.IsNullOrEmpty(settingsInstance.NamespacePrefix))
-            {
-                fileNamespaceSerializedProperty.stringValue = settingsInstance.NamespacePrefix;
-                fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
-                return;
-            }
-
-
-            fileNamespaceSerializedProperty.stringValue = collection.GetItemType().Namespace;
-            fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private bool CheckIfCanBePartial()

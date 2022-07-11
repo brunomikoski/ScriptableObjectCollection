@@ -73,7 +73,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (!scriptableObjectCollection.GetItemType().IsAssignableFrom(itemType))
+                if (!itemType.IsAssignableFrom(scriptableObjectCollection.GetItemType()))
                     continue;
 
                 results.AddRange(scriptableObjectCollection.Items);

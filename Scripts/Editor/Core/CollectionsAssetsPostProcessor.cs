@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEngine;
@@ -41,7 +40,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         }
                         else
                         {
-                            if (!scriptableObjectCollectionItem.Collection.Contains(scriptableObjectCollectionItem))
+                            if (!scriptableObjectCollectionItem.Collection.Contains(scriptableObjectCollectionItem) && 
+                                !scriptableObjectCollectionItem.Collection.ContainsReferenceTo(scriptableObjectCollectionItem))
                             {
                                 scriptableObjectCollectionItem.Collection.Add(scriptableObjectCollectionItem);
                                 Debug.Log($"{scriptableObjectCollectionItem.name} has collection assigned "

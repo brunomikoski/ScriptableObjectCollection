@@ -112,7 +112,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             
                             string parentFolder = AssetDatabase.GetAssetPath(targetFolder);
                             CodeGenerationUtility.CreateNewEmptyScript(newClassName,
-                                parentFolder, targetNamespace, string.Empty,$"public class {newClassName} : {targetType}",
+                                parentFolder, targetNamespace, string.Empty,$"public class {newClassName} : {targetType}", null,
                                 targetNamespace);
                             
                             AssetDatabase.SaveAssets();

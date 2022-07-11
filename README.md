@@ -81,6 +81,7 @@ There's a couple of ways of dealing with this, the easiest one is to use the `In
 Since the CollectionsRegistry is inside the Resources folder, every reference this has to a collection and to all the collectables will be inside the Unity Resources bundle, and if you have a lot of references for expensive stuff, this can increase your startup time significantly, there are 2 things you should keep in mind: 
 1. Use the Automatically Loaded items for items that should be available for the lifetime of your game
 2. If you want to use this for more expensive stuff, let's say all the gameplay prefabs, you can uncheck the automatic initialization of this collection, and register the collection on your loading by using `CollectionsRegistry.Instance.RegisterCollection(Collection);` and removing it when they are not necessary anymore.
+3. You can convert the items of a collection to references by using the "Convert To References" button in the collection inspector. This allows for more flexibility to load and unload items individually. These items are inserted into an Addressables group.
 </details>
  
  <details>

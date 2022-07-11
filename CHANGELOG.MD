@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.9.0]
+### Added 
+- Added new Collection References, useful for individual collection loading, more information [here](https://github.com/brunomikoski/ScriptableObjectCollection/pull/99) thanks a lot [@IkeikeP](https://github.com/IkeikeP) for the contribution
+
 # [1.8.3]
 ### Changed
 - Fixed `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]` issue with unity 2021 and generics.
@@ -336,6 +340,7 @@ public bool IsValidConsumable(Consumable consumable)
  - First initial working version 
 
 
+[1.9.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.0
 [1.8.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.8.3
 [1.8.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.8.2
 [1.8.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.8.1

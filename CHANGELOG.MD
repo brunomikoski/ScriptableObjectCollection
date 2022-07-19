@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.9.1]
+### Changed 
+- Fixed non editor builds issue 
+
 # [1.9.0]
 ### Added 
 - Added new Collection References, useful for individual collection loading, more information [here](https://github.com/brunomikoski/ScriptableObjectCollection/pull/99) thanks a lot [@IkeikeP](https://github.com/IkeikeP) for the contribution

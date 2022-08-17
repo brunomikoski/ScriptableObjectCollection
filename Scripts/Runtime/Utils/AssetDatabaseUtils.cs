@@ -21,8 +21,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static void RenameAsset(Object targetObject, string newName)
         {
 #if UNITY_EDITOR
-            targetObject.name = newName;
             UnityEditor.AssetDatabase.RenameAsset(UnityEditor.AssetDatabase.GetAssetPath(targetObject), newName);
+            targetObject.name = newName;
             ObjectUtility.SetDirty(targetObject);
 #endif
         }

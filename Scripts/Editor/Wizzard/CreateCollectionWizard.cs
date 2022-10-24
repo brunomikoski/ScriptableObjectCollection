@@ -249,33 +249,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceBool FoldoutSettings =
             new EditorPreferenceBool(FOLDOUT_SETTINGS_KEY, true);
         private static readonly EditorPreferenceBool FoldoutScriptableObject =
-            new EditorPreferenceBool(FOLDOUT_SCRIPTABLE_OBJECT_KEY, false);
-        private static readonly EditorPreferenceBool FoldoutScript = new EditorPreferenceBool(FOLDOUT_SCRIPT_KEY, false);
+            new EditorPreferenceBool(FOLDOUT_SCRIPTABLE_OBJECT_KEY, false, true);
+        private static readonly EditorPreferenceBool FoldoutScript = new EditorPreferenceBool(FOLDOUT_SCRIPT_KEY, false, true);
         
 
         private static readonly EditorPreferenceBool WaitingRecompileForContinue =
-            new EditorPreferenceBool(WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY);
+            new EditorPreferenceBool(WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY, false, true);
 
         private static readonly EditorPreferenceString LastCollectionScriptableObjectPath =
-            new EditorPreferenceString(LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY);
+            new EditorPreferenceString(LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY, null, true);
 
         private static readonly EditorPreferenceString LastCollectionFullName =
-            new EditorPreferenceString(LAST_COLLECTION_FULL_NAME_KEY);
+            new EditorPreferenceString(LAST_COLLECTION_FULL_NAME_KEY, null, true);
 
         private static readonly EditorPreferenceString LastScriptsTargetFolder =
-            new EditorPreferenceString(LAST_TARGET_SCRIPTS_FOLDER_KEY);
+            new EditorPreferenceString(LAST_TARGET_SCRIPTS_FOLDER_KEY, null, true);
 
         private static readonly EditorPreferenceString LastGeneratedCollectionScriptPath =
-            new EditorPreferenceString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY);
+            new EditorPreferenceString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY, null, true);
 
         private static readonly EditorPreferenceBool CreateFolderForThisCollection =
-            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_KEY);
+            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_KEY, false, true);
 
         private static readonly EditorPreferenceBool CreateFolderForThisCollectionScripts =
-            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY);
+            new EditorPreferenceBool(CREATE_FOLDER_FOR_THIS_COLLECTION_SCRIPTS_KEY, false, true);
         
         private static readonly EditorPreferenceString CollectionFormat =
-            new EditorPreferenceString(COLLECTION_FORMAT_KEY, COLLECTION_FORMAT_DEFAULT);
+            new EditorPreferenceString(COLLECTION_FORMAT_KEY, COLLECTION_FORMAT_DEFAULT, true);
 
         private string cachedCollectionName = COLLECTION_NAME_DEFAULT;
         private string CollectionName

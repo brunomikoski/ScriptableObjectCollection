@@ -116,7 +116,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private float GetCollectionItemHeight(int index)
         {
-            if (itemHidden[index])
+            if (itemHidden == null || itemHidden[index])
                 return 0;
             
             return Mathf.Max(

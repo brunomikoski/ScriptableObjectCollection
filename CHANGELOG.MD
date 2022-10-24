@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.9.2]
+### Changed
+- Fixed compability issues with Unity 2021
+- Fixed Wizard settings been shared between multiple projects
+
 # [1.9.1]
 ### Changed 
 - Fixed non editor builds issue 
@@ -344,6 +349,7 @@ public bool IsValidConsumable(Consumable consumable)
  - First initial working version 
 
 
+[1.9.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.2
 [1.9.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.1
 [1.9.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.0
 [1.8.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.8.3

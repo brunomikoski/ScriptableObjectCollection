@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 # [1.9.2]
 ### Changed
-- Fixed compability issues with Unity 2021
+- Fixed compatibility issues with Unity 2021
 - Fixed Wizard settings been shared between multiple projects
 
 # [1.9.1]

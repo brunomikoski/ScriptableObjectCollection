@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.9.3]
+### Add
+- Automatically define namespace for static collection generated file based on `CollectionItem`
+
+### Changed
+- Fixed static static file generation to use `Type.FullName` instead of `Type.Name`
+
 # [1.9.2]
 ### Changed
 - Fixed compatibility issues with Unity 2021
@@ -349,6 +356,7 @@ public bool IsValidConsumable(Consumable consumable)
  - First initial working version 
 
 
+[1.9.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.3
 [1.9.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.2
 [1.9.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.1
 [1.9.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.0

@@ -663,6 +663,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void DrawGeneratedFileNamespace()
         {
             SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
+            if (string.IsNullOrEmpty(fileNamespaceSerializedProperty.stringValue))
+            {
+                if (collection != null)
+                {
+                    string targetNamespace = collection.GetItemType().Namespace;
+                    if (!string.IsNullOrEmpty(targetNamespace))
+                    {
+                        fileNamespaceSerializedProperty.stringValue = targetNamespace;
+                        fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    }
+                }
+            }
+            
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
                 string newFileName = EditorGUILayout.DelayedTextField("Namespace", fileNamespaceSerializedProperty.stringValue);

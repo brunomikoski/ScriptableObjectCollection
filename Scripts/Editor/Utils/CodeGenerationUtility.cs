@@ -306,7 +306,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ScriptableObjectCollectionItem collectionItem = collection.Items[i];
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
                 AppendLine(writer, indentation, 
-                    $"private static {type.Name} {collectionItem.name.Sanitize().FirstToLower()};");
+                    $"private static {type.FullName} {collectionItem.name.Sanitize().FirstToLower()};");
             }
 
             AppendLine(writer, indentation);
@@ -314,7 +314,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string valuesName = $"Values";
 
             AppendLine(writer, indentation,
-                $"public static {collection.GetType().Name} {valuesName}");
+                $"public static {collection.GetType().FullName} {valuesName}");
             
             AppendLine(writer, indentation, "{");
             indentation++;
@@ -343,7 +343,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
 
                 AppendLine(writer, indentation,
-                    $"public static {type.Name} {collectionNameFirstUpper}");
+                    $"public static {type.FullName} {collectionNameFirstUpper}");
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, "get");
@@ -353,7 +353,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({type.Name}){valuesName}.GetItemByGUID(\"{collectionItem.GUID}\");");
+                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(\"{collectionItem.GUID}\");");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;

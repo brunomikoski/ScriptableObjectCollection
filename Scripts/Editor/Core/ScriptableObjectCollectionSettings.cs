@@ -14,7 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public string DefaultGeneratedScriptsPath => defaultGeneratedScriptsPath;
 
         [FormerlySerializedAs("defaultNamespace")] [SerializeField]
-        private string namespacePrefix = "CompanyName";
+        private string namespacePrefix;
         public string NamespacePrefix => namespacePrefix;
         
         [SerializeField]

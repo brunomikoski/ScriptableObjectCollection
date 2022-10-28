@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.9.4]
+### Changed
+- Fixed namespace settings not been stored properly after changing once on the Wizard
+- Fixed `NullReference` on GetItemHeight()
+
 # [1.9.3]
 ### Add
 - Automatically define namespace for static collection generated file based on `CollectionItem`
@@ -356,6 +361,7 @@ public bool IsValidConsumable(Consumable consumable)
  - First initial working version 
 
 
+[1.9.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.4
 [1.9.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.3
 [1.9.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.2
 [1.9.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.1

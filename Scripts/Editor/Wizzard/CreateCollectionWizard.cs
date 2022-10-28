@@ -327,6 +327,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void OnEnable()
         {
             windowInstance = this;
+
+            if (string.IsNullOrEmpty(NamespacePrefix))
+                NamespacePrefix = Application.companyName;
         }
 
         public static void Show(string targetPath)

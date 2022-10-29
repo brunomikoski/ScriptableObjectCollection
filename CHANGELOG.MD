@@ -5,9 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+
+# [1.9.5]
 ### Changed
 - Fixed Compiler Warning
 - Fixed another nullreference on `GetCollectionItemHeight`
+- Fixed `NullReference` on `CheckForKeyboardShortcuts()`
+- Fixed reserved names C# names using `IgnoreCase` for comparison, now you can use reserved name as UpperCase
+- Now static generated classes will use the `cached` naming prefix, to avoid issues with reserved C# variables names
+- Fixed remaining Warning.
 
 # [1.9.4]
 ### Changed
@@ -364,6 +371,7 @@ public bool IsValidConsumable(Consumable consumable)
  - First initial working version 
 
 
+[1.9.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.5
 [1.9.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.4
 [1.9.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.3
 [1.9.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.2

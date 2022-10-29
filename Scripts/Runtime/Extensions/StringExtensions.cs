@@ -148,7 +148,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < RESERVED_KEYWORDS.Length; i++)
             {
                 string reservedKeyword = RESERVED_KEYWORDS[i];
-                if (reservedKeyword.Equals(targetName, StringComparison.OrdinalIgnoreCase))
+                if (reservedKeyword.Equals(targetName, StringComparison.Ordinal))
                     return true;
             }
 

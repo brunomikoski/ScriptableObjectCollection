@@ -306,7 +306,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 ScriptableObjectCollectionItem collectionItem = collection.Items[i];
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
                 AppendLine(writer, indentation, 
-                    $"private static {type.FullName} {collectionItem.name.Sanitize().FirstToLower()};");
+                    $"private static {type.FullName} cached{collectionItem.name.Sanitize().FirstToUpper()};");
             }
 
             AppendLine(writer, indentation);
@@ -339,7 +339,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObjectCollectionItem collectionItem = collection.Items[i];
                 string collectionNameFirstUpper = collectionItem.name.Sanitize().FirstToUpper();
-                string privateStaticName = collectionItem.name.Sanitize().FirstToLower();
+                string privateStaticName = $"cached{collectionNameFirstUpper}";
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
 
                 AppendLine(writer, indentation,

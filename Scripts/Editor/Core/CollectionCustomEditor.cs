@@ -203,7 +203,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         bool guiEnabled = GUI.enabled;
                         GUI.enabled = false;
-                        EditorGUI.ObjectField(rect, refItem, typeof(ScriptableObjectReferenceItem));
+                        EditorGUI.ObjectField(rect, refItem, typeof(ScriptableObjectReferenceItem), false);
                         GUI.enabled = guiEnabled;
                         rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
                     }

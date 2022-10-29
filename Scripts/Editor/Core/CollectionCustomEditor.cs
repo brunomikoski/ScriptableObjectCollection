@@ -116,7 +116,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private float GetCollectionItemHeight(int index)
         {
-            if (itemHidden == null || itemHidden[index] || index > itemHidden.Length - 1)
+            if (itemHidden == null || itemHidden.Length == 0 || itemHidden[index] || index > itemHidden.Length - 1)
                 return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
             return Mathf.Max(

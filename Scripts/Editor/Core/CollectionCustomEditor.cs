@@ -405,6 +405,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if (Event.current.type == EventType.Layout || Event.current.type == EventType.Repaint)
                 return;
+
+            if (reorderableList.index > reorderableList.serializedProperty.arraySize - 1)
+                return;
             
             SerializedProperty element = reorderableList.serializedProperty.GetArrayElementAtIndex(reorderableList.index);
 

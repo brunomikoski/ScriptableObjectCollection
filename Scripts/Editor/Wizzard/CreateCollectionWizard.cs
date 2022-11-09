@@ -246,6 +246,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        private ScriptableObjectCollectionAdvancedSettings settingsObject;
+
         private static readonly EditorPreferenceBool FoldoutSettings =
             new EditorPreferenceBool(FOLDOUT_SETTINGS_KEY, true);
         private static readonly EditorPreferenceBool FoldoutScriptableObject =
@@ -384,10 +386,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void DrawSections()
         {
             DrawSettingsSection();
-
             DrawScriptableObjectSection();
-
             DrawScriptsSection();
+            DrawAdvancedSettingsSection();
         }
 
         private void SetColorBasedOnFieldValidity(Fields field)
@@ -543,6 +544,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     GUI.enabled = wasGuiEnabled;
                 }
 
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUI.indentLevel--;
+            }
+        }
+
+        private void DrawAdvancedSettingsSection()
+        {   
+            using (new EditorGUILayout.VerticalScope("Box"))
+            {
+                FoldoutScriptableObject.Value = EditorGUILayout.BeginFoldoutHeaderGroup(
+                    FoldoutScriptableObject.Value, "Advanced Settings");
+
+                EditorGUI.indentLevel++;
+                if (FoldoutScriptableObject.Value)
+                {
+                    settingsObject = (ScriptableObjectCollectionAdvancedSettings)EditorGUILayout.ObjectField(
+                        "Settings Object",
+                        settingsObject, typeof(ScriptableObjectCollectionAdvancedSettings),
+                        false);
+                }
                 EditorGUILayout.EndFoldoutHeaderGroup();
                 EditorGUI.indentLevel--;
             }
@@ -712,7 +733,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObjectCollection collectionAsset =
                 ScriptableObjectCollectionUtils.CreateScriptableObjectOfType(targetType, 
                     windowInstance.ScriptableObjectFolderPath, windowInstance.CollectionName) as ScriptableObjectCollection;
-            
+
+            if (collectionAsset) 
+            {
+                if (windowInstance.settingsObject) 
+                {
+                    collectionAsset.AdvancedSettings = windowInstance.settingsObject.Settings;
+                } 
+                else 
+                {
+                    CollectionAdvancedSettings defaultSettings = collectionAsset.AdvancedSettings;
+                    defaultSettings.SetDefaultValues();
+                    collectionAsset.AdvancedSettings = defaultSettings;
+                }
+            }
+
             Selection.objects = new Object[] {collectionAsset};
             EditorGUIUtility.PingObject(collectionAsset);
 

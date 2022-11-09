@@ -30,22 +30,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected List<ScriptableObjectCollectionItem> items = new List<ScriptableObjectCollectionItem>();
         public List<ScriptableObjectCollectionItem> Items => items;
 
-#pragma warning disable 0414
-        [SerializeField]
-        private bool automaticallyLoaded = true;
-#if UNITY_EDITOR
-        [SerializeField]
-        private bool generateAsPartialClass = true;
-        [SerializeField]
-        private bool generateAsBaseClass = false;
-        [SerializeField]
-        private string generatedFileLocationPath;
-        [SerializeField]
-        private string generatedStaticClassFileName;
-        [SerializeField]
-        private string generateStaticFileNamespace;
-#pragma warning restore 0414
-#endif
+        [field: SerializeField]
+        public CollectionAdvancedSettings AdvancedSettings { get; set; }
 
         private void SyncGUID()
         {

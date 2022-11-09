@@ -192,14 +192,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
-
-            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
-            string nameSpace = collectionSerializedObject.FindProperty("generateStaticFileNamespace").stringValue;
+            SerializedProperty advancedSettings = collectionSerializedObject.DeepFindProperty("AdvancedSettings");
+        
+            string fileName = advancedSettings.DeepFindPropertyRelative("GeneratedStaticClassFileName").stringValue;
+            string nameSpace = advancedSettings.DeepFindPropertyRelative("GenerateStaticFileNamespace").stringValue;
            
-            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
-            bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
-            bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
+            string finalFolder = advancedSettings.DeepFindPropertyRelative("GeneratedFileLocationPath").stringValue;
+            bool writeAsPartial = advancedSettings.DeepFindPropertyRelative("GenerateAsPartialClass").boolValue;
+            bool useBaseClass = advancedSettings.DeepFindPropertyRelative("GenerateAsBaseClass").boolValue;
 
 
             AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);

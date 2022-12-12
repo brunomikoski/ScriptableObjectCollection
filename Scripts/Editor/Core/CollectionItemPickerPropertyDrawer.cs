@@ -59,6 +59,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Rect addButtonRect = new Rect(
                 goToButtonRect.xMax, position.y, CollectionItemPropertyDrawer.BUTTON_WIDTH, position.height);
             
+            // If the collection is empty, we cannot use MaskField with an empty array because that throws exceptions.
+            // Because of that we treat it as a special case where we draw a disabled PopUp field. You can then use
+            // the Go To and Add buttons to add an item to the collection and then you can begin picking.
             if (collection.Count == 0)
             {
                 // Calculate the rects for the label and the add button and such.

@@ -10,6 +10,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
     public class CollectionItemPropertyDrawer : PropertyDrawer
     {
+        public const float BUTTON_WIDTH = 30;
+        
         private static readonly CollectionItemEditorOptionsAttribute DefaultAttribute
             = new CollectionItemEditorOptionsAttribute();
 
@@ -210,7 +212,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (!OptionsAttribute.ShouldDrawGotoButton) return;
 
             Rect buttonRect = popupRect;
-            buttonRect.width = 30;
+            buttonRect.width = BUTTON_WIDTH;
             buttonRect.height = 18;
             popupRect.width -= buttonRect.width;
             buttonRect.x += popupRect.width;
@@ -227,7 +229,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
 
             Rect buttonRect = popupRect;
-            buttonRect.width = 30;
+            buttonRect.width = BUTTON_WIDTH;
             buttonRect.height = 18;
             popupRect.width -= buttonRect.width;
             buttonRect.x += popupRect.width;

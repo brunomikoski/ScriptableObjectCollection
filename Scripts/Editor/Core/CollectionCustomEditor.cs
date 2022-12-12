@@ -831,9 +831,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public static void SetLastAddedEnum(ScriptableObjectCollectionItem collectionItem)
+        public static ScriptableObjectCollectionItem AddNewItem(ScriptableObjectCollection collection, Type itemType)
         {
+            ScriptableObjectCollectionItem collectionItem = collection.AddNew(itemType);
+            Selection.objects = new Object[] {collection};
             LAST_ADDED_COLLECTION_ITEM = collectionItem;
+            return collectionItem;
         }
     }
 }

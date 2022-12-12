@@ -40,6 +40,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Now figure out the collection type.
             ScriptableObjectCollection collection;
             CollectionsRegistry.Instance.TryGetCollectionFromItemType(collectionItemType, out collection);
+            
+            // TODO: Should this support multiple collections? I'm not sure how that use case works. I just saw it
+            // being used elsewhere.
 
             if (collection == null)
             {

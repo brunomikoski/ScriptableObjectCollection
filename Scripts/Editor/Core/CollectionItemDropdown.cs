@@ -86,10 +86,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
                 ScriptableObjectCollection collection = collections.First();
-                ScriptableObjectCollectionItem collectionItem = collection.AddNew(itemType);
-                callback.Invoke(collectionItem);
-                Selection.objects = new Object[] {collection};
-                CollectionCustomEditor.SetLastAddedEnum(collectionItem);
+                ScriptableObjectCollectionItem newItem = CollectionCustomEditor.AddNewItem(collection, itemType);
+                callback.Invoke(newItem);
                 return;
             }
             

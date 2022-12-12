@@ -10,9 +10,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (type.IsArray)
                 return false;
 
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IList<>))
-                return true;
-
+            Type[] interfaces = type.GetInterfaces();
+            for (int i = 0; i < interfaces.Length; i++)
+            {
+                Type @interface = interfaces[i];
+                if (@interface.IsGenericType)
+                {
+                    if (@interface.GetGenericTypeDefinition() == typeof(ICollection<>))
+                        return true;
+                }
+            }
             return false;
         }
 

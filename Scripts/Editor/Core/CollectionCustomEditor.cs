@@ -55,6 +55,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CheckGeneratedCodeLocation();
             CheckIfCanBePartial();
             CheckGeneratedStaticFileName();
+            ValidateGeneratedFileNamespace();
             editorInstance = this;
         }
 
@@ -666,6 +667,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void DrawGeneratedFileNamespace()
         {
             SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
+            
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                string newFileName = EditorGUILayout.DelayedTextField("Namespace", fileNamespaceSerializedProperty.stringValue);
+                if (changeCheck.changed)
+                {
+                    fileNamespaceSerializedProperty.stringValue = newFileName;
+                    fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
+        }
+
+        private void ValidateGeneratedFileNamespace()
+        {
+            SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
             if (string.IsNullOrEmpty(fileNamespaceSerializedProperty.stringValue))
             {
                 if (collection != null)
@@ -676,16 +692,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         fileNamespaceSerializedProperty.stringValue = targetNamespace;
                         fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
                     }
-                }
-            }
-            
-            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-            {
-                string newFileName = EditorGUILayout.DelayedTextField("Namespace", fileNamespaceSerializedProperty.stringValue);
-                if (changeCheck.changed)
-                {
-                    fileNamespaceSerializedProperty.stringValue = newFileName;
-                    fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
                 }
             }
         }

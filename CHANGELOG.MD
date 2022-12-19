@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+# [1.9.7]
+### Added
+- Initial string search support
+- 
+### Changed
+- Fixed issue with namespace not been updated on first usage
+
 # [1.9.6]
 ### Added
 - Implemented the new `CollectionItemPicker<ItemType>` that act as a `[Flag]` enum, on the inspector and is a List under the hood. Thanks [@RoyTheunissen](https://github.com/RoyTheunissen) for the contribution
@@ -376,7 +383,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
-
+[1.9.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.7
 [1.9.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.6
 [1.9.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.5
 [1.9.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.4

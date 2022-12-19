@@ -366,6 +366,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
+        public bool TryGetItemByName(string targetItemName, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                ScriptableObjectCollectionItem item = items[i];
+                if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
+                {
+                    scriptableObjectCollectionItem = item;
+                    return true;
+                }
+            }
+
+            scriptableObjectCollectionItem = null;
+            return false;
+        }
+
         public bool TryGetItemByGUID(string itemGUID, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
         {
             for (int i = 0; i < items.Count; i++)
@@ -396,6 +412,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected virtual void ClearCachedValues()
         {
         }
+
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>

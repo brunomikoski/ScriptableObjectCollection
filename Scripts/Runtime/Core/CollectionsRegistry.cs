@@ -54,6 +54,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
+        
+        public bool TryGetCollectionByName(string targetCollectionName, out ScriptableObjectCollection resultCollection)
+        {
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                if (collection.name.Equals(targetCollectionName, StringComparison.Ordinal))
+                {
+                    resultCollection = collection;
+                    return true;
+                }
+            }
+
+            resultCollection = null;
+            return false;
+        }
+
+        
         public List<T> GetAllCollectionItemsOfType<T>() where T : ScriptableObjectCollectionItem
         {
             List<T> result = new List<T>();

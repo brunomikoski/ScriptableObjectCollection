@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 # [1.9.7]
 ### Added
 - Initial string search support
-- 
+
+
 ### Changed
 - Fixed issue with namespace not been updated on first usage
 

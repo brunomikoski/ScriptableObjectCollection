@@ -405,6 +405,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         internal void PrepareForEditorMode()
         {
+            if(editorSerializedItems == null)
+                return;
+
             items = new List<ScriptableObjectCollectionItem>(editorSerializedItems);
             ObjectUtility.SetDirty(this);
         }

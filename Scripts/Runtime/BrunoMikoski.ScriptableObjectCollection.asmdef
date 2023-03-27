@@ -1,10 +1,7 @@
 {
     "name": "BrunoMikoski.ScriptableObjectCollection",
     "rootNamespace": "",
-    "references": [
-        "Unity.Addressables",
-        "Unity.ResourceManager"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -12,12 +9,6 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [
-        {
-            "name": "com.unity.addressables",
-            "expression": "1.0.0",
-            "define": "SOC_ADDRESSABLES"
-        }
-    ],
+    "versionDefines": [],
     "noEngineReferences": false
 }

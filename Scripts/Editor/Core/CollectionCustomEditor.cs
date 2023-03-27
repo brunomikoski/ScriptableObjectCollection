@@ -361,16 +361,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 DrawSynchronizeButton();
                 reorderableList.DoLayoutList();
                 DrawBottomMenu();
-#if SOC_ADDRESSABLES
-                using (new EditorGUILayout.HorizontalScope("Box"))
-                {
-                    if (GUILayout.Button($"Convert To References", EditorStyles.miniButtonRight))
-                    {
-                        SessionState.SetBool(ENABLE_GUI_KEY, false);
-                        EditorApplication.delayCall += () => ReferenceConverter.StartProcess(reorderableList);
-                    }
-                }
-#endif
             }
             DrawSettings();
             CheckForKeyboardShortcuts();

@@ -6,10 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.9.8]
+### Changed
+- Fixed issue with name parser that would still treat digits as string and add to the final name
+
+### Removed
+ - Removed support for Addressables, it was not working properly and it was not being used by a lot of teams, I think the addressables support should be handled elsewhere.
+
+### Breaking Changes
+- If you used the Addressables integration `SOC_ADDRESSABLES_SUPPORT` be extra careful when upgrading
+
 # [1.9.7]
 ### Added
 - Initial string search support
-
 
 ### Changed
 - Fixed issue with namespace not been updated on first usage
@@ -384,6 +393,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[1.9.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.8
 [1.9.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.7
 [1.9.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.6
 [1.9.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.5

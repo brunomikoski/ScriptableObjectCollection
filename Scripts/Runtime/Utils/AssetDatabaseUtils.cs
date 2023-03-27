@@ -5,7 +5,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class AssetDatabaseUtils
     {
-        public static void CreatePathIfDontExist(string targetPath)
+        public static void CreatePathIfDoesntExist(string targetPath)
         {
 #if UNITY_EDITOR
             string absolutePath = Path.GetFullPath(targetPath);

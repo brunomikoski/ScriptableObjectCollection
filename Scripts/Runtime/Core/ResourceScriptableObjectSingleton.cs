@@ -26,7 +26,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Core
 #else
                 resultInstance = CreateInstance<TInstance>();
 
-                AssetDatabaseUtils.CreatePathIfDontExist("Assets/Resources");
+                AssetDatabaseUtils.CreatePathIfDoesntExist("Assets/Resources");
                 UnityEditor.AssetDatabase.CreateAsset(resultInstance, $"Assets/Resources/{typeof(TInstance).Name}.asset");
                 UnityEditor.AssetDatabase.SaveAssets();
                 UnityEditor.AssetDatabase.Refresh();

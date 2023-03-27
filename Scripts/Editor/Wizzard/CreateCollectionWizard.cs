@@ -599,7 +599,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             string fileName = $"{collectionItemName}IndirectReference";
 
-            AssetDatabaseUtils.CreatePathIfDontExist(folderPath);
+            AssetDatabaseUtils.CreatePathIfDoesntExist(folderPath);
             using (StreamWriter writer = new StreamWriter(Path.Combine(folderPath, $"{fileName}.cs")))
             {
                 int indentation = 0;

@@ -13,7 +13,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace,
             string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
         {
-            AssetDatabaseUtils.CreatePathIfDontExist(parentFolder);
+            AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolder);
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
 
             if (File.Exists(Path.GetFullPath(finalFilePath)))
@@ -202,7 +202,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
 
 
-            AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);
+            AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
             using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.cs")))
             {
                 int indentation = 0;

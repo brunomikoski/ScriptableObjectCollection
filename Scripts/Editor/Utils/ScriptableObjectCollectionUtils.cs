@@ -40,7 +40,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObject targetCollection = ScriptableObject.CreateInstance(targetType);
             targetCollection.name = name;
             
-            AssetDatabaseUtils.CreatePathIfDontExist(Path.Combine(path, "Items"));
+            AssetDatabaseUtils.CreatePathIfDoesntExist(Path.Combine(path, "Items"));
 
             string collectionAssetPath = Path.Combine(path, $"{name}.asset");
             AssetDatabase.CreateAsset(targetCollection, collectionAssetPath);

@@ -200,28 +200,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                 {
-                    if (collectionItemSerializedObject.targetObject is ScriptableObjectCollectionItem refItem)
+                    for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
                     {
                         bool guiEnabled = GUI.enabled;
-                        GUI.enabled = false;
-                        EditorGUI.ObjectField(rect, refItem, typeof(ScriptableObjectReferenceItem), false);
+                        if (iterator.displayName.Equals("Script"))
+                            GUI.enabled = false;
+
+                        EditorGUI.PropertyField(rect, iterator, true);
                         GUI.enabled = guiEnabled;
-                        rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-                    }
-                    else
-                    {
-                        for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
-                        {
-                            bool guiEnabled = GUI.enabled;
-                            if (iterator.displayName.Equals("Script"))
-                                GUI.enabled = false;
 
-                            EditorGUI.PropertyField(rect, iterator, true);
-                            GUI.enabled = guiEnabled;
-
-                            rect.y += EditorGUI.GetPropertyHeight(iterator, true) +
-                                      EditorGUIUtility.standardVerticalSpacing;
-                        }
+                        rect.y += EditorGUI.GetPropertyHeight(iterator, true) +
+                                  EditorGUIUtility.standardVerticalSpacing;
                     }
 
                     if (changeCheck.changed)

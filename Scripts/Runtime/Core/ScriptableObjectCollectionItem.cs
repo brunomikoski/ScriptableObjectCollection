@@ -4,18 +4,7 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public interface ISOCItem : IComparable<ISOCItem>
-    {
-        string GUID { get; }
-        ScriptableObjectCollection Collection { get; }
-        void SetCollection(ScriptableObjectCollection collection);
-        int CompareTo(ISOCItem other);
-        void ValidateGUID();
-        void GenerateNewGUID();
-    }
-    
-    
-    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>, ISOCItem
+    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>
     {
         [SerializeField, HideInInspector]
         private string guid;
@@ -58,11 +47,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        int ISOCItem.CompareTo(ISOCItem other)
-        {
-            throw new NotImplementedException();
-        }
-
         public void SetCollection(ScriptableObjectCollection collection)
         {
             cachedScriptableObjectCollection = collection;
@@ -71,11 +55,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
         public int CompareTo(ScriptableObjectCollectionItem other)
-        {
-            return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
-        }
-
-        int IComparable<ISOCItem>.CompareTo(ISOCItem other)
         {
             return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
         }

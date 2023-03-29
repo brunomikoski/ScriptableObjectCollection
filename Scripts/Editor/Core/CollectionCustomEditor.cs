@@ -380,7 +380,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (GUILayout.Button("Synchronize Assets"))
             {
-                collection.Synchronize();
                 serializedObject.Update();
                 CheckHeightsAndHiddenArraySizes();
             }

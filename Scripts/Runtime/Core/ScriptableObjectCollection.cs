@@ -183,8 +183,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return item;
         }
-
-        public abstract void Synchronize();
 #endif
 
         public Type GetItemType()
@@ -562,37 +560,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
 #if UNITY_EDITOR
-        public override void Synchronize()
-        {
-            List<ObjectType> newList = new List<ObjectType>();
 
-            // purge all invalid entries, this calls GetEnumerator which skips invalid entries
-            using (IEnumerator<ObjectType> enumerator = GetEnumerator())
-            {
-                while (enumerator.MoveNext())
-                {
-                    ObjectType item = enumerator.Current;
-                    newList.Add(item);
-                }
-            }
-
-            // add any missing, but existing entries
-            string[] guids = AssetDatabase.FindAssets("t:" + typeof(ObjectType));
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                ObjectType asset = AssetDatabase.LoadAssetAtPath<ObjectType>(path);
-                if (newList.Contains(asset)) 
-                    continue;
-
-                newList.Add(asset);
-            }
-
-            items.Clear();
-            items.AddRange(newList);
-
-            Debug.Log($"{typeof(ObjectType)}: {items.Count}");
-        }
 #endif
     }
 }

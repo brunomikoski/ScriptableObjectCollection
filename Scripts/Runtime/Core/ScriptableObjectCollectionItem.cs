@@ -1,9 +1,21 @@
 using System;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>
+    public interface ISOCItem : IComparable<ISOCItem>
+    {
+        string GUID { get; }
+        ScriptableObjectCollection Collection { get; }
+        void SetCollection(ScriptableObjectCollection collection);
+        int CompareTo(ISOCItem other);
+        void ValidateGUID();
+        void GenerateNewGUID();
+    }
+    
+    
+    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>, ISOCItem
     {
         [SerializeField, HideInInspector]
         private string guid;
@@ -46,15 +58,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public bool IsReference()
+        int ISOCItem.CompareTo(ISOCItem other)
         {
-            return TryGetReference(out _);
-        }
-        
-        public virtual bool TryGetReference(out ScriptableObjectReferenceItem reference)
-        {
-            reference = null;
-            return false;
+            throw new NotImplementedException();
         }
 
         public void SetCollection(ScriptableObjectCollection collection)
@@ -65,6 +71,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
         public int CompareTo(ScriptableObjectCollectionItem other)
+        {
+            return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
+        }
+
+        int IComparable<ISOCItem>.CompareTo(ISOCItem other)
         {
             return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
         }

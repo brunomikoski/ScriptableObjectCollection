@@ -200,7 +200,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
                 {
-                    if (collectionItemSerializedObject.targetObject is ScriptableObjectCollectionItem refItem && refItem.IsReference())
+                    if (collectionItemSerializedObject.targetObject is ScriptableObjectCollectionItem refItem)
                     {
                         bool guiEnabled = GUI.enabled;
                         GUI.enabled = false;

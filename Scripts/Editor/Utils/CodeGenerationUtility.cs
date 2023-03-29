@@ -351,21 +351,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation--;
                 AppendLine(writer, indentation, "}");
                 AppendLine(writer, indentation);
-                if (collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference))
-                {
-                    if (reference.TargetGuid != null)
-                    {
-                        GenerateLoadUtilForReferences(writer, ref indentation, reference, collectionItem.name);
-                    }
-                    else
-                    {
-                        string warningMessage =
-                            $"Item \"{collectionItem.name}\" does not contain a valid reference! " +
-                            $"Assign a valid reference and regenerate the static class!";
-                        Debug.LogWarning(warningMessage);
-                        AppendLine(writer, indentation, $"// {warningMessage}");
-                    }
-                }
             }
             
             
@@ -377,47 +362,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AppendLine(writer, indentation, "}");
             
             AppendLine(writer, indentation);
-        }
-
-        private static void GenerateLoadUtilForReferences(StreamWriter writer, ref int indentation,
-            ScriptableObjectReferenceItem referenceItem, string name)
-        {
-            string staticGetter = name.Sanitize().FirstToUpper();
-            ScriptableObjectCollectionItem item = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(
-                AssetDatabase.GUIDToAssetPath(referenceItem.TargetGuid));
-            string itemName = item.name.Sanitize().FirstToUpper();
-            
-            AppendLine(writer, indentation, $"[Obsolete(\"Items are no longer automatically loaded. Use Load{itemName} instead.\", true)]");
-            AppendLine(writer, indentation, $"public static {item.GetType()} {itemName};");
-            AppendLine(writer, indentation);
-            AppendLine(writer, indentation,
-                $"public static {item.GetType()} Load{itemName}()");
-            AppendLine(writer, indentation, "{");
-            indentation++;
-            AppendLine(writer, indentation, $"return {staticGetter}.Load();");
-            indentation--;
-            AppendLine(writer, indentation, "}");
-            AppendLine(writer, indentation);
-        }
-
-        public static string[] ReferenceClassCode(string itemClassName)
-        {
-            return new[]
-            {
-                "[SerializeField] private ScriptableObjectReferenceItem referenceItem = new ScriptableObjectReferenceItem();",
-                "public ScriptableObjectReferenceItem Reference => referenceItem;",
-
-                $"public static implicit operator ScriptableObjectReferenceItem({itemClassName}Reference {itemClassName.FirstToLower()}) => {itemClassName.FirstToLower()}.Reference;",
-
-                "public override bool TryGetReference(out ScriptableObjectReferenceItem reference)",
-                "{",
-                "reference = referenceItem;",
-                "return true;",
-                "}",
-                $"public {itemClassName} Load() => referenceItem.Load<{itemClassName}>();",
-                $"public Task<{itemClassName}> LoadAsync() => referenceItem.LoadAsync<{itemClassName}>();",
-                "public void Unload() => referenceItem.Unload();"
-            };
         }
     }
 }

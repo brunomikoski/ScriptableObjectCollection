@@ -40,8 +40,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         }
                         else
                         {
-                            if (!scriptableObjectCollectionItem.Collection.Contains(scriptableObjectCollectionItem) && 
-                                !scriptableObjectCollectionItem.Collection.ContainsReferenceTo(scriptableObjectCollectionItem))
+                            if (!scriptableObjectCollectionItem.Collection.Contains(scriptableObjectCollectionItem))
                             {
                                 scriptableObjectCollectionItem.Collection.Add(scriptableObjectCollectionItem);
                                 Debug.Log($"{scriptableObjectCollectionItem.name} has collection assigned "

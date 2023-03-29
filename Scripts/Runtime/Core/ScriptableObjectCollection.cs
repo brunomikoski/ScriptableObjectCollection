@@ -146,7 +146,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             ScriptableObjectCollectionItem item = (ScriptableObjectCollectionItem)CreateInstance(collectionType);
             string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
-            string parentFolderPath = Path.Combine(assetPath, item.IsReference() ? "References" : "Items");
+            string parentFolderPath = Path.Combine(assetPath, "Items" );
             AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolderPath);
 
             string itemName = assetName;
@@ -227,13 +227,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool Contains(ScriptableObjectCollectionItem item)
         {
             return items.Contains(item);
-        }
-
-        public bool ContainsReferenceTo(ScriptableObjectCollectionItem item)
-        {
-            return items.Exists(collectionItem =>
-                collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference) && 
-                String.Equals(reference.TargetGuid, item.GUID, StringComparison.OrdinalIgnoreCase));
         }
 
         public int IndexOf(object value)
@@ -352,9 +345,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 if (item.Collection.Contains(item))
-                    continue;
-                
-                if (item.Collection.ContainsReferenceTo(item))
                     continue;
                 
                 Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");

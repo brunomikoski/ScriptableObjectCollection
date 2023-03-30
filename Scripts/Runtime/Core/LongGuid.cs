@@ -4,30 +4,30 @@ using UnityEngine;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [Serializable]
-    public struct ULongGuid : IEquatable<ULongGuid>
+    public struct LongGuid : IEquatable<LongGuid>
     {
         [SerializeField]
-        private ulong value1;
+        private long value1;
         [SerializeField]
-        private ulong value2;
+        private long value2;
 
-        public ULongGuid(ulong guidValue1, ulong guidValue2)
+        public LongGuid(long guidValue1, long guidValue2)
         {
             value1 = guidValue1;
             value2 = guidValue2;
         }
 
-        public static ULongGuid NewGuid()
+        public static LongGuid NewGuid()
         {
             Guid guid = Guid.NewGuid();
             byte[] guidBytes = guid.ToByteArray();
-            ulong guidValue1 = BitConverter.ToUInt64(guidBytes, 0);
-            ulong guidValue2 = BitConverter.ToUInt64(guidBytes, 8);
+            long guidValue1 = BitConverter.ToInt64(guidBytes, 0);
+            long guidValue2 = BitConverter.ToInt64(guidBytes, 8);
 
-            return new ULongGuid(guidValue1, guidValue2);
+            return new LongGuid(guidValue1, guidValue2);
         }
 
-        public (ulong, ulong) GetValue()
+        public (long, long) GetValue()
         {
             return (value1, value2);
         }
@@ -44,14 +44,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override bool Equals(object obj)
         {
-            if (obj is ULongGuid other)
+            if (obj is LongGuid other)
             {
                 return Equals(other);
             }
             return false;
         }
 
-        public bool Equals(ULongGuid other)
+        public bool Equals(LongGuid other)
         {
             return value1 == other.value1 && value2 == other.value2;
         }
@@ -61,12 +61,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return HashCode.Combine(value1, value2);
         }
 
-        public static bool operator ==(ULongGuid left, ULongGuid right)
+        public static bool operator ==(LongGuid left, LongGuid right)
         {
             return left.Equals(right);
         }
 
-        public static bool operator !=(ULongGuid left, ULongGuid right)
+        public static bool operator !=(LongGuid left, LongGuid right)
         {
             return !(left == right);
         }

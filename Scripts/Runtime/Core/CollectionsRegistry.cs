@@ -146,7 +146,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             throw new Exception("GetCollectionByGUID(ULongGuid guid) is obsolete, please regenerate your static class");
         }
 
-        public ScriptableObjectCollection GetCollectionByGUID(ULongGuid guid)
+        public ScriptableObjectCollection GetCollectionByGUID(LongGuid guid)
         {
             for (int i = 0; i < collections.Count; i++)
             {
@@ -207,7 +207,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        public bool TryGetCollectionByGUID(ULongGuid targetGUID, out ScriptableObjectCollection resultCollection)
+        public bool TryGetCollectionByGUID(LongGuid targetGUID, out ScriptableObjectCollection resultCollection)
         {
             for (int i = 0; i < collections.Count; i++)
             {
@@ -223,7 +223,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
-        public bool TryGetCollectionByGUID<T>(ULongGuid targetGUID, out ScriptableObjectCollection<T> resultCollection) where T : ScriptableObjectCollectionItem
+        public bool TryGetCollectionByGUID<T>(LongGuid targetGUID, out ScriptableObjectCollection<T> resultCollection) where T : ScriptableObjectCollectionItem
         {
             if (TryGetCollectionByGUID(targetGUID, out ScriptableObjectCollection foundCollection))
             {

@@ -6,21 +6,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>, ISOCItem
     {
         [SerializeField, HideInInspector]
-        private ULongGuid guid;
-        public ULongGuid GUID
+        private LongGuid guid;
+        public LongGuid GUID
         {
             get
             {
                 if (guid.IsValid())
                     return guid;
                 
-                guid = ULongGuid.NewGuid();
+                guid = LongGuid.NewGuid();
                 return guid;
             }
         }
 
         [SerializeField, HideInInspector]
-        private ULongGuid collectionGUID;
+        private LongGuid collectionGUID;
         
         private ScriptableObjectCollection cachedScriptableObjectCollection;
         public ScriptableObjectCollection Collection
@@ -96,7 +96,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public void GenerateGUID()
         {
-            guid = ULongGuid.NewGuid();
+            guid = LongGuid.NewGuid();
         }
     }
 }

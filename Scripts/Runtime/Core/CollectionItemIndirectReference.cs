@@ -8,19 +8,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public abstract class CollectionItemIndirectReference
     {
         [SerializeField]
-        protected ulong collectionItemGUIDValueA;
+        protected long collectionItemGUIDValueA;
         [SerializeField]
-        protected ulong collectionItemGUIDValueB;
+        protected long collectionItemGUIDValueB;
 
-        protected ULongGuid CollectionItemGUID => new ULongGuid(collectionItemGUIDValueA, collectionItemGUIDValueB);
+        protected LongGuid CollectionItemGUID => new LongGuid(collectionItemGUIDValueA, collectionItemGUIDValueB);
 
 
         [SerializeField]
-        protected ulong collectionGUIDValueA;
+        protected long collectionGUIDValueA;
         [SerializeField]
-        protected ulong collectionGUIDValueB;
+        protected long collectionGUIDValueB;
 
-        protected ULongGuid CollectionGUID => new ULongGuid(collectionGUIDValueA, collectionGUIDValueB);
+        protected LongGuid CollectionGUID => new LongGuid(collectionGUIDValueA, collectionGUIDValueB);
 
     }
 
@@ -64,12 +64,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void FromCollectionItem(ScriptableObjectCollectionItem item)
         {
-            (ulong, ulong) collectionItemValues = item.GUID.GetValue();
+            (long, long) collectionItemValues = item.GUID.GetValue();
             collectionItemGUIDValueA = collectionItemValues.Item1;
             collectionItemGUIDValueB = collectionItemValues.Item2;
 
 
-            (ulong, ulong) collectionGUIDValues = item.Collection.GUID.GetValue();
+            (long,long) collectionGUIDValues = item.Collection.GUID.GetValue();
             collectionGUIDValueA = collectionGUIDValues.Item1;
             collectionGUIDValueB = collectionGUIDValues.Item2;
         }

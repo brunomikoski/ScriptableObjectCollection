@@ -13,15 +13,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public abstract class ScriptableObjectCollection : ScriptableObject, IList
     {
         [SerializeField]
-        private ULongGuid guid;
-        public ULongGuid GUID
+        private LongGuid guid;
+        public LongGuid GUID
         {
             get
             {
                 if (guid.IsValid())
                     return guid;
                 
-                guid = ULongGuid.NewGuid();
+                guid = LongGuid.NewGuid();
                 return guid;
             }
         }
@@ -328,7 +328,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        public bool TryGetItemByGUID(ULongGuid itemGUID, out ScriptableObject scriptableObjectCollectionItem)
+        public bool TryGetItemByGUID(LongGuid itemGUID, out ScriptableObject scriptableObjectCollectionItem)
         {
             for (int i = 0; i < items.Count; i++)
             {
@@ -454,7 +454,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 $"GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class");
         }
 
-        public ObjectType GetItemByGUID(ULongGuid targetGUID)
+        public ObjectType GetItemByGUID(LongGuid targetGUID)
         {
             for (int i = 0; i < Items.Count; i++)
             {

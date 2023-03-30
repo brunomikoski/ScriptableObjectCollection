@@ -41,7 +41,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             int indexOfArrayPart = property.propertyPath.IndexOf('[');
             if (indexOfArrayPart > -1)
             {
-                if (string.Equals(label.text, itemGUIDValueASerializedProperty.ulongValue.ToString(), StringComparison.Ordinal))
+                if (string.Equals(label.text, itemGUIDValueASerializedProperty.longValue.ToString(), StringComparison.Ordinal))
                 {
                     label.text = $"Element {property.propertyPath.Substring(indexOfArrayPart + 1, 1)}";
                 }
@@ -70,23 +70,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (item == null)
             {
-                itemGUIDValueASerializedProperty.ulongValue = 0;
-                itemGUIDValueBSerializedProperty.ulongValue = 0;
-                collectionGUIDValueASerializedProperty.ulongValue = 0;
-                collectionGUIDValueBSerializedProperty.ulongValue = 0;
+                itemGUIDValueASerializedProperty.longValue = 0;
+                itemGUIDValueBSerializedProperty.longValue = 0;
+                collectionGUIDValueASerializedProperty.longValue = 0;
+                collectionGUIDValueBSerializedProperty.longValue = 0;
                 
             }
             else
             {
                 if (item is ISOCItem socItem)
                 {
-                    (ulong, ulong) itemGUIDValues = socItem.GUID.GetValue();
-                    itemGUIDValueASerializedProperty.ulongValue = itemGUIDValues.Item1;
-                    itemGUIDValueBSerializedProperty.ulongValue = itemGUIDValues.Item2;
+                    (long, long) itemGUIDValues = socItem.GUID.GetValue();
+                    itemGUIDValueASerializedProperty.longValue = (long) itemGUIDValues.Item1;
+                    itemGUIDValueBSerializedProperty.longValue = (long) itemGUIDValues.Item2;
 
-                    (ulong, ulong) collectionGUIDValues = socItem.Collection.GUID.GetValue();
-                    collectionGUIDValueASerializedProperty.ulongValue = collectionGUIDValues.Item1;
-                    collectionGUIDValueBSerializedProperty.ulongValue = collectionGUIDValues.Item2;
+                    (long, long) collectionGUIDValues = socItem.Collection.GUID.GetValue();
+                    collectionGUIDValueASerializedProperty.longValue = (long) collectionGUIDValues.Item1;
+                    collectionGUIDValueBSerializedProperty.longValue = (long) collectionGUIDValues.Item2;
                 }
             }
         }
@@ -95,14 +95,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             item = null;
 
-            if (itemGUIDValueASerializedProperty.ulongValue == 0 ||
-                itemGUIDValueBSerializedProperty.ulongValue == 0 ||
-                collectionGUIDValueASerializedProperty.ulongValue == 0 ||
-                collectionGUIDValueBSerializedProperty.ulongValue == 0)
+            if (itemGUIDValueASerializedProperty.longValue == 0 ||
+                itemGUIDValueBSerializedProperty.longValue == 0 ||
+                collectionGUIDValueASerializedProperty.longValue == 0 ||
+                collectionGUIDValueBSerializedProperty.longValue == 0)
                 return false;
             
-            ULongGuid itemGUID = new ULongGuid(itemGUIDValueASerializedProperty.ulongValue, itemGUIDValueBSerializedProperty.ulongValue);
-            ULongGuid collectionGUID = new ULongGuid(collectionGUIDValueASerializedProperty.ulongValue, collectionGUIDValueBSerializedProperty.ulongValue);
+            LongGuid itemGUID = new LongGuid(itemGUIDValueASerializedProperty.longValue, itemGUIDValueBSerializedProperty.longValue);
+            LongGuid collectionGUID = new LongGuid(collectionGUIDValueASerializedProperty.longValue, collectionGUIDValueBSerializedProperty.longValue);
             
             if (!CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID, out ScriptableObjectCollection collection))
                 return false;

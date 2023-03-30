@@ -12,8 +12,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public class CollectionSettingsData
         {
             [SerializeField]
-            private ULongGuid collectionGUID;
-            public ULongGuid CollectionGuid => collectionGUID;
+            private LongGuid collectionGUID;
+            public LongGuid CollectionGuid => collectionGUID;
 
             [SerializeField]
             private bool automaticallyLoaded = true;
@@ -39,7 +39,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             private string generateStaticFileNamespace;
             public string GenerateStaticFileNamespace => generateStaticFileNamespace;
 
-            public CollectionSettingsData(ULongGuid collectionGuid)
+            public CollectionSettingsData(LongGuid collectionGuid)
             {
                 collectionGUID = collectionGuid;
             }
@@ -80,7 +80,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private CollectionSettingsData[] collectionsSettings = new CollectionSettingsData[0];
 
         [SerializeField]
-        private string generatedScriptsDefaultFilePath = "Assets/Generated/Scripts/";
+        private string generatedScriptsDefaultFilePath = "Assets\\Generated\\Scripts";
         public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
 
         public bool IsCollectionAutoLoaded(ScriptableObjectCollection targetCollection)
@@ -170,6 +170,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return collectionSettings;
 
             collectionSettings = new CollectionSettingsData(targetCollection.GUID);
+            collectionSettings.SetGeneratedFileLocationPath(GeneratedScriptsDefaultFilePath);
             Array.Resize(ref collectionsSettings, collectionsSettings.Length + 1);
             collectionsSettings[collectionsSettings.Length - 1] = collectionSettings;
             SetDirty();

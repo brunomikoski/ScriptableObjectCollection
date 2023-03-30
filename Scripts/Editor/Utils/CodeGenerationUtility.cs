@@ -317,9 +317,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             indentation++;
             AppendLine(writer, indentation, $"if ({cachedValuesName} == null)");
             indentation++;
-            (ulong, ulong) collectionGUIDValues = collection.GUID.GetValue();
+            (long, long) collectionGUIDValues = collection.GUID.GetValue();
             AppendLine(writer, indentation,
-                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(new ULongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}));");
+                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}));");
             indentation--;
             AppendLine(writer, indentation, $"return {cachedValuesName};");
             indentation--;
@@ -351,9 +351,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
-                (ulong, ulong) collectionItemGUIDValues = socItem.GUID.GetValue();
+                (long, long) collectionItemGUIDValues = socItem.GUID.GetValue();
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(new ULongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}));");
+                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}));");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;

@@ -1,17 +1,18 @@
 ﻿using UnityEditor;
+using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CopyCollectionItemUtils
     {
-        private static ScriptableObjectCollectionItem source;
+        private static ScriptableObject source;
 
-        public static void SetSource(ScriptableObjectCollectionItem targetSource)
+        public static void SetSource(ScriptableObject targetSource)
         {
             source = targetSource;
         }
 
-        public static bool CanPasteToTarget(ScriptableObjectCollectionItem target)
+        public static bool CanPasteToTarget(ScriptableObject target)
         {
             if (source == null)
                 return false;
@@ -19,7 +20,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return target.GetType() == source.GetType();
         }
         
-        public static void ApplySourceToTarget(ScriptableObjectCollectionItem target)
+        public static void ApplySourceToTarget(ScriptableObject target)
         {
             if (source == null)
                 return;

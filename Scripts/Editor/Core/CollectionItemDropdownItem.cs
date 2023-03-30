@@ -1,12 +1,13 @@
 ﻿using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     public sealed class CollectionItemDropdownItem : AdvancedDropdownItem
     {
-        internal readonly ScriptableObjectCollectionItem CollectionItem;
+        internal readonly ScriptableObject CollectionItem;
 
-        public CollectionItemDropdownItem(ScriptableObjectCollectionItem target) : base(target.name)
+        public CollectionItemDropdownItem(ScriptableObject target) : base(target.name)
         {
             CollectionItem = target;
         }

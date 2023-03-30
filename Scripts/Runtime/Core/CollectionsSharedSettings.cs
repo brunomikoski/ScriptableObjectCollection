@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 
@@ -11,8 +12,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public class CollectionSettingsData
         {
             [SerializeField]
-            private string collectionGUID;
-            public string CollectionGuid => collectionGUID;
+            private ULongGuid collectionGUID;
+            public ULongGuid CollectionGuid => collectionGUID;
 
             [SerializeField]
             private bool automaticallyLoaded = true;
@@ -38,7 +39,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             private string generateStaticFileNamespace;
             public string GenerateStaticFileNamespace => generateStaticFileNamespace;
 
-            public CollectionSettingsData(string collectionGuid)
+            public CollectionSettingsData(ULongGuid collectionGuid)
             {
                 collectionGUID = collectionGuid;
             }
@@ -195,7 +196,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collectionsSettings.Length; i++)
             {
                 CollectionSettingsData collectionsSetting = collectionsSettings[i];
-                if(string.Equals(collectionsSetting.CollectionGuid, targetCollection.GUID, StringComparison.Ordinal))
+                if(collectionsSetting.CollectionGuid == targetCollection.GUID)
                 {
                     collectionSettingsData = collectionsSetting;
                     return true;
@@ -210,6 +211,30 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             generatedScriptsDefaultFilePath = assetPath;
             SetDirty();
+        }
+
+        public void Validate()
+        {
+            List<CollectionSettingsData> validItems = new List<CollectionSettingsData>();
+            bool foundInvalidItems = false;
+            for (int i = collectionsSettings.Length - 1; i >= 0; i--)
+            {
+                CollectionSettingsData collectionSettingsData = collectionsSettings[i];
+                if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionSettingsData.CollectionGuid,out ScriptableObjectCollection collection))
+                {
+                    validItems.Add(collectionSettingsData);
+                }
+                else
+                {
+                     foundInvalidItems = true;
+                }
+            }
+
+            if (foundInvalidItems)
+            {
+                collectionsSettings = validItems.ToArray();
+                SetDirty();
+            }
         }
     }
 }

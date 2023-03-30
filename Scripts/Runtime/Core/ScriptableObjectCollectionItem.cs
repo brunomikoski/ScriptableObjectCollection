@@ -3,33 +3,24 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>
+    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>, ISOCItem
     {
         [SerializeField, HideInInspector]
-        private string guid;
-        public string GUID
+        private ULongGuid guid;
+        public ULongGuid GUID
         {
             get
             {
-                if (!string.IsNullOrEmpty(guid))
+                if (guid.IsValid())
                     return guid;
                 
-#if UNITY_EDITOR
-                string assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
-                if (!string.IsNullOrEmpty(assetPath))
-                {
-                    guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
-                    ObjectUtility.SetDirty(this);
-                }
-#else
-                guid = Guid.NewGuid().ToString();
-#endif
+                guid = ULongGuid.NewGuid();
                 return guid;
             }
         }
 
         [SerializeField, HideInInspector]
-        private string collectionGUID;
+        private ULongGuid collectionGUID;
         
         private ScriptableObjectCollection cachedScriptableObjectCollection;
         public ScriptableObjectCollection Collection
@@ -38,7 +29,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (cachedScriptableObjectCollection == null)
                 {
-                    if (!string.IsNullOrEmpty(collectionGUID))
+                    if (!collectionGUID.IsValid())
                     {
                         cachedScriptableObjectCollection = CollectionsRegistry.Instance.GetCollectionByGUID(collectionGUID);
                     }
@@ -67,7 +58,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public int CompareTo(ScriptableObjectCollectionItem other)
         {
-            return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
+            return string.Compare(name, other.name, StringComparison.Ordinal);
         }
 
         public override bool Equals(object o)
@@ -103,9 +94,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return GUID.GetHashCode();
         }
         
-        public void InvalidateGUID()
+        public void GenerateGUID()
         {
-            guid = string.Empty;
+            guid = ULongGuid.NewGuid();
         }
     }
 }

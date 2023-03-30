@@ -13,37 +13,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public abstract class ScriptableObjectCollection : ScriptableObject, IList
     {
         [SerializeField]
-        private string guid;
-        public string GUID
+        private ULongGuid guid;
+        public ULongGuid GUID
         {
             get
             {
-                if (!string.IsNullOrEmpty(guid)) 
+                if (guid.IsValid())
                     return guid;
-            
-                guid = Guid.NewGuid().ToString();
-#if UNITY_EDITOR
-                guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
-                ObjectUtility.SetDirty(this);
-#endif
-
+                
+                guid = ULongGuid.NewGuid();
                 return guid;
             }
         }
 
         [NonSerialized]
-        private List<ScriptableObjectCollectionItem> editorSerializedItems;
+        private List<ScriptableObject> editorSerializedItems;
         
         [SerializeField]
-        protected List<ScriptableObjectCollectionItem> items = new List<ScriptableObjectCollectionItem>();
-        public List<ScriptableObjectCollectionItem> Items => items;
-
-        internal void InvalidateGUID()
-        {
-            guid = string.Empty;
-        }
+        protected List<ScriptableObject> items = new List<ScriptableObject>();
+        public List<ScriptableObject> Items => items;
    
-        public ScriptableObjectCollectionItem this[int index]
+        public ScriptableObject this[int index]
         {
             get => items[index];
             set => throw new NotSupportedException();
@@ -54,9 +44,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return GetEnumerator();
         }
 
-        public IEnumerator<ScriptableObjectCollectionItem> GetEnumerator()
+        public IEnumerator<ScriptableObject> GetEnumerator()
         {
-            using (IEnumerator<ScriptableObjectCollectionItem> itemEnum = items.GetEnumerator())
+            using (IEnumerator<ScriptableObject> itemEnum = items.GetEnumerator())
             {
                 while (itemEnum.MoveNext())
                 {
@@ -70,17 +60,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void CopyTo(Array array, int index)
         {
             int i = 0;
-            foreach (ScriptableObjectCollectionItem e in this)
+            foreach (ScriptableObject e in this)
             {
                 array.SetValue(e, index + i);
                 ++i;
             }
         }
         
-        public void CopyTo(List<ScriptableObjectCollectionItem> list)
+        public void CopyTo(List<ScriptableObject> list)
         {
             list.Capacity = Math.Max(list.Capacity, Count);
-            foreach (ScriptableObjectCollectionItem e in this)
+            foreach (ScriptableObject e in this)
             {
                 list.Add(e);
             }
@@ -97,18 +87,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public int Add(object value)
         {
-            Add((ScriptableObjectCollectionItem) value);
+            Add((ScriptableObject) value);
             return Count - 1;
         }
 
-        public bool Add(ScriptableObjectCollectionItem item)
+        public bool Add(ScriptableObject item)
         {
             if (items.Contains(item))
                 return false;
             
             items.Add(item);
 
-            item.SetCollection(this);
+            if(item is ISOCItem socItem)
+                socItem.SetCollection(this);
+            
             ObjectUtility.SetDirty(this);
             ClearCachedValues();
             return true;
@@ -116,12 +108,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 #if UNITY_EDITOR
         
-        public ScriptableObjectCollectionItem AddNew(Type collectionType, string assetName = "")
+        public ScriptableObject AddNew(Type collectionType, string assetName = "")
         {
             if (Application.isPlaying)
                 throw new NotSupportedException();
             
-            ScriptableObjectCollectionItem item = (ScriptableObjectCollectionItem)CreateInstance(collectionType);
+            ScriptableObject item = CreateInstance(collectionType);
             string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
             string parentFolderPath = Path.Combine(assetPath, "Items" );
             AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolderPath);
@@ -196,37 +188,39 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool Contains(object value)
         {
-            return Contains((ScriptableObjectCollectionItem) value);
+            return Contains((ScriptableObject) value);
         }
 
-        public bool Contains(ScriptableObjectCollectionItem item)
+        public bool Contains(ScriptableObject item)
         {
             return items.Contains(item);
         }
 
         public int IndexOf(object value)
         {
-            return IndexOf((ScriptableObjectCollectionItem) value);
+            return IndexOf((ScriptableObject) value);
         }
 
-        public int IndexOf(ScriptableObjectCollectionItem item)
+        public int IndexOf(ScriptableObject item)
         {
             return items.IndexOf(item);
         }
 
-        public void Insert(int index, ScriptableObjectCollectionItem item)
+        public void Insert(int index, ScriptableObject item)
         {
             items.Insert(index, item);
-            item.SetCollection(this);
+            if (item is ISOCItem socItem)
+                socItem.SetCollection(this);
+            
             ObjectUtility.SetDirty(this);
         }
 
         public void Insert(int index, object value)
         {
-            Insert(index, (ScriptableObjectCollectionItem)value);
+            Insert(index, (ScriptableObject)value);
         }
 
-        public bool Remove(ScriptableObjectCollectionItem item)
+        public bool Remove(ScriptableObject item)
         {
             bool result =  items.Remove(item);
             ObjectUtility.SetDirty(this);
@@ -235,7 +229,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void Remove(object value)
         {
-            Remove((ScriptableObjectCollectionItem) value);
+            Remove((ScriptableObject) value);
         }
 
         public void RemoveAt(int index)
@@ -247,7 +241,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         object IList.this[int index]
         {
             get => this[index];
-            set => this[index] = (ScriptableObjectCollectionItem) value;
+            set => this[index] = (ScriptableObject) value;
         }
 
         public void Swap(int targetIndex, int newIndex)
@@ -263,7 +257,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             for (int i = items.Count - 1; i >= 0; i--)
             {
-                if (items[i].IsNull() || items[i] == null || items[i].Collection.IsNull() || items[i].Collection == null)
+                ScriptableObject scriptableObject = items[i];
+                if (scriptableObject.IsNull() || scriptableObject == null)
+                    items.RemoveAt(i);
+
+                ISOCItem socItem = scriptableObject as ISOCItem;
+                if (socItem == null)
+                {
+                    items.RemoveAt(i);
+                    continue;
+                }
+
+                if (socItem.Collection.IsNull() || socItem.Collection == null)
                     items.RemoveAt(i);
             }
             
@@ -283,16 +288,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < guids.Length; i++)
             {
-                ScriptableObjectCollectionItem item =
-                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(AssetDatabase.GUIDToAssetPath(guids[i]));
+                ScriptableObject item =
+                    AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(guids[i]));
                 
                 if (item == null)
                     continue;
 
-                if (item.Collection != this)
+                if (!(item is ISOCItem socItem))
+                    continue;
+                
+                if (socItem.Collection != this)
                     continue;
 
-                if (item.Collection.Contains(item))
+                if (socItem.Collection.Contains(item))
                     continue;
                 
                 Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");
@@ -304,11 +312,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
-        public bool TryGetItemByName(string targetItemName, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
+        public bool TryGetItemByName(string targetItemName, out ScriptableObject scriptableObjectCollectionItem)
         {
             for (int i = 0; i < items.Count; i++)
             {
-                ScriptableObjectCollectionItem item = items[i];
+                ScriptableObject item = items[i];
                 if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
                 {
                     scriptableObjectCollectionItem = item;
@@ -320,12 +328,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        public bool TryGetItemByGUID(string itemGUID, out ScriptableObjectCollectionItem scriptableObjectCollectionItem)
+        public bool TryGetItemByGUID(ULongGuid itemGUID, out ScriptableObject scriptableObjectCollectionItem)
         {
             for (int i = 0; i < items.Count; i++)
             {
-                ScriptableObjectCollectionItem item = items[i];
-                if (string.Equals(item.GUID, itemGUID, StringComparison.Ordinal))
+                ScriptableObject item = items[i];
+                ISOCItem socItem = item as ISOCItem;
+                if (socItem == null)
+                    continue;
+                
+                if (socItem.GUID == itemGUID)
                 {
                     scriptableObjectCollectionItem = item;
                     return true;
@@ -338,7 +350,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         internal void PrepareForPlayMode()
         {
-            editorSerializedItems = new List<ScriptableObjectCollectionItem>(items);
+            editorSerializedItems = new List<ScriptableObject>(items);
         }
 
         internal void PrepareForEditorMode()
@@ -346,7 +358,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if(editorSerializedItems == null)
                 return;
 
-            items = new List<ScriptableObjectCollectionItem>(editorSerializedItems);
+            items = new List<ScriptableObject>(editorSerializedItems);
             ObjectUtility.SetDirty(this);
         }
 
@@ -357,7 +369,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
-        where ObjectType : ScriptableObjectCollectionItem
+        where ObjectType : ScriptableObject, ISOCItem
     {
         private static List<ObjectType> cachedValues;
         public static IReadOnlyList<ObjectType> Values
@@ -378,7 +390,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public new IEnumerator<ObjectType> GetEnumerator()
         {
-            using (IEnumerator<ScriptableObjectCollectionItem> itemEnum = base.GetEnumerator())
+            using (IEnumerator<ScriptableObject> itemEnum = base.GetEnumerator())
             {
                 while (itemEnum.MoveNext())
                 {
@@ -435,12 +447,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         } 
 #endif
 
+        [Obsolete("GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class")]
         public ObjectType GetItemByGUID(string targetGUID)
+        {
+            throw new Exception(
+                $"GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class");
+        }
+
+        public ObjectType GetItemByGUID(ULongGuid targetGUID)
         {
             for (int i = 0; i < Items.Count; i++)
             {
-                ScriptableObjectCollectionItem item = Items[i];
-                if (string.Equals(item.GUID, targetGUID, StringComparison.Ordinal))
+                ScriptableObject item = Items[i];
+                ISOCItem socItem = item as ISOCItem;
+                if (socItem == null)
+                    continue;
+
+                if (socItem.GUID == targetGUID)
                     return (ObjectType) item;
             }
 
@@ -490,7 +513,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         IEnumerator<ObjectType> IEnumerable<ObjectType>.GetEnumerator()
         {
-            using (IEnumerator<ScriptableObjectCollectionItem> enumerator = base.GetEnumerator())
+            using (IEnumerator<ScriptableObject> enumerator = base.GetEnumerator())
             {
                 while (enumerator.MoveNext())
                 {

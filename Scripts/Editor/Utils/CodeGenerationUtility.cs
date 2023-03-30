@@ -297,7 +297,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
-                ScriptableObjectCollectionItem collectionItem = collection.Items[i];
+                ScriptableObject collectionItem = collection.Items[i];
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
                 AppendLine(writer, indentation, 
                     $"private static {type.FullName} cached{collectionItem.name.Sanitize().FirstToUpper()};");
@@ -317,8 +317,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             indentation++;
             AppendLine(writer, indentation, $"if ({cachedValuesName} == null)");
             indentation++;
+            (ulong, ulong) collectionGUIDValues = collection.GUID.GetValue();
             AppendLine(writer, indentation,
-                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(\"{collection.GUID}\");");
+                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(new ULongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}));");
             indentation--;
             AppendLine(writer, indentation, $"return {cachedValuesName};");
             indentation--;
@@ -331,11 +332,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             for (int i = 0; i < collection.Items.Count; i++)
             {
-                ScriptableObjectCollectionItem collectionItem = collection.Items[i];
+                ScriptableObject collectionItem = collection.Items[i];
                 string collectionNameFirstUpper = collectionItem.name.Sanitize().FirstToUpper();
                 string privateStaticName = $"cached{collectionNameFirstUpper}";
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
 
+                ISOCItem socItem = collectionItem as ISOCItem;
+                if (socItem == null)
+                    continue;
+                
                 AppendLine(writer, indentation,
                     $"public static {type.FullName} {collectionNameFirstUpper}");
                 AppendLine(writer, indentation, "{");
@@ -346,8 +351,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
+                (ulong, ulong) collectionItemGUIDValues = socItem.GUID.GetValue();
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(\"{collectionItem.GUID}\");");
+                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(new ULongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}));");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;

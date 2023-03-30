@@ -12,15 +12,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomPropertyDrawer(typeof(CollectionItemPicker<>))]
     public class CollectionItemPickerPropertyDrawer : PropertyDrawer
     {
-        private readonly List<ScriptableObjectCollectionItem>
-            tempMaskItems = new List<ScriptableObjectCollectionItem>();
+        private readonly List<ScriptableObject>
+            tempMaskItems = new List<ScriptableObject>();
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             return EditorGUIUtility.singleLineHeight;
         }
 
-        private static bool Contains(SerializedProperty itemsProperty, ScriptableObjectCollectionItem item)
+        private static bool Contains(SerializedProperty itemsProperty, ScriptableObject item)
         {
             for (int i = 0; i < itemsProperty.arraySize; i++)
             {

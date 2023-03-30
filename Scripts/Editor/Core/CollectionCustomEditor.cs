@@ -15,7 +15,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public sealed class CollectionCustomEditor : Editor
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
-        private static ScriptableObjectCollectionItem LAST_ADDED_COLLECTION_ITEM;
+        private static ScriptableObject LAST_ADDED_COLLECTION_ITEM;
 
         private ScriptableObjectCollection collection;
         private string searchString = "";
@@ -240,7 +240,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if(contextRect.Contains(current.mousePosition) &&  current.type == EventType.ContextClick)
             {
-                ScriptableObjectCollectionItem scriptableObjectCollectionItem = collectionItemSerializedProperty.objectReferenceValue as ScriptableObjectCollectionItem;
+                ScriptableObject scriptableObject = collectionItemSerializedProperty.objectReferenceValue as ScriptableObject;
 
                 GenericMenu menu = new GenericMenu();
 
@@ -249,17 +249,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     false,
                     () =>
                     {
-                        CopyCollectionItemUtils.SetSource(scriptableObjectCollectionItem);
+                        CopyCollectionItemUtils.SetSource(scriptableObject);
                     }
                 );
-                if (CopyCollectionItemUtils.CanPasteToTarget(scriptableObjectCollectionItem))
+                if (CopyCollectionItemUtils.CanPasteToTarget(scriptableObject))
                 {
                     menu.AddItem(
                         new GUIContent("Paste Values"),
                         false,
                         () =>
                         {
-                            CopyCollectionItemUtils.ApplySourceToTarget(scriptableObjectCollectionItem);
+                            CopyCollectionItemUtils.ApplySourceToTarget(scriptableObject);
                         }
                     );
                 }
@@ -306,22 +306,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void SelectItemAtIndex(int index)
         {
             SerializedProperty serializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index);
-            ScriptableObjectCollectionItem collectionItem = serializedProperty.objectReferenceValue as ScriptableObjectCollectionItem;
+            ScriptableObject collectionItem = serializedProperty.objectReferenceValue as ScriptableObject;
             Selection.objects = new Object[] { collectionItem };
         }
 
         private void DuplicateItem(int index)
         {
             SerializedProperty serializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index);
-            ScriptableObjectCollectionItem collectionItem = serializedProperty.objectReferenceValue as ScriptableObjectCollectionItem;
+            ScriptableObject collectionItem = serializedProperty.objectReferenceValue as ScriptableObject;
             string collectionItemAssetPath = AssetDatabase.GetAssetPath(collectionItem);
             string path = Path.GetDirectoryName(collectionItemAssetPath);
             string cloneName = collectionItem.name + " Clone";
             if (AssetDatabase.CopyAsset(collectionItemAssetPath, $"{path}/{cloneName}.asset"))
             {
                 AssetDatabase.SaveAssets();
-                ScriptableObjectCollectionItem clonedItem = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>($"{path}/{cloneName}.asset");
-                clonedItem.InvalidateGUID();
+                ScriptableObject clonedItem = AssetDatabase.LoadAssetAtPath<ScriptableObject>($"{path}/{cloneName}.asset");
+                ISOCItem socItem = clonedItem as ISOCItem;
+                if (socItem == null)
+                    throw new Exception($"Cloned item {clonedItem.name} is not an ISOCItem");
+                
+                socItem.GenerateGUID();
                 itemsSerializedProperty.InsertArrayElementAtIndex(index + 1);
                 SerializedProperty clonedItemSerializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index + 1);
                 clonedItemSerializedProperty.objectReferenceValue = clonedItem;
@@ -417,16 +421,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             RemoveNullReferences();
             for (int i = 0; i < itemsSerializedProperty.arraySize; i++)
             {
-                ScriptableObjectCollectionItem collectionItem =
-                    (ScriptableObjectCollectionItem) itemsSerializedProperty.GetArrayElementAtIndex(i).objectReferenceValue;
+                ScriptableObject collectionItem =
+                    (ScriptableObject) itemsSerializedProperty.GetArrayElementAtIndex(i).objectReferenceValue;
 
                 if (collectionItem == null)
                     continue;
+
+                ISOCItem socItem = collectionItem as ISOCItem;
+                if (socItem == null)
+                    continue;
                 
-                if (collectionItem.Collection != null)
+                if (socItem.Collection != null)
                     continue;
 
-                collectionItem.SetCollection(collection);
+                socItem.SetCollection(collection);
 
             }
             serializedObject.ApplyModifiedProperties();
@@ -793,9 +801,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public static ScriptableObjectCollectionItem AddNewItem(ScriptableObjectCollection collection, Type itemType)
+        public static ScriptableObject AddNewItem(ScriptableObjectCollection collection, Type itemType)
         {
-            ScriptableObjectCollectionItem collectionItem = collection.AddNew(itemType);
+            ScriptableObject collectionItem = collection.AddNew(itemType);
             Selection.objects = new Object[] {collection};
             LAST_ADDED_COLLECTION_ITEM = collectionItem;
             return collectionItem;

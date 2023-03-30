@@ -29,7 +29,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (cachedScriptableObjectCollection == null)
                 {
-                    if (!collectionGUID.IsValid())
+                    if (collectionGUID.IsValid())
                     {
                         cachedScriptableObjectCollection = CollectionsRegistry.Instance.GetCollectionByGUID(collectionGUID);
                     }

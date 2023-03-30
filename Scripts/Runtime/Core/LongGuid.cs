@@ -70,5 +70,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return !(left == right);
         }
+        
+        public byte[] ToByteArray()
+        {
+            byte[] byteArray = new byte[16];
+            BitConverter.GetBytes(value1).CopyTo(byteArray, 0);
+            BitConverter.GetBytes(value2).CopyTo(byteArray, 8);
+            return byteArray;
+        }
+        
+        public static LongGuid FromByteArray(byte[] byteArray)
+        {
+            if (byteArray.Length != 16)
+            {
+                throw new ArgumentException("Invalid byte array length. Expected 16 bytes.");
+            }
+
+            long guidValue1 = BitConverter.ToInt64(byteArray, 0);
+            long guidValue2 = BitConverter.ToInt64(byteArray, 8);
+
+            return new LongGuid(guidValue1, guidValue2);
+        }
     }
 }

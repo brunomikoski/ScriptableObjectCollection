@@ -9,10 +9,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         private const int MINIMUM_NAMESPACE_DEPTH = 1;
         
-        [SerializeField]
-        private string defaultGeneratedScriptsPath;
-        public string DefaultGeneratedScriptsPath => defaultGeneratedScriptsPath;
-
         [FormerlySerializedAs("defaultNamespace")] [SerializeField]
         private string namespacePrefix;
         public string NamespacePrefix => namespacePrefix;
@@ -44,13 +40,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
-        }
-
-
-        public void SetDefaultGeneratedScriptsPath(string targetPath)
-        {
-            defaultGeneratedScriptsPath = targetPath;
-            Changed();
         }
         
         [Obsolete("Default Namespace has been renamed to Namespace Prefix. Please use the corresponding function.")]

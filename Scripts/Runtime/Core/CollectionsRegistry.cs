@@ -16,6 +16,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField] 
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
 
+        [SerializeField]
+        private CollectionsSharedSettings collectionSettings = new CollectionsSharedSettings();
+        public CollectionsSharedSettings CollectionSettings => collectionSettings;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
@@ -247,36 +251,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ObjectUtility.SetDirty(this);
             }
-
-            ValidateGUIDs();
 #endif
-        }
-
-        public void ValidateGUIDs()
-        {
-            for (int i = 0; i < collections.Count; i++)
-            {
-                ScriptableObjectCollection collectionA = collections[i];
-                for (int j = 0; j < collections.Count; j++)
-                {
-                    ScriptableObjectCollection collectionB = collections[j];
-
-                    if (i == j)
-                        continue;
-
-                    if (string.Equals(collectionA.GUID, collectionB.GUID, StringComparison.OrdinalIgnoreCase))
-                    {
-                        collectionB.GenerateNewGUID();
-                        ObjectUtility.SetDirty(collectionB);
-                        Debug.LogWarning(
-                            $"Found duplicated collection GUID, please regenerate code of collection {collectionB.name}",
-                            this
-                        );
-                    }
-                }
-                
-                collectionA.ValidateGUIDs();
-            }
         }
 
         public void PreBuildProcess()
@@ -294,10 +269,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObjectCollection collection = collections[i];
 
-                SerializedObject serializedObject = new SerializedObject(collection);
-                SerializedProperty automaticallyLoaded = serializedObject.FindProperty("automaticallyLoaded");
-                
-                if (automaticallyLoaded.boolValue)
+                if (collectionSettings.IsCollectionAutoLoaded(collection))
                     continue;
 
                 collections.Remove(collection);

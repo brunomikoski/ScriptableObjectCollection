@@ -18,7 +18,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             get
             {
-                SyncGUID();
+                if (!string.IsNullOrEmpty(guid)) 
+                    return guid;
+            
+                guid = Guid.NewGuid().ToString();
+#if UNITY_EDITOR
+                guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
+                ObjectUtility.SetDirty(this);
+#endif
+
                 return guid;
             }
         }
@@ -30,42 +38,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected List<ScriptableObjectCollectionItem> items = new List<ScriptableObjectCollectionItem>();
         public List<ScriptableObjectCollectionItem> Items => items;
 
-#pragma warning disable 0414
-        [SerializeField]
-        private bool automaticallyLoaded = true;
-#if UNITY_EDITOR
-        [SerializeField]
-        private bool generateAsPartialClass = true;
-        [SerializeField]
-        private bool generateAsBaseClass = false;
-        [SerializeField]
-        private string generatedFileLocationPath;
-        [SerializeField]
-        private string generatedStaticClassFileName;
-        [SerializeField]
-        private string generateStaticFileNamespace;
-#pragma warning restore 0414
-#endif
-
-        private void SyncGUID()
-        {
-            if (!string.IsNullOrEmpty(guid)) 
-                return;
-            
-            guid = Guid.NewGuid().ToString();
-#if UNITY_EDITOR
-            guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(this));
-            ObjectUtility.SetDirty(this);
-#endif
-        }
-
-        internal void GenerateNewGUID()
+        internal void InvalidateGUID()
         {
             guid = string.Empty;
-            SyncGUID();
         }
-        
-        
+   
         public ScriptableObjectCollectionItem this[int index]
         {
             get => items[index];
@@ -291,33 +268,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             ObjectUtility.SetDirty(this);
-        }
-
-        public void ValidateGUIDs()
-        {
-            SyncGUID();
-            for (int i = 0; i < items.Count; i++)
-            {
-                if(items[i] == null)
-                    continue;
-                items[i].ValidateGUID();
-
-                for (int j = 0; j < items.Count; j++)
-                {
-                    if (items[j] == null)
-                        continue;
-                    
-                    if (items[i] == items[j])
-                        continue;
-                    
-                    if (string.Equals(items[i].GUID, items[j].GUID, StringComparison.Ordinal))
-                    {
-                        items[j].GenerateNewGUID();
-                        Debug.LogWarning($"Found duplicated GUID, please regenerate code of collection {this.name}",
-                            this);
-                    }
-                }
-            }
         }
         
         [ContextMenu("Refresh Collection")]

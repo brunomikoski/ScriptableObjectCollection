@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -12,7 +11,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             get
             {
-                SyncGUID();
+                if (!string.IsNullOrEmpty(guid))
+                    return guid;
+                
+#if UNITY_EDITOR
+                string assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
+                if (!string.IsNullOrEmpty(assetPath))
+                {
+                    guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
+                    ObjectUtility.SetDirty(this);
+                }
+#else
+                guid = Guid.NewGuid().ToString();
+#endif
                 return guid;
             }
         }
@@ -86,38 +97,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return !(left == right);
         }
-
-        private void SyncGUID()
-        {
-            if (!string.IsNullOrEmpty(guid)) 
-                return;
-            
-            guid = Guid.NewGuid().ToString();
-#if UNITY_EDITOR
-            string assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
-            if (!string.IsNullOrEmpty(assetPath))
-            {
-                guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
-                ObjectUtility.SetDirty(this);
-            }
-#endif
-            
-        }
         
         public override int GetHashCode()
         {
             return GUID.GetHashCode();
         }
-
-        public void ValidateGUID()
-        {
-            SyncGUID();
-        }
-
-        public void GenerateNewGUID()
+        
+        public void InvalidateGUID()
         {
             guid = string.Empty;
-            SyncGUID();
         }
     }
 }

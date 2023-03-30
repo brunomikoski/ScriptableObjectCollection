@@ -15,7 +15,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public sealed class CollectionCustomEditor : Editor
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
-        internal const string ENABLE_GUI_KEY = "EnableGuiKey";
         private static ScriptableObjectCollectionItem LAST_ADDED_COLLECTION_ITEM;
 
         private ScriptableObjectCollection collection;
@@ -27,16 +26,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private float[] heights;
         private bool[] itemHidden;
         private ReorderableList reorderableList;
-        internal ReorderableList ReorderableList => reorderableList;
         private SerializedProperty itemsSerializedProperty;
-        internal ScriptableObjectCollection Collection => collection;
 
         private static bool IsWaitingForNewTypeBeCreated
         {
             get => EditorPrefs.GetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, false);
             set => EditorPrefs.SetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, value);
         }
-        internal static CollectionCustomEditor editorInstance;
+        private CollectionsSharedSettings InstanceCollectionSettings => CollectionsRegistry.Instance.CollectionSettings;
 
         public void OnEnable()
         {
@@ -47,7 +44,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             itemsSerializedProperty = serializedObject.FindProperty("items");
 
-            collection.ValidateGUIDs();
             ValidateCollectionItems();
 
             CreateReorderableList();
@@ -56,7 +52,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CheckIfCanBePartial();
             CheckGeneratedStaticFileName();
             ValidateGeneratedFileNamespace();
-            editorInstance = this;
         }
 
         private void CreateReorderableList()
@@ -72,7 +67,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnDisable()
         {
-            editorInstance = null;
             if (reorderableList == null)
                 return;
 
@@ -327,7 +321,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 AssetDatabase.SaveAssets();
                 ScriptableObjectCollectionItem clonedItem = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>($"{path}/{cloneName}.asset");
-                clonedItem.GenerateNewGUID();
+                clonedItem.InvalidateGUID();
                 itemsSerializedProperty.InsertArrayElementAtIndex(index + 1);
                 SerializedProperty clonedItemSerializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index + 1);
                 clonedItemSerializedProperty.objectReferenceValue = clonedItem;
@@ -339,7 +333,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override void OnInspectorGUI()
         {
-            GUI.enabled = SessionState.GetBool(ENABLE_GUI_KEY, true);
             RemoveNullReferences();
 
             CheckHeightsAndHiddenArraySizes();
@@ -430,7 +423,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (collectionItem == null)
                     continue;
                 
-                collectionItem.ValidateGUID();
                 if (collectionItem.Collection != null)
                     continue;
 
@@ -630,45 +622,41 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawGeneratedFileName()
         {
-            SerializedProperty fileNameSerializedProperty = serializedObject.FindProperty("generatedStaticClassFileName");
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                string newFileName = EditorGUILayout.DelayedTextField("Static File Name", fileNameSerializedProperty.stringValue);
+                string newFileName = EditorGUILayout.DelayedTextField("Static File Name", InstanceCollectionSettings.GetCollectionGeneratedStaticClassFileName(collection));
                 if (changeCheck.changed)
                 {
-                    fileNameSerializedProperty.stringValue = newFileName;
-                    fileNameSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    InstanceCollectionSettings.SetCollectionGeneratedStaticClassFileName(collection,
+                        newFileName);
                 }
             }
         }
 
         private void DrawGeneratedFileNamespace()
         {
-            SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
-            
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                string newFileName = EditorGUILayout.DelayedTextField("Namespace", fileNamespaceSerializedProperty.stringValue);
+                string newNameSpace = EditorGUILayout.DelayedTextField("Namespace", InstanceCollectionSettings.GetCollectionGeneratedStaticFileNamespace(collection));
                 if (changeCheck.changed)
                 {
-                    fileNamespaceSerializedProperty.stringValue = newFileName;
-                    fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    InstanceCollectionSettings.SetCollectionGeneratedStaticFileNamespace(collection,
+                        newNameSpace);
                 }
             }
         }
 
         private void ValidateGeneratedFileNamespace()
         {
-            SerializedProperty fileNamespaceSerializedProperty = serializedObject.FindProperty("generateStaticFileNamespace");
-            if (string.IsNullOrEmpty(fileNamespaceSerializedProperty.stringValue))
+            if (string.IsNullOrEmpty(InstanceCollectionSettings.GetCollectionGeneratedStaticFileNamespace(collection)))
             {
                 if (collection != null)
                 {
                     string targetNamespace = collection.GetItemType().Namespace;
                     if (!string.IsNullOrEmpty(targetNamespace))
                     {
-                        fileNamespaceSerializedProperty.stringValue = targetNamespace;
-                        fileNamespaceSerializedProperty.serializedObject.ApplyModifiedProperties();
+                        InstanceCollectionSettings.SetCollectionGeneratedStaticFileNamespace(collection,
+                            targetNamespace);
                     }
                 }
             }
@@ -676,28 +664,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void DrawAutomaticallyLoaded()
         {
-            SerializedProperty automaticLoadedSerializedProperty = serializedObject.FindProperty("automaticallyLoaded");
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                bool isAutomaticallyLoaded = EditorGUILayout.Toggle("Automatically Loaded", automaticLoadedSerializedProperty.boolValue);
+                
+                bool isAutomaticallyLoaded = EditorGUILayout.Toggle("Automatically Loaded", InstanceCollectionSettings.IsCollectionAutoLoaded(collection));
                 if (changeCheck.changed)
-                {
-                    automaticLoadedSerializedProperty.boolValue = isAutomaticallyLoaded;
-                    automaticLoadedSerializedProperty.serializedObject.ApplyModifiedProperties();
-                }
+                    InstanceCollectionSettings.SetCollectionAutoLoaded(collection, isAutomaticallyLoaded);
             }
         }
 
         private void DrawGeneratedClassParentFolder()
         {
-            SerializedProperty generatedCodePathSerializedProperty = serializedObject.FindProperty("generatedFileLocationPath");
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedCodePathSerializedProperty.stringValue);
-                if (pathObject == null && !string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().DefaultGeneratedScriptsPath))
+                DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(InstanceCollectionSettings.GetCollectionGeneratedFileLocationPath(collection));
+                if (pathObject == null && !string.IsNullOrEmpty(CollectionsRegistry.Instance.CollectionSettings.GeneratedScriptsDefaultFilePath))
                 {
-                    pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(ScriptableObjectCollectionSettings
-                        .GetInstance().DefaultGeneratedScriptsPath);
+                    pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(CollectionsRegistry.Instance.CollectionSettings.GeneratedScriptsDefaultFilePath);
                 }
                 
                 pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
@@ -708,30 +691,32 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 );
                 string assetPath = AssetDatabase.GetAssetPath(pathObject);
 
-                if (changeCheck.changed || !string.Equals(generatedCodePathSerializedProperty.stringValue, assetPath, StringComparison.Ordinal))
+                if (changeCheck.changed || !string.Equals(InstanceCollectionSettings.GetCollectionGeneratedFileLocationPath(collection), assetPath, StringComparison.Ordinal))
                 {
-                    generatedCodePathSerializedProperty.stringValue = assetPath;
-                    generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    InstanceCollectionSettings.SetCollectionGeneratedFileLocationPath(collection, assetPath);
 
-                    if (string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().DefaultGeneratedScriptsPath))
-                        ScriptableObjectCollectionSettings.GetInstance().SetDefaultGeneratedScriptsPath(assetPath);
+                    if (string.IsNullOrEmpty(CollectionsRegistry.Instance.CollectionSettings
+                            .GeneratedScriptsDefaultFilePath))
+                    {
+                        CollectionsRegistry.Instance.CollectionSettings.SetGeneratedScriptsDefaultFilePath(assetPath);
+                    }
                 }
             }
         }
 
         private void DrawPartialClassToggle()
         {
-            SerializedProperty usePartialClassSerializedProperty = serializedObject.FindProperty("generateAsPartialClass");
             bool canBePartial= CheckIfCanBePartial();
             
             EditorGUI.BeginDisabledGroup(!canBePartial);
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                bool writeAsPartial = EditorGUILayout.Toggle("Write as Partial Class", usePartialClassSerializedProperty.boolValue);
+                bool writeAsPartial = EditorGUILayout.Toggle("Write as Partial Class",
+                    InstanceCollectionSettings.IsCollectionGenerateAsPartialClass(collection));
+                
                 if (changeCheck.changed)
                 {
-                    usePartialClassSerializedProperty.boolValue = writeAsPartial;
-                    usePartialClassSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    InstanceCollectionSettings.SetGenerateAsPartialClass(collection, writeAsPartial);
                 }
             }
 
@@ -740,54 +725,48 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void DrawUseBaseClassToggle()
         {
-            SerializedProperty useBaseClassProperty = serializedObject.FindProperty("generateAsBaseClass");
-    
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                bool useBaseClass = EditorGUILayout.Toggle("Use Base Class for items", useBaseClassProperty.boolValue);
+                bool useBaseClass = EditorGUILayout.Toggle("Use Base Class for items", InstanceCollectionSettings.IsCollectionGenerateAsBaseClass(collection));
                 if (changeCheck.changed)
                 {
-                    useBaseClassProperty.boolValue = useBaseClass;
-                    useBaseClassProperty.serializedObject.ApplyModifiedProperties();
+                    InstanceCollectionSettings.SetCollectionGenerateAsBaseClass(collection, useBaseClass);
                 }
             }
         }
         
         private void CheckGeneratedStaticFileName()
         {
-            SerializedProperty fileNameSerializedProperty = serializedObject.FindProperty("generatedStaticClassFileName");
-            if (!string.IsNullOrEmpty(fileNameSerializedProperty.stringValue))
+            if (!string.IsNullOrEmpty(InstanceCollectionSettings.GetCollectionGeneratedStaticClassFileName(collection)))
                 return;
 
             if (collection.name.Equals(collection.GetItemType().Name, StringComparison.Ordinal) 
-                && serializedObject.FindProperty("generateAsPartialClass").boolValue)
+                && InstanceCollectionSettings.IsCollectionGenerateAsPartialClass(collection))
             {
-                fileNameSerializedProperty.stringValue = $"{collection.GetItemType().Name}Static";
+                InstanceCollectionSettings.SetCollectionGeneratedStaticClassFileName(collection,
+                    $"{collection.GetItemType().Name}Static");
             }
             else
             {
-                fileNameSerializedProperty.stringValue = $"{collection.name}Static".Sanitize().FirstToUpper();
+                InstanceCollectionSettings.SetCollectionGeneratedStaticClassFileName(collection,
+                    $"{collection.name}Static".Sanitize().FirstToUpper());
             }
-            fileNameSerializedProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private bool CheckIfCanBePartial()
         {
-            SerializedProperty generatedCodePathSerializedProperty = serializedObject.FindProperty("generatedFileLocationPath");
-            SerializedProperty usePartialClassSerializedProperty = serializedObject.FindProperty("generateAsPartialClass");
             string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
             string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
-            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(generatedCodePathSerializedProperty.stringValue);
+            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(InstanceCollectionSettings.GetCollectionGeneratedFileLocationPath(collection));
             
             // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
             // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
             bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
                                 string.IsNullOrEmpty(targetGeneratedCodePath);
             
-            if (usePartialClassSerializedProperty.boolValue && !canBePartial)
+            if (InstanceCollectionSettings.IsCollectionGenerateAsPartialClass(collection) && !canBePartial)
             {
-                usePartialClassSerializedProperty.boolValue = false;
-                usePartialClassSerializedProperty.serializedObject.ApplyModifiedProperties();
+                InstanceCollectionSettings.SetGenerateAsPartialClass(collection, false);
             }
 
             return canBePartial;
@@ -795,23 +774,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CheckGeneratedCodeLocation()
         {
-            SerializedProperty generatedCodePathSerializedProperty = serializedObject.FindProperty("generatedFileLocationPath");
-            if (!string.IsNullOrEmpty(generatedCodePathSerializedProperty.stringValue))
+            if (!string.IsNullOrEmpty(InstanceCollectionSettings.GetCollectionGeneratedFileLocationPath(collection)))
                 return;
 
-            ScriptableObjectCollectionSettings settingsInstance = ScriptableObjectCollectionSettings.GetInstance();
-            if (!string.IsNullOrEmpty(settingsInstance.DefaultGeneratedScriptsPath))
+            
+            if (!string.IsNullOrEmpty(InstanceCollectionSettings.GeneratedScriptsDefaultFilePath))
             {
-                generatedCodePathSerializedProperty.stringValue = settingsInstance.DefaultGeneratedScriptsPath;
-                generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+                InstanceCollectionSettings.SetCollectionGeneratedFileLocationPath(collection,
+                    InstanceCollectionSettings.GeneratedScriptsDefaultFilePath);
             }
             else
             {
                 string collectionScriptPath =
                     Path.GetDirectoryName(AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection)));
-                
-                generatedCodePathSerializedProperty.stringValue = collectionScriptPath;
-                generatedCodePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+
+                InstanceCollectionSettings.SetCollectionGeneratedFileLocationPath(collection,
+                    collectionScriptPath);
             }
         }
 

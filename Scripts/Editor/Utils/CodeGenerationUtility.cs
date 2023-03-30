@@ -184,22 +184,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            CollectionsRegistry.Instance.ValidateGUIDs();
             if (!CanGenerateStaticFile(collection, out string errorMessage))
             {
                 Debug.LogError(errorMessage);
                 return;
             }
 
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
-
-            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
-            string nameSpace = collectionSerializedObject.FindProperty("generateStaticFileNamespace").stringValue;
-           
-            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
-            bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
-            bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
+            string fileName = CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticClassFileName(collection);
+            string nameSpace = CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticFileNamespace(collection);
+            string finalFolder = CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedFileLocationPath(collection);
+            bool writeAsPartial = CollectionsRegistry.Instance.CollectionSettings.IsCollectionGenerateAsPartialClass(collection);
+            bool useBaseClass = CollectionsRegistry.Instance.CollectionSettings.IsCollectionGenerateAsBaseClass(collection);
 
 
             AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
@@ -250,17 +245,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 for (int i = 0; i < collectionsOfSameType.Count; i++)
                 {
                     ScriptableObjectCollection collectionA = collectionsOfSameType[i];
-                    SerializedObject collectionASerializedObject = new SerializedObject(collectionA);
+                    string targetNamespaceA =
+                        CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticFileNamespace(collectionA);
+                    string targetFileNameA =
+                        CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticClassFileName(collectionA);
+
                     for (int j = 0; j < collectionsOfSameType.Count; j++)
                     {
                         if (i == j)
                             continue;
 
                         ScriptableObjectCollection collectionB = collectionsOfSameType[j];
-                        SerializedObject collectionBSerializedObject = new SerializedObject(collectionB);
 
-                        if (collectionASerializedObject.FindProperty("generatedStaticClassFileName").stringValue.Equals(collectionBSerializedObject.FindProperty("generatedStaticClassFileName").stringValue)
-                            && collectionASerializedObject.FindProperty("generateStaticFileNamespace").stringValue.Equals(collectionASerializedObject.FindProperty("generateStaticFileNamespace").stringValue))
+                        string targetNamespaceB =
+                            CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticFileNamespace(collectionB);
+
+                        string targetFileNameB =
+                            CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticClassFileName(collectionB);
+
+                        if (targetFileNameA.Equals(targetFileNameB, StringComparison.Ordinal)
+                            && targetNamespaceA.Equals(targetNamespaceB, StringComparison.Ordinal))
                         {
                             errorMessage =
                                 $"Two collections ({collectionA.name} and {collectionB.name}) with the same name and namespace already exist, please use custom ones";

@@ -10,7 +10,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             base.OnInspectorGUI();
             
-            if (GUILayout.Button("Find All Collections"))
+            if (GUILayout.Button("Reload Collections"))
             {
                 CollectionsRegistry.Instance.ReloadCollections();
             }

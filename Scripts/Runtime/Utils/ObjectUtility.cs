@@ -6,9 +6,9 @@ namespace UnityEngine
         {
             if (targetObject == null)
                 return;
+            
             if (Application.isPlaying)
                 return;
-            
 #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(targetObject);
 #endif

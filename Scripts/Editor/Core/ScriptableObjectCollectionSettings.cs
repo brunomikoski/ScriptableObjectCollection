@@ -22,8 +22,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public int MaximumNamespaceDepth => maximumNamespaceDepth;
         
         [SerializeField]
-        private CollectionsSharedSettings collectionSettings = new CollectionsSharedSettings();
-        public CollectionsSharedSettings CollectionSettings => collectionSettings;
+        private string generatedScriptsDefaultFilePath = "Assets\\Generated\\Scripts";
+        public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
 
 
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
@@ -103,6 +103,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     namespacePrefixSerializedProperty.serializedObject.ApplyModifiedProperties();
                 }
             }
+            
+            EditorGUILayout.LabelField("Default Generated Scripts Folder", EditorStyles.boldLabel);
+            SerializedProperty generatedScriptsDefaultFilePathSerializedProperty = serializedObject.FindProperty("generatedScriptsDefaultFilePath");
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsDefaultFilePathSerializedProperty.stringValue);
+                
+                pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
+                    "Generated Scripts Parent Folder",
+                    pathObject,
+                    typeof(DefaultAsset),
+                    false
+                );
+                string assetPath = AssetDatabase.GetAssetPath(pathObject);
+
+                if (changeCheck.changed)
+                {
+                    generatedScriptsDefaultFilePathSerializedProperty.stringValue = assetPath;
+                    generatedScriptsDefaultFilePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
         }
+
+        public void SetGeneratedScriptsDefaultFilePath(string assetPath)
+        {
+            generatedScriptsDefaultFilePath = assetPath;
+            EditorUtility.SetDirty(this);
+       }
     }
 }

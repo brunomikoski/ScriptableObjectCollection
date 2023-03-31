@@ -37,6 +37,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private bool automaticallyLoaded = true;
         internal bool AutomaticallyLoaded => automaticallyLoaded;
+
+#pragma warning disable CS0414
+        [SerializeField]
+        private bool generateAsPartialClass = true;
+
+        [SerializeField]
+        private bool generateAsBaseClass;
+
+        [SerializeField]
+        private string generatedFileLocationPath;
+
+        [SerializeField]
+        private string generatedStaticClassFileName;
+
+        [SerializeField]
+        private string generateStaticFileNamespace;
+#pragma warning restore CS0414
    
         public ScriptableObject this[int index]
         {
@@ -115,6 +132,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         internal void GenerateNewGUID()
         {
             guid = LongGuid.NewGuid();
+            ObjectUtility.SetDirty(this);
         }
 
 #if UNITY_EDITOR

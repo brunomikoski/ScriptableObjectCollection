@@ -10,9 +10,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
-        private static CollectionsSharedSettings CollectionSettingsInstance =>
-            ScriptableObjectCollectionSettings.GetInstance().CollectionSettings;
-
         public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace,
             string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
         {
@@ -193,11 +190,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
-            string fileName = CollectionSettingsInstance.GetCollectionGeneratedStaticClassFileName(collection);
-            string nameSpace = CollectionSettingsInstance.GetCollectionGeneratedStaticFileNamespace(collection);
-            string finalFolder = CollectionSettingsInstance.GetCollectionGeneratedFileLocationPath(collection);
-            bool writeAsPartial = CollectionSettingsInstance.IsCollectionGenerateAsPartialClass(collection);
-            bool useBaseClass = CollectionSettingsInstance.IsCollectionGenerateAsBaseClass(collection);
+
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
+            
+            string nameSpace = collectionSerializedObject.FindProperty("generateStaticFileNamespace").stringValue;
+            
+            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
+            
+            bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
+            bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
 
 
             AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
@@ -248,10 +250,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 for (int i = 0; i < collectionsOfSameType.Count; i++)
                 {
                     ScriptableObjectCollection collectionA = collectionsOfSameType[i];
-                    string targetNamespaceA =
-                        CollectionSettingsInstance.GetCollectionGeneratedStaticFileNamespace(collectionA);
-                    string targetFileNameA =
-                        CollectionSettingsInstance.GetCollectionGeneratedStaticClassFileName(collectionA);
+                    SerializedObject collectionASO = new SerializedObject(collectionA);
+
+
+                    string targetNamespaceA = collectionASO.FindProperty("generateStaticFileNamespace").stringValue;
+                    string targetFileNameA = collectionASO.FindProperty("generatedStaticClassFileName").stringValue;
 
                     for (int j = 0; j < collectionsOfSameType.Count; j++)
                     {
@@ -259,12 +262,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             continue;
 
                         ScriptableObjectCollection collectionB = collectionsOfSameType[j];
+                        SerializedObject collectionBSO = new SerializedObject(collectionB);
 
-                        string targetNamespaceB =
-                            CollectionSettingsInstance.GetCollectionGeneratedStaticFileNamespace(collectionB);
-
-                        string targetFileNameB =
-                            CollectionSettingsInstance.GetCollectionGeneratedStaticClassFileName(collectionB);
+                        
+                        string targetNamespaceB = collectionBSO.FindProperty("generateStaticFileNamespace").stringValue;
+                        string targetFileNameB = collectionBSO.FindProperty("generatedStaticClassFileName").stringValue;
 
                         if (targetFileNameA.Equals(targetFileNameB, StringComparison.Ordinal)
                             && targetNamespaceA.Equals(targetNamespaceB, StringComparison.Ordinal))

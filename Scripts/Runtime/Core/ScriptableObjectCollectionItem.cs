@@ -97,6 +97,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void GenerateNewGUID()
         {
             guid = LongGuid.NewGuid();
+            ObjectUtility.SetDirty(this);
         }
     }
 }

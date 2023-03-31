@@ -98,7 +98,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             items.Add(item);
 
-            if(item is ISOCItem socItem)
+            if (item is ISOCItem socItem)
                 socItem.SetCollection(this);
             
             ObjectUtility.SetDirty(this);

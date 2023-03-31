@@ -27,6 +27,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool[] itemHidden;
         private ReorderableList reorderableList;
         private SerializedProperty itemsSerializedProperty;
+        private int lastCheckedForValidItemsArraySize;
 
         private static bool IsWaitingForNewTypeBeCreated
         {
@@ -337,8 +338,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override void OnInspectorGUI()
         {
-            RemoveNullReferences();
-
+            ValidateCollectionItems();
             CheckHeightsAndHiddenArraySizes();
 
             using (new GUILayout.VerticalScope("Box"))
@@ -350,7 +350,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             DrawSettings();
             CheckForKeyboardShortcuts();
-            GUI.enabled = true;
         }
 
         private void CheckHeightsAndHiddenArraySizes()
@@ -399,8 +398,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void RemoveNullReferences()
+        private void ValidateCollectionItems()
         {
+            if (lastCheckedForValidItemsArraySize == itemsSerializedProperty.arraySize)
+                return;
+            
             bool modified = false;
             for (int i = itemsSerializedProperty.arraySize - 1; i >= 0; i--)
             {
@@ -409,35 +411,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     itemsSerializedProperty.DeleteArrayElementAtIndex(i);
                     modified = true;
+                    Debug.LogWarning($"Removing SOCItem at index {i} because it is null");
+                    continue;
                 }
+
+                ISOCItem socItem = (ScriptableObject) itemProperty.objectReferenceValue as ISOCItem;
+                if (socItem == null)
+                {
+                    itemsSerializedProperty.DeleteArrayElementAtIndex(i);
+                    modified = true;
+                    Debug.LogWarning($"Removing SOCItem at index {i} because it is not a ISOCItem");
+                    continue;
+                }
+
+                if (socItem.Collection == null)
+                    socItem.SetCollection(collection);
             }
 
             if (modified)
                 itemsSerializedProperty.serializedObject.ApplyModifiedProperties();
-        }
-
-        private void ValidateCollectionItems()
-        {
-            RemoveNullReferences();
-            for (int i = 0; i < itemsSerializedProperty.arraySize; i++)
-            {
-                ScriptableObject collectionItem =
-                    (ScriptableObject) itemsSerializedProperty.GetArrayElementAtIndex(i).objectReferenceValue;
-
-                if (collectionItem == null)
-                    continue;
-
-                ISOCItem socItem = collectionItem as ISOCItem;
-                if (socItem == null)
-                    continue;
-                
-                if (socItem.Collection != null)
-                    continue;
-
-                socItem.SetCollection(collection);
-
-            }
-            serializedObject.ApplyModifiedProperties();
+            
+            lastCheckedForValidItemsArraySize = itemsSerializedProperty.arraySize;
         }
 
         private void DrawBottomMenu()

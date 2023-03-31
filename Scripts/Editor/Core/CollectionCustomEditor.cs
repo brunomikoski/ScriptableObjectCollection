@@ -29,12 +29,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private SerializedProperty itemsSerializedProperty;
         private int lastCheckedForValidItemsArraySize;
 
+        private CollectionsSharedSettings CollectionSettingsInstance => ScriptableObjectCollectionSettings.GetInstance().CollectionSettings;
+
         private static bool IsWaitingForNewTypeBeCreated
         {
             get => EditorPrefs.GetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, false);
             set => EditorPrefs.SetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, value);
         }
-        private CollectionsSharedSettings InstanceCollectionSettings => CollectionsRegistry.Instance.CollectionSettings;
+        private CollectionsSharedSettings InstanceCollectionSettings => CollectionSettingsInstance;
 
         public void OnEnable()
         {
@@ -326,7 +328,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (socItem == null)
                     throw new Exception($"Cloned item {clonedItem.name} is not an ISOCItem");
                 
-                socItem.GenerateGUID();
+                socItem.GenerateNewGUID();
                 itemsSerializedProperty.InsertArrayElementAtIndex(index + 1);
                 SerializedProperty clonedItemSerializedProperty = itemsSerializedProperty.GetArrayElementAtIndex(index + 1);
                 clonedItemSerializedProperty.objectReferenceValue = clonedItem;
@@ -668,10 +670,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                
-                bool isAutomaticallyLoaded = EditorGUILayout.Toggle("Automatically Loaded", InstanceCollectionSettings.IsCollectionAutoLoaded(collection));
+             
+                var autoLoadedSerializedProperty = serializedObject.FindProperty("automaticallyLoaded");
+                bool isAutomaticallyLoaded = EditorGUILayout.Toggle("Automatically Loaded", autoLoadedSerializedProperty.boolValue);
                 if (changeCheck.changed)
-                    InstanceCollectionSettings.SetCollectionAutoLoaded(collection, isAutomaticallyLoaded);
+                {
+                    autoLoadedSerializedProperty.boolValue = isAutomaticallyLoaded;
+                    autoLoadedSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
             }
         }
 
@@ -680,9 +686,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
                 DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(InstanceCollectionSettings.GetCollectionGeneratedFileLocationPath(collection));
-                if (pathObject == null && !string.IsNullOrEmpty(CollectionsRegistry.Instance.CollectionSettings.GeneratedScriptsDefaultFilePath))
+                
+                if (pathObject == null && !string.IsNullOrEmpty(CollectionSettingsInstance.GeneratedScriptsDefaultFilePath))
                 {
-                    pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(CollectionsRegistry.Instance.CollectionSettings.GeneratedScriptsDefaultFilePath);
+                    pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(CollectionSettingsInstance.GeneratedScriptsDefaultFilePath);
                 }
                 
                 pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
@@ -697,10 +704,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     InstanceCollectionSettings.SetCollectionGeneratedFileLocationPath(collection, assetPath);
 
-                    if (string.IsNullOrEmpty(CollectionsRegistry.Instance.CollectionSettings
+                    if (string.IsNullOrEmpty(CollectionSettingsInstance
                             .GeneratedScriptsDefaultFilePath))
                     {
-                        CollectionsRegistry.Instance.CollectionSettings.SetGeneratedScriptsDefaultFilePath(assetPath);
+                        CollectionSettingsInstance.SetGeneratedScriptsDefaultFilePath(assetPath);
                     }
                 }
             }

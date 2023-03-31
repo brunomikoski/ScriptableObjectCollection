@@ -17,8 +17,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool useMaximumNamespaceDepth = true;
         public bool UseMaximumNamespaceDepth => useMaximumNamespaceDepth;
 
-        [SerializeField] private int maximumNamespaceDepth = 2;
+        [SerializeField] 
+        private int maximumNamespaceDepth = 2;
         public int MaximumNamespaceDepth => maximumNamespaceDepth;
+        
+        [SerializeField]
+        private CollectionsSharedSettings collectionSettings = new CollectionsSharedSettings();
+        public CollectionsSharedSettings CollectionSettings => collectionSettings;
+
 
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
@@ -69,22 +75,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static void OnSettingsGUI(SerializedObject serializedObject)
         {
-            SerializedProperty defaultGeneratedScriptsFolder = serializedObject.FindProperty("defaultGeneratedScriptsPath");
-            DefaultAsset defaultAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(defaultGeneratedScriptsFolder
-                .stringValue);
-
-            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-            {
-                DefaultAsset newFolder = EditorGUILayout.ObjectField("Default Scripts Folder", defaultAsset, typeof(DefaultAsset), false) as DefaultAsset;
-                if (changeCheck.changed)
-                {
-                    defaultGeneratedScriptsFolder.stringValue = AssetDatabase.GetAssetPath(newFolder);
-                    defaultGeneratedScriptsFolder.serializedObject.ApplyModifiedProperties();
-                }
-            }
-
-            EditorGUILayout.Space();
-            
             EditorGUILayout.LabelField("Namespaces", EditorStyles.boldLabel);
             SerializedProperty namespacePrefixSerializedProperty = serializedObject.FindProperty("namespacePrefix");
             SerializedProperty useMaximumNamespaceDepthSerializedProperty = serializedObject.FindProperty("useMaximumNamespaceDepth");

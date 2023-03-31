@@ -21,10 +21,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (guid.IsValid())
                     return guid;
                 
-                guid = LongGuid.NewGuid();
+                GenerateNewGUID();
                 return guid;
             }
         }
+
 
         [NonSerialized]
         private List<ScriptableObject> editorSerializedItems;
@@ -32,6 +33,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         protected List<ScriptableObject> items = new List<ScriptableObject>();
         public List<ScriptableObject> Items => items;
+
+        [SerializeField]
+        private bool automaticallyLoaded = true;
+        internal bool AutomaticallyLoaded => automaticallyLoaded;
    
         public ScriptableObject this[int index]
         {
@@ -105,9 +110,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ClearCachedValues();
             return true;
         }
+        
+        
+        internal void GenerateNewGUID()
+        {
+            guid = LongGuid.NewGuid();
+        }
 
 #if UNITY_EDITOR
-        
         public ScriptableObject AddNew(Type collectionType, string assetName = "")
         {
             if (Application.isPlaying)
@@ -279,10 +289,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
+            
             Type collectionType = GetItemType();
             if (collectionType == null)
                 return;
 
+            bool changed = false;
             string folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
             string[] guids = AssetDatabase.FindAssets($"t:{collectionType.Name}", new []{folder});
 
@@ -305,10 +317,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 
                 Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");
                 Add(item);
+                changed = true;
             }
 
-            items = items.Where(o => o != null).Distinct().ToList();
-            ObjectUtility.SetDirty(this);
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                ScriptableObject scriptableObject = items[i];
+
+                if (scriptableObject is ISOCItem)
+                    continue;
+                
+                RemoveAt(i);
+                changed = true;
+            }
+
+            if (changed)
+                ObjectUtility.SetDirty(this);
 #endif
         }
 
@@ -531,9 +555,5 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             cachedValues = null;
         }
-
-#if UNITY_EDITOR
-
-#endif
     }
 }

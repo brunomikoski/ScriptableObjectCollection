@@ -16,29 +16,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField] 
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
 
-        [SerializeField]
-        private CollectionsSharedSettings collectionSettings = new CollectionsSharedSettings();
-        public CollectionsSharedSettings CollectionSettings => collectionSettings;
-
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
         {
             LoadOrCreateInstance<CollectionsRegistry>();
         }
-#if UNITY_EDITOR
-        private void OnEnable()
-        {
-            ValidateCollectionSettings();
-        }
-
-        private void ValidateCollectionSettings()
-        {
-            if (Application.isPlaying)
-                return;
-
-            collectionSettings.Validate();
-        }
-#endif
 
         public bool IsKnowCollection(ScriptableObjectCollection targetCollection)
         {
@@ -241,7 +223,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (Application.isPlaying)
                 return;
 
-            collections.Clear();
+            List<ScriptableObjectCollection> foundCollections  = new List<ScriptableObjectCollection>();
 
             bool changed = false;
             TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom<ScriptableObjectCollection>();
@@ -259,17 +241,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (collection == null)
                         continue;
 
-                    if (collections.Contains(collection))
+                    if (foundCollections.Contains(collection))
                         continue;
 
+                    if (!collections.Contains(collection))
+                        changed = true;
+                    
                     collection.RefreshCollection();
-                    collections.Add(collection);
-                    changed = true;
+                    foundCollections.Add(collection);
                 }
             }
 
             if (changed)
             {
+                collections = foundCollections;
                 ObjectUtility.SetDirty(this);
             }
 #endif
@@ -290,7 +275,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObjectCollection collection = collections[i];
 
-                if (collectionSettings.IsCollectionAutoLoaded(collection))
+                if (collection.AutomaticallyLoaded)
                     continue;
 
                 collections.Remove(collection);
@@ -317,6 +302,49 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collections[i].PrepareForEditorMode();
         }
 #endif
+        public void ValidateCollections()
+        {
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collectionA = collections[i];
+
+                for (int j = 0; j < collections.Count; j++)
+                {
+                    ScriptableObjectCollection collectionB = collections[j];
+
+                    if (i == j)
+                        continue;
+                    
+                    if (collectionA.GUID == collectionB.GUID)
+                    {
+                        collectionA.GenerateNewGUID();
+                        Debug.LogWarning(
+                            $"Found duplicated GUID between {collectionA} and {collectionB}, please run the validation again to make sure this is fixed");
+                    }
+                }
+
+                for (int j = 0; j < collectionA.Items.Count; j++)
+                {
+                    ScriptableObject scriptableObjectA = collectionA.Items[j];
+                    ISOCItem itemA = scriptableObjectA as ISOCItem;
+                    
+                    for (int k = 0; k < collectionA.Items.Count; k++)
+                    {
+                        ScriptableObject scriptableObjectB = collectionA.Items[k];
+                        ISOCItem itemB = scriptableObjectB as ISOCItem;
+
+                        if (j == k)
+                            continue;
+                        
+                        if (itemA.GUID == itemB.GUID)
+                        {
+                            itemA.GenerateNewGUID();
+                            Debug.LogWarning($"Found duplicated GUID between {itemA} and {itemB}, please run the validation again to make sure this is fixed");
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

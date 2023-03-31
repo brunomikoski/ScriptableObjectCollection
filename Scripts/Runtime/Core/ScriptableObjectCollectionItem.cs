@@ -94,7 +94,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return GUID.GetHashCode();
         }
         
-        public void GenerateGUID()
+        public void GenerateNewGUID()
         {
             guid = LongGuid.NewGuid();
         }

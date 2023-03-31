@@ -10,6 +10,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
+        private static CollectionsSharedSettings CollectionSettingsInstance =>
+            ScriptableObjectCollectionSettings.GetInstance().CollectionSettings;
+
         public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace,
             string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
         {
@@ -190,11 +193,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
-            string fileName = CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticClassFileName(collection);
-            string nameSpace = CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticFileNamespace(collection);
-            string finalFolder = CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedFileLocationPath(collection);
-            bool writeAsPartial = CollectionsRegistry.Instance.CollectionSettings.IsCollectionGenerateAsPartialClass(collection);
-            bool useBaseClass = CollectionsRegistry.Instance.CollectionSettings.IsCollectionGenerateAsBaseClass(collection);
+            string fileName = CollectionSettingsInstance.GetCollectionGeneratedStaticClassFileName(collection);
+            string nameSpace = CollectionSettingsInstance.GetCollectionGeneratedStaticFileNamespace(collection);
+            string finalFolder = CollectionSettingsInstance.GetCollectionGeneratedFileLocationPath(collection);
+            bool writeAsPartial = CollectionSettingsInstance.IsCollectionGenerateAsPartialClass(collection);
+            bool useBaseClass = CollectionSettingsInstance.IsCollectionGenerateAsBaseClass(collection);
 
 
             AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
@@ -246,9 +249,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     ScriptableObjectCollection collectionA = collectionsOfSameType[i];
                     string targetNamespaceA =
-                        CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticFileNamespace(collectionA);
+                        CollectionSettingsInstance.GetCollectionGeneratedStaticFileNamespace(collectionA);
                     string targetFileNameA =
-                        CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticClassFileName(collectionA);
+                        CollectionSettingsInstance.GetCollectionGeneratedStaticClassFileName(collectionA);
 
                     for (int j = 0; j < collectionsOfSameType.Count; j++)
                     {
@@ -258,10 +261,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         ScriptableObjectCollection collectionB = collectionsOfSameType[j];
 
                         string targetNamespaceB =
-                            CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticFileNamespace(collectionB);
+                            CollectionSettingsInstance.GetCollectionGeneratedStaticFileNamespace(collectionB);
 
                         string targetFileNameB =
-                            CollectionsRegistry.Instance.CollectionSettings.GetCollectionGeneratedStaticClassFileName(collectionB);
+                            CollectionSettingsInstance.GetCollectionGeneratedStaticClassFileName(collectionB);
 
                         if (targetFileNameA.Equals(targetFileNameB, StringComparison.Ordinal)
                             && targetNamespaceA.Equals(targetNamespaceB, StringComparison.Ordinal))

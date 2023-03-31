@@ -6,6 +6,6 @@
         ScriptableObjectCollection Collection { get; }
         string name { get; set; }
         void SetCollection(ScriptableObjectCollection collection);
-        void GenerateGUID();
+        void GenerateNewGUID();
     }
 }

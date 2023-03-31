@@ -16,10 +16,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             public LongGuid CollectionGuid => collectionGUID;
 
             [SerializeField]
-            private bool automaticallyLoaded = true;
-            public bool AutomaticallyLoaded => automaticallyLoaded;
-
-            [SerializeField]
             private bool generateAsPartialClass = true;
             public bool GenerateAsPartialClass => generateAsPartialClass;
 
@@ -42,11 +38,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             public CollectionSettingsData(LongGuid collectionGuid)
             {
                 collectionGUID = collectionGuid;
-            }
-            
-            public void SetAutomaticallyLoaded(bool autoLoaded)
-            {
-                automaticallyLoaded = autoLoaded;
             }
 
             public void SetGenerateAsPartialClass(bool partialClass)
@@ -83,11 +74,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string generatedScriptsDefaultFilePath = "Assets\\Generated\\Scripts";
         public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
 
-        public bool IsCollectionAutoLoaded(ScriptableObjectCollection targetCollection)
-        {
-            CollectionSettingsData collectionSettings = GetOrCreateCollectionSettings(targetCollection);
-            return collectionSettings.AutomaticallyLoaded;
-        }
         
         public bool IsCollectionGenerateAsPartialClass(ScriptableObjectCollection targetCollection)
         {
@@ -118,14 +104,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CollectionSettingsData collectionSettings = GetOrCreateCollectionSettings(targetCollection);
             return collectionSettings.GenerateStaticFileNamespace;
         }
-        
-        public void SetCollectionAutoLoaded(ScriptableObjectCollection targetCollection, bool autoLoaded)
-        {
-            CollectionSettingsData collectionSettings = GetOrCreateCollectionSettings(targetCollection);
-            collectionSettings.SetAutomaticallyLoaded(autoLoaded);
-            SetDirty();
-        }
-        
+
         public void SetGenerateAsPartialClass(ScriptableObjectCollection targetCollection, bool generateAsPartialClass)
         {
             CollectionSettingsData collectionSettings = GetOrCreateCollectionSettings(targetCollection);

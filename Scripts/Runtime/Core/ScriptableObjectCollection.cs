@@ -28,7 +28,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 
         [NonSerialized]
-        private List<ScriptableObject> editorSerializedItems;
+        private List<ScriptableObject> editorSerializedItems = new List<ScriptableObject>();
         
         [SerializeField]
         protected List<ScriptableObject> items = new List<ScriptableObject>();
@@ -392,22 +392,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         internal void PrepareForPlayMode()
         {
-            editorSerializedItems = new List<ScriptableObject>(items);
+            editorSerializedItems.Clear();
+            editorSerializedItems.AddRange(items);
         }
 
         internal void PrepareForEditorMode()
         {
-            if(editorSerializedItems == null)
-                return;
-
-            items = new List<ScriptableObject>(editorSerializedItems);
-            ObjectUtility.SetDirty(this);
+            items.Clear();
+            items.AddRange(editorSerializedItems);
+            editorSerializedItems.Clear();
         }
 
         protected virtual void ClearCachedValues()
         {
         }
-
     }
 
     public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
@@ -518,11 +516,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ClearCachedValues();
         }
 
-        public ObjectType Add(Type itemType = null)
+        public int Add(Type itemType = null)
         {
-            ObjectType item = base.Add(itemType) as ObjectType;
+            int count = base.Add(itemType);
             ClearCachedValues();
-            return item;
+            return count;
         }
 
         public bool Contains(ObjectType item)

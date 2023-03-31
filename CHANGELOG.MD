@@ -6,15 +6,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.9.8]
+## [2.0.0]
 ### Changed
-- Fixed issue with name parser that would still treat digits as string and add to the final name
+- Fixed issue with name parser that would still treat digits as string and ad~~~~d to the final name
+- Fixed issue with PropertyDrawer of indirect reference without attribute would cause a null reference
+- Refactored the system to use ScriptableObject as a base class instead of `ScriptableObjectCollectionItem` now any `ScriptableObject` can be used as a collection item as long as implements the `ISCOItem` interface
+- Fixed issue with `CollectionItemPicker` that would not work properly with `ScriptableObject` that are not in the same assembly as the `ScriptableObjectCollection`
+- Added new buttons on CollectionRegistry to force guid validation on all items
+- Reduced automatic collection guid reloading to reduce performance impact on larger projects
+- Fixed issues with target scripts generation folder not being saved properly
+- Minimum supported Unity version is now 2020
 
 ### Removed
  - Removed support for Addressables, it was not working properly and it was not being used by a lot of teams, I think the addressables support should be handled elsewhere.
 
 ### Breaking Changes
 - If you used the Addressables integration `SOC_ADDRESSABLES_SUPPORT` be extra careful when upgrading
+- The old string based guid system has been replaced for a lighter version `LongGuid`
+
+
+### Upgrade Guide from 1.x.x to 2.x.x
+- Update the package
+- Make sure you click on the `CollectionRegistry` and click on the `Validate Collections` button
+- Regenerate all your Static Code Files
+
 
 # [1.9.7]
 ### Added
@@ -393,7 +408,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
-[1.9.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.8
+[2.0.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.0
 [1.9.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.7
 [1.9.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.6
 [1.9.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v1.9.5

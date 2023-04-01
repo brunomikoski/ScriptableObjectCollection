@@ -16,12 +16,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private readonly List<ScriptableObjectCollection> collections;
 
         private readonly Type itemType;
-        private readonly CollectionItemEditorOptionsAttribute options;
+        private readonly SOCItemEditorOptionsAttribute options;
         private readonly Object owner;
         private readonly MethodInfo validationMethod;
 
         public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType,
-            CollectionItemEditorOptionsAttribute options, Object owner) : base(state)
+            SOCItemEditorOptionsAttribute options, Object owner) : base(state)
         {
             itemType = targetItemType;
             collections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType);

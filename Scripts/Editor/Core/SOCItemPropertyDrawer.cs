@@ -7,31 +7,31 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
-    public class CollectionItemPropertyDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(ISOCItem), true)]
+    public class SOCItemPropertyDrawer : PropertyDrawer
     {
         public const float BUTTON_WIDTH = 30;
         
-        private static readonly CollectionItemEditorOptionsAttribute DefaultAttribute
-            = new CollectionItemEditorOptionsAttribute();
+        private static readonly SOCItemEditorOptionsAttribute DefaultAttribute
+            = new SOCItemEditorOptionsAttribute();
 
-        internal CollectionItemEditorOptionsAttribute OptionsAttribute { get; private set; }
+        internal SOCItemEditorOptionsAttribute OptionsAttribute { get; private set; }
 
         private bool initialized;
 
         private Object currentObject;
 
         private CollectionItemDropdown collectionItemDropdown;
-        private ScriptableObjectCollectionItem item;
+        private ScriptableObject item;
         private float totalHeight;
 
-        private CollectionItemEditorOptionsAttribute GetOptionsAttribute()
+        private SOCItemEditorOptionsAttribute GetOptionsAttribute()
         {
             if (fieldInfo == null)
                 return DefaultAttribute;
-            object[] attributes = fieldInfo.GetCustomAttributes(typeof(CollectionItemEditorOptionsAttribute), false);
+            object[] attributes = fieldInfo.GetCustomAttributes(typeof(SOCItemEditorOptionsAttribute), false);
             if (attributes.Length > 0)
-                return attributes[0] as CollectionItemEditorOptionsAttribute;
+                return attributes[0] as SOCItemEditorOptionsAttribute;
             return DefaultAttribute;
         }
 
@@ -50,7 +50,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
-            item = property.objectReferenceValue as ScriptableObjectCollectionItem;
+            item = property.objectReferenceValue as ScriptableObject;
 
             DrawCollectionItemDrawer(ref position, item, label,
                 newItem =>
@@ -83,12 +83,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             totalHeight = position.y - originY;
         }
 
-        private void DrawEditorPreview(ref Rect rect, ScriptableObject scriptableObjectCollectionItem)
+        private void DrawEditorPreview(ref Rect rect, ScriptableObject scriptableObject)
         {
-            if (scriptableObjectCollectionItem == null)
+            if (scriptableObject == null)
                 return;
 
-            if (!CollectionUtility.IsFoldoutOpen(scriptableObjectCollectionItem, currentObject))
+            if (!CollectionUtility.IsFoldoutOpen(scriptableObject, currentObject))
                 return;
 
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -96,7 +96,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             rect.y += 10;
             float beginPositionY = rect.y;
 
-            SerializedObject collectionItemSerializedObject = new SerializedObject(scriptableObjectCollectionItem);
+            SerializedObject collectionItemSerializedObject = new SerializedObject(scriptableObject);
 
             EditorGUI.indentLevel++;
             rect = EditorGUI.IndentedRect(rect);
@@ -169,12 +169,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return fieldInfo;
         }
 
-        internal void Initialize(Type collectionItemType, CollectionItemEditorOptionsAttribute optionsAttribute)
+        internal void Initialize(Type collectionItemType, SOCItemEditorOptionsAttribute optionsAttribute)
         {
             Initialize(collectionItemType, null, optionsAttribute ?? GetOptionsAttribute());
         }
 
-        internal void Initialize(Type collectionItemType, Object obj, CollectionItemEditorOptionsAttribute optionsAttribute)
+        internal void Initialize(Type collectionItemType, Object obj, SOCItemEditorOptionsAttribute optionsAttribute)
         {
             if (initialized)
                 return;

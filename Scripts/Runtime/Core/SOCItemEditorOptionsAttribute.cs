@@ -9,7 +9,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class)]
-    public class CollectionItemEditorOptionsAttribute : Attribute
+    public class SOCItemEditorOptionsAttribute : Attribute
     {
         public DrawType DrawType { get; set; } = DrawType.Dropdown;
 
@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public string ValidateMethod { get; set; }
 
-        public CollectionItemEditorOptionsAttribute()
+        public SOCItemEditorOptionsAttribute()
         {
         }
     }

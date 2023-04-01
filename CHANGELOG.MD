@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new buttons on CollectionRegistry to force guid validation on all items
 - Reduced automatic collection guid reloading to reduce performance impact on larger projects
 - Fixed issues with target scripts generation folder not being saved properly
-- Minimum supported Unity version is now 2020
+- Minimum supported Unity version is now 2021 _(I'm DONE with 2020, its the worst unity ever 😒)_
 
 ### Removed
  - Removed support for Addressables, it was not working properly and it was not being used by a lot of teams, I think the addressables support should be handled elsewhere.
@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Breaking Changes
 - If you used the Addressables integration `SOC_ADDRESSABLES_SUPPORT` be extra careful when upgrading
 - The old string based guid system has been replaced for a lighter version `LongGuid`
-
+- If you are using IndirectReferences all the references will be lost, you will need to re-set them
 
 ### Upgrade Guide from 1.x.x to 2.x.x
 - Update the package

@@ -604,7 +604,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 int indentation = 0;
                 List<string> directives = new List<string>();
-                directives.Add(typeof(ScriptableObjectCollectionItem).Namespace);
+                directives.Add(typeof(ScriptableObjectCollection).Namespace);
                 directives.Add(Namespace);
                 directives.Add("System");
                 directives.Add("UnityEngine");

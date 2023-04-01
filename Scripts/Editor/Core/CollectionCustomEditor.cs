@@ -49,7 +49,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CreateReorderableList();
 
             CheckGeneratedCodeLocation();
-            CheckIfCanBePartial();
             CheckGeneratedStaticFileName();
             ValidateGeneratedFileNamespace();
         }
@@ -713,7 +712,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawPartialClassToggle()
         {
-            bool canBePartial= CheckIfCanBePartial();
+            bool canBePartial= CodeGenerationUtility.CheckIfCanBePartial(collection);
             
             EditorGUI.BeginDisabledGroup(!canBePartial);
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
@@ -763,25 +762,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             serializedObject.ApplyModifiedProperties();
-        }
-
-        private bool CheckIfCanBePartial()
-        {
-            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
-            string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
-            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(serializedObject.FindProperty("generatedFileLocationPath").stringValue);
-            
-            // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
-            // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
-            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
-                                string.IsNullOrEmpty(targetGeneratedCodePath);
-            
-            if (serializedObject.FindProperty("generateAsPartialClass").boolValue && !canBePartial)
-            {
-                serializedObject.FindProperty("generateAsPartialClass").boolValue = false;
-            }
-
-            return canBePartial;
         }
 
         private void CheckGeneratedCodeLocation()

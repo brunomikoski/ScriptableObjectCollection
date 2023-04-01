@@ -14,7 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (guid.IsValid())
                     return guid;
                 
-                guid = LongGuid.NewGuid();
+                GenerateNewGUID();
                 return guid;
             }
         }

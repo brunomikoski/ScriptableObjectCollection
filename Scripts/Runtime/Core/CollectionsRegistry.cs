@@ -15,6 +15,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [SerializeField] 
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
+        public IReadOnlyList<ScriptableObjectCollection> Collections => collections;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
@@ -254,6 +255,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (changed)
             {
+                ValidateCollections();
                 collections = foundCollections;
                 ObjectUtility.SetDirty(this);
             }

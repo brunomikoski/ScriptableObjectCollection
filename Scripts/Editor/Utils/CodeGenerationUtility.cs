@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -182,6 +183,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        public static void ValidateIfCanBePartial(ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+
+            bool canBePartial = CheckIfCanBePartial(collection);
+            if (collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue && !canBePartial)
+            {
+                collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue = false;
+                collectionSerializedObject.ApplyModifiedProperties();
+            }
+        }
+        public static bool CheckIfCanBePartial(ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+
+            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
+            string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
+            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue);
+            
+            // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
+            // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
+            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
+                                string.IsNullOrEmpty(targetGeneratedCodePath);
+            
+            return canBePartial;
+        }
+
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
             if (!CanGenerateStaticFile(collection, out string errorMessage))
@@ -190,6 +218,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
+            ValidateIfCanBePartial(collection);
 
             SerializedObject collectionSerializedObject = new SerializedObject(collection);
             string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
@@ -220,9 +249,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     className = fileName;
                 }
-                else if (className.Equals(nameof(ScriptableObjectCollectionItem)))
+                else if (className.Equals(nameof(ScriptableObject)))
                 {
-                    Debug.LogWarning($"Cannot create static class using the collection type name ({nameof(ScriptableObjectCollectionItem)})"+
+                    Debug.LogWarning($"Cannot create static class using the collection type name ({nameof(ScriptableObject)})"+
                         $"The \"Static File Name\" ({fileName}) will be used as its class name instead.");
                     className = fileName;
                 }
@@ -377,6 +406,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AppendLine(writer, indentation, "}");
             
             AppendLine(writer, indentation);
+        }
+
+        public static bool DoesStaticFileForCollectionExist(ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
+            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
+            return File.Exists(Path.Combine(finalFolder, $"{fileName}.cs"));
         }
     }
 }

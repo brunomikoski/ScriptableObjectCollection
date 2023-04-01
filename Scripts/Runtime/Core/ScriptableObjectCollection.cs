@@ -115,20 +115,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool Add(ScriptableObject item)
         {
+            ISOCItem socItem = item as ISOCItem;
+            if (socItem == null)
+                return false;
             if (items.Contains(item))
                 return false;
             
             items.Add(item);
 
-            if (item is ISOCItem socItem)
                 socItem.SetCollection(this);
             
             ObjectUtility.SetDirty(this);
             ClearCachedValues();
             return true;
         }
-        
-        
+
         internal void GenerateNewGUID()
         {
             guid = LongGuid.NewGuid();

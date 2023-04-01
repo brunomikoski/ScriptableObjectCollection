@@ -1,5 +1,7 @@
 ﻿using System;
 using UnityEditor;
+using UnityEngine;
+using Object = System.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -13,12 +15,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             Type type = mainAssetAtPath.GetType();
             
-            if (type.IsSubclassOf(typeof(ScriptableObjectCollectionItem)))
+            if (type.IsSubclassOf(typeof(ScriptableObject)))
             {
-                ScriptableObjectCollectionItem collectionItem =
-                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(targetAssetPath);
+                ScriptableObject collectionItem =
+                    AssetDatabase.LoadAssetAtPath<ScriptableObject>(targetAssetPath);
 
-                collectionItem.Collection.Remove(collectionItem);
+                ISOCItem socItem = collectionItem as ISOCItem;
+                if (socItem == null)
+                    return AssetDeleteResult.DidNotDelete;
+
+                socItem.Collection.Remove(collectionItem);
                 return AssetDeleteResult.DidNotDelete;
             }
             

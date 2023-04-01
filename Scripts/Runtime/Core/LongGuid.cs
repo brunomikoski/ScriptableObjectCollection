@@ -58,7 +58,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(value1, value2);
+            return Tuple.Create(value1, value2).GetHashCode();
         }
 
         public static bool operator ==(LongGuid left, LongGuid right)

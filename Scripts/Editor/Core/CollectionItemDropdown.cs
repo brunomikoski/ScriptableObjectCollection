@@ -12,16 +12,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
     public sealed class CollectionItemDropdown : AdvancedDropdown
     {
         private const string CREATE_NEW_TEXT = "+ Create New";
-        private Action<ScriptableObjectCollectionItem> callback;
+        private Action<ScriptableObject> callback;
         private readonly List<ScriptableObjectCollection> collections;
 
         private readonly Type itemType;
-        private readonly CollectionItemEditorOptionsAttribute options;
+        private readonly SOCItemEditorOptionsAttribute options;
         private readonly Object owner;
         private readonly MethodInfo validationMethod;
 
         public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType,
-            CollectionItemEditorOptionsAttribute options, Object owner) : base(state)
+            SOCItemEditorOptionsAttribute options, Object owner) : base(state)
         {
             itemType = targetItemType;
             collections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType);
@@ -30,7 +30,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             this.owner = owner;
 
 
-            if (!string.IsNullOrEmpty(options.ValidateMethod))
+            if (options != null && !string.IsNullOrEmpty(options.ValidateMethod))
             {
                 validationMethod = owner.GetType().GetMethod(options.ValidateMethod, new[] {itemType});
             }
@@ -58,7 +58,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 for (int j = 0; j < collection.Count; j++)
                 {
-                    ScriptableObjectCollectionItem collectionItem = collection[j];
+                    ScriptableObject collectionItem = collection[j];
                     
                     if (validationMethod != null)
                     {
@@ -86,7 +86,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
                 ScriptableObjectCollection collection = collections.First();
-                ScriptableObjectCollectionItem newItem = CollectionCustomEditor.AddNewItem(collection, itemType);
+                ScriptableObject newItem = CollectionCustomEditor.AddNewItem(collection, itemType);
                 callback.Invoke(newItem);
                 return;
             }
@@ -97,7 +97,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 callback.Invoke(null);
         }
 
-        public void Show(Rect rect, Action<ScriptableObjectCollectionItem> onSelectedCallback)
+        public void Show(Rect rect, Action<ScriptableObject> onSelectedCallback)
         {
             callback = onSelectedCallback;
             base.Show(rect);

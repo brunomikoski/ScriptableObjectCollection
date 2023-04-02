@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -13,7 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace,
             string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
         {
-            AssetDatabaseUtils.CreatePathIfDontExist(parentFolder);
+            AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolder);
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
 
             if (File.Exists(Path.GetFullPath(finalFilePath)))
@@ -182,27 +183,56 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        public static void DisablePartialClassGenerationIfDisallowed(ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+
+            bool canBePartial = CheckIfCanBePartial(collection);
+            SerializedProperty partialClassSP = collectionSerializedObject.FindProperty("generateAsPartialClass");
+            if (partialClassSP.boolValue && !canBePartial)
+            {
+                partialClassSP.boolValue = false;
+                collectionSerializedObject.ApplyModifiedProperties();
+            }
+        }
+        public static bool CheckIfCanBePartial(ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+
+            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
+            string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
+            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue);
+            
+            // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
+            // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
+            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
+                                string.IsNullOrEmpty(targetGeneratedCodePath);
+            
+            return canBePartial;
+        }
+
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
         {
-            CollectionsRegistry.Instance.ValidateGUIDs();
             if (!CanGenerateStaticFile(collection, out string errorMessage))
             {
                 Debug.LogError(errorMessage);
                 return;
             }
 
+            DisablePartialClassGenerationIfDisallowed(collection);
+
             SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
-
             string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
+            
             string nameSpace = collectionSerializedObject.FindProperty("generateStaticFileNamespace").stringValue;
-           
+            
             string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
+            
             bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
             bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
 
 
-            AssetDatabaseUtils.CreatePathIfDontExist(finalFolder);
+            AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
             using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.cs")))
             {
                 int indentation = 0;
@@ -216,23 +246,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.AddRange(GetCollectionDirectives(collection));
                 string className = collection.GetItemType().Name;
 
-#if SOC_ADDRESSABLES
-                if (className.Contains(ReferenceConverter.BaseClassNamePostFix) && collection.Items.Count(item => item.IsReference()) > 0)
-                {
-                    int baseClassPostFixLength = ReferenceConverter.BaseClassNamePostFix.Length;
-                    if (className.Length > baseClassPostFixLength)
-                    {
-                        className = className.Remove(className.Length - baseClassPostFixLength, baseClassPostFixLength);
-                    }
-                }
-#endif
                 if (!writeAsPartial)
                 {
                     className = fileName;
                 }
-                else if (className.Equals(nameof(ScriptableObjectCollectionItem)))
+                else if (className.Equals(nameof(ScriptableObject)))
                 {
-                    Debug.LogWarning($"Cannot create static class using the collection type name ({nameof(ScriptableObjectCollectionItem)})"+
+                    Debug.LogWarning($"Cannot create static class using the collection type name ({nameof(ScriptableObject)})"+
                         $"The \"Static File Name\" ({fileName}) will be used as its class name instead.");
                     className = fileName;
                 }
@@ -260,17 +280,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 for (int i = 0; i < collectionsOfSameType.Count; i++)
                 {
                     ScriptableObjectCollection collectionA = collectionsOfSameType[i];
-                    SerializedObject collectionASerializedObject = new SerializedObject(collectionA);
+                    SerializedObject collectionASO = new SerializedObject(collectionA);
+
+
+                    string targetNamespaceA = collectionASO.FindProperty("generateStaticFileNamespace").stringValue;
+                    string targetFileNameA = collectionASO.FindProperty("generatedStaticClassFileName").stringValue;
+
                     for (int j = 0; j < collectionsOfSameType.Count; j++)
                     {
                         if (i == j)
                             continue;
 
                         ScriptableObjectCollection collectionB = collectionsOfSameType[j];
-                        SerializedObject collectionBSerializedObject = new SerializedObject(collectionB);
+                        SerializedObject collectionBSO = new SerializedObject(collectionB);
 
-                        if (collectionASerializedObject.FindProperty("generatedStaticClassFileName").stringValue.Equals(collectionBSerializedObject.FindProperty("generatedStaticClassFileName").stringValue)
-                            && collectionASerializedObject.FindProperty("generateStaticFileNamespace").stringValue.Equals(collectionASerializedObject.FindProperty("generateStaticFileNamespace").stringValue))
+                        
+                        string targetNamespaceB = collectionBSO.FindProperty("generateStaticFileNamespace").stringValue;
+                        string targetFileNameB = collectionBSO.FindProperty("generatedStaticClassFileName").stringValue;
+
+                        if (targetFileNameA.Equals(targetFileNameB, StringComparison.Ordinal)
+                            && targetNamespaceA.Equals(targetNamespaceB, StringComparison.Ordinal))
                         {
                             errorMessage =
                                 $"Two collections ({collectionA.name} and {collectionB.name}) with the same name and namespace already exist, please use custom ones";
@@ -303,7 +332,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < collection.Items.Count; i++)
             {
-                ScriptableObjectCollectionItem collectionItem = collection.Items[i];
+                ScriptableObject collectionItem = collection.Items[i];
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
                 AppendLine(writer, indentation, 
                     $"private static {type.FullName} cached{collectionItem.name.Sanitize().FirstToUpper()};");
@@ -323,8 +352,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             indentation++;
             AppendLine(writer, indentation, $"if ({cachedValuesName} == null)");
             indentation++;
+            (long, long) collectionGUIDValues = collection.GUID.GetValue();
             AppendLine(writer, indentation,
-                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(\"{collection.GUID}\");");
+                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}));");
             indentation--;
             AppendLine(writer, indentation, $"return {cachedValuesName};");
             indentation--;
@@ -337,11 +367,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             for (int i = 0; i < collection.Items.Count; i++)
             {
-                ScriptableObjectCollectionItem collectionItem = collection.Items[i];
+                ScriptableObject collectionItem = collection.Items[i];
                 string collectionNameFirstUpper = collectionItem.name.Sanitize().FirstToUpper();
                 string privateStaticName = $"cached{collectionNameFirstUpper}";
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
 
+                ISOCItem socItem = collectionItem as ISOCItem;
+                if (socItem == null)
+                    continue;
+                
                 AppendLine(writer, indentation,
                     $"public static {type.FullName} {collectionNameFirstUpper}");
                 AppendLine(writer, indentation, "{");
@@ -352,8 +386,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
+                (long, long) collectionItemGUIDValues = socItem.GUID.GetValue();
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(\"{collectionItem.GUID}\");");
+                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}));");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticName};");
                 indentation--;
@@ -361,21 +396,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation--;
                 AppendLine(writer, indentation, "}");
                 AppendLine(writer, indentation);
-                if (collectionItem.TryGetReference(out ScriptableObjectReferenceItem reference))
-                {
-                    if (reference.TargetGuid != null)
-                    {
-                        GenerateLoadUtilForReferences(writer, ref indentation, reference, collectionItem.name);
-                    }
-                    else
-                    {
-                        string warningMessage =
-                            $"Item \"{collectionItem.name}\" does not contain a valid reference! " +
-                            $"Assign a valid reference and regenerate the static class!";
-                        Debug.LogWarning(warningMessage);
-                        AppendLine(writer, indentation, $"// {warningMessage}");
-                    }
-                }
             }
             
             
@@ -389,45 +409,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AppendLine(writer, indentation);
         }
 
-        private static void GenerateLoadUtilForReferences(StreamWriter writer, ref int indentation,
-            ScriptableObjectReferenceItem referenceItem, string name)
+        public static bool DoesStaticFileForCollectionExist(ScriptableObjectCollection collection)
         {
-            string staticGetter = name.Sanitize().FirstToUpper();
-            ScriptableObjectCollectionItem item = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(
-                AssetDatabase.GUIDToAssetPath(referenceItem.TargetGuid));
-            string itemName = item.name.Sanitize().FirstToUpper();
-            
-            AppendLine(writer, indentation, $"[Obsolete(\"Items are no longer automatically loaded. Use Load{itemName} instead.\", true)]");
-            AppendLine(writer, indentation, $"public static {item.GetType()} {itemName};");
-            AppendLine(writer, indentation);
-            AppendLine(writer, indentation,
-                $"public static {item.GetType()} Load{itemName}()");
-            AppendLine(writer, indentation, "{");
-            indentation++;
-            AppendLine(writer, indentation, $"return {staticGetter}.Load();");
-            indentation--;
-            AppendLine(writer, indentation, "}");
-            AppendLine(writer, indentation);
-        }
-
-        public static string[] ReferenceClassCode(string itemClassName)
-        {
-            return new[]
-            {
-                "[SerializeField] private ScriptableObjectReferenceItem referenceItem = new ScriptableObjectReferenceItem();",
-                "public ScriptableObjectReferenceItem Reference => referenceItem;",
-
-                $"public static implicit operator ScriptableObjectReferenceItem({itemClassName}Reference {itemClassName.FirstToLower()}) => {itemClassName.FirstToLower()}.Reference;",
-
-                "public override bool TryGetReference(out ScriptableObjectReferenceItem reference)",
-                "{",
-                "reference = referenceItem;",
-                "return true;",
-                "}",
-                $"public {itemClassName} Load() => referenceItem.Load<{itemClassName}>();",
-                $"public Task<{itemClassName}> LoadAsync() => referenceItem.LoadAsync<{itemClassName}>();",
-                "public void Unload() => referenceItem.Unload();"
-            };
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
+            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
+            return File.Exists(Path.Combine(finalFolder, $"{fileName}.cs"));
         }
     }
 }

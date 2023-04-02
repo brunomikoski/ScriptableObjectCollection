@@ -1,9 +1,6 @@
 using System;
-using System.Collections.ObjectModel;
 using System.IO;
 using UnityEditor;
-using UnityEditor.Callbacks;
-using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections

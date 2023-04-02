@@ -9,10 +9,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         private const int MINIMUM_NAMESPACE_DEPTH = 1;
         
-        [SerializeField]
-        private string defaultGeneratedScriptsPath;
-        public string DefaultGeneratedScriptsPath => defaultGeneratedScriptsPath;
-
         [FormerlySerializedAs("defaultNamespace")] [SerializeField]
         private string namespacePrefix;
         public string NamespacePrefix => namespacePrefix;
@@ -21,8 +17,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool useMaximumNamespaceDepth = true;
         public bool UseMaximumNamespaceDepth => useMaximumNamespaceDepth;
 
-        [SerializeField] private int maximumNamespaceDepth = 2;
+        [SerializeField] 
+        private int maximumNamespaceDepth = 2;
         public int MaximumNamespaceDepth => maximumNamespaceDepth;
+        
+        [SerializeField]
+        private string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
+        public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
+
 
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
@@ -44,13 +46,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             EditorUtility.SetDirty(this);
             AssetDatabase.SaveAssets();
-        }
-
-
-        public void SetDefaultGeneratedScriptsPath(string targetPath)
-        {
-            defaultGeneratedScriptsPath = targetPath;
-            Changed();
         }
         
         [Obsolete("Default Namespace has been renamed to Namespace Prefix. Please use the corresponding function.")]
@@ -80,22 +75,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static void OnSettingsGUI(SerializedObject serializedObject)
         {
-            SerializedProperty defaultGeneratedScriptsFolder = serializedObject.FindProperty("defaultGeneratedScriptsPath");
-            DefaultAsset defaultAsset = AssetDatabase.LoadAssetAtPath<DefaultAsset>(defaultGeneratedScriptsFolder
-                .stringValue);
-
-            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
-            {
-                DefaultAsset newFolder = EditorGUILayout.ObjectField("Default Scripts Folder", defaultAsset, typeof(DefaultAsset), false) as DefaultAsset;
-                if (changeCheck.changed)
-                {
-                    defaultGeneratedScriptsFolder.stringValue = AssetDatabase.GetAssetPath(newFolder);
-                    defaultGeneratedScriptsFolder.serializedObject.ApplyModifiedProperties();
-                }
-            }
-
-            EditorGUILayout.Space();
-            
             EditorGUILayout.LabelField("Namespaces", EditorStyles.boldLabel);
             SerializedProperty namespacePrefixSerializedProperty = serializedObject.FindProperty("namespacePrefix");
             SerializedProperty useMaximumNamespaceDepthSerializedProperty = serializedObject.FindProperty("useMaximumNamespaceDepth");
@@ -124,6 +103,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     namespacePrefixSerializedProperty.serializedObject.ApplyModifiedProperties();
                 }
             }
+            
+            EditorGUILayout.LabelField("Default Generated Scripts Folder", EditorStyles.boldLabel);
+            SerializedProperty generatedScriptsDefaultFilePathSerializedProperty = serializedObject.FindProperty("generatedScriptsDefaultFilePath");
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsDefaultFilePathSerializedProperty.stringValue);
+                
+                pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
+                    "Generated Scripts Parent Folder",
+                    pathObject,
+                    typeof(DefaultAsset),
+                    false
+                );
+                string assetPath = AssetDatabase.GetAssetPath(pathObject);
+
+                if (changeCheck.changed)
+                {
+                    generatedScriptsDefaultFilePathSerializedProperty.stringValue = assetPath;
+                    generatedScriptsDefaultFilePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+            }
         }
+
+        public void SetGeneratedScriptsDefaultFilePath(string assetPath)
+        {
+            generatedScriptsDefaultFilePath = assetPath;
+            EditorUtility.SetDirty(this);
+       }
     }
 }

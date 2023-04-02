@@ -40,12 +40,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         for (int i = targetCollection.Items.Count - 1; i >= 0; i--)
                         {
-                            ScriptableObjectCollectionItem scriptableObjectCollectionItem =
+                            ScriptableObject collectionItem =
                                 targetCollection.Items[i];
 
-                            targetCollection.Remove(scriptableObjectCollectionItem);
+                            targetCollection.Remove(collectionItem);
                             
-                            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(scriptableObjectCollectionItem));
+                            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(collectionItem));
                         }
                     }
 

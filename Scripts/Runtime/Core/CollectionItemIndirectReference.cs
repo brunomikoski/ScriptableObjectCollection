@@ -7,12 +7,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [Serializable]
     public abstract class CollectionItemIndirectReference
     {
-        [FormerlySerializedAs("collectableGUID")]
         [SerializeField]
-        protected string collectionItemGUID;
-        
+        protected long collectionItemGUIDValueA;
         [SerializeField]
-        protected string collectionGUID;
+        protected long collectionItemGUIDValueB;
+
+        protected LongGuid CollectionItemGUID => new LongGuid(collectionItemGUIDValueA, collectionItemGUIDValueB);
+
+
+        [SerializeField]
+        protected long collectionGUIDValueA;
+        [SerializeField]
+        protected long collectionGUIDValueB;
+
+        protected LongGuid CollectionGUID => new LongGuid(collectionGUIDValueA, collectionGUIDValueB);
+
     }
 
     [Serializable]
@@ -21,7 +30,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [NonSerialized]
         private TObject cachedRef;
-        
         public TObject Ref
         {
             get
@@ -31,11 +39,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     return cachedRef;
                 }
 
-                if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID,
+                if (CollectionsRegistry.Instance.TryGetCollectionByGUID(CollectionGUID,
                     out ScriptableObjectCollection<TObject> collection))
                 {
-                    if (collection.TryGetItemByGUID(collectionItemGUID,
-                        out ScriptableObjectCollectionItem item))
+                    if (collection.TryGetItemByGUID(CollectionItemGUID, out ScriptableObject item))
                     {
                         cachedRef = item as TObject;
                     }
@@ -44,23 +51,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return cachedRef;
             }
             set => FromCollectionItem(value);
-        }
-
-        /// <summary>
-        /// Used for serializing, as the protected fields only work for Unity's serializer
-        /// </summary>
-        public string PairedGUID
-        {
-            get => collectionGUID + ":" + collectionItemGUID;
-            set
-            {
-                string[] split = value.Split(':');
-                if (split.Length == 2)
-                {
-                    collectionGUID = split[0];
-                    collectionItemGUID = split[1];
-                }
-            }
         }
 
         public CollectionItemIndirectReference()
@@ -74,8 +64,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void FromCollectionItem(ScriptableObjectCollectionItem item)
         {
-            collectionItemGUID = item.GUID;
-            collectionGUID = item.Collection.GUID;
+            (long, long) collectionItemValues = item.GUID.GetValue();
+            collectionItemGUIDValueA = collectionItemValues.Item1;
+            collectionItemGUIDValueB = collectionItemValues.Item2;
+
+
+            (long,long) collectionGUIDValues = item.Collection.GUID.GetValue();
+            collectionGUIDValueA = collectionGUIDValues.Item1;
+            collectionGUIDValueB = collectionGUIDValues.Item2;
         }
     }
 }

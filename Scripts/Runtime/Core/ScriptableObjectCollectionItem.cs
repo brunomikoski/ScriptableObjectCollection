@@ -3,21 +3,24 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>
+    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>, ISOCItem
     {
         [SerializeField, HideInInspector]
-        private string guid;
-        public string GUID
+        private LongGuid guid;
+        public LongGuid GUID
         {
             get
             {
-                SyncGUID();
+                if (guid.IsValid())
+                    return guid;
+                
+                GenerateNewGUID();
                 return guid;
             }
         }
 
         [SerializeField, HideInInspector]
-        private string collectionGUID;
+        private LongGuid collectionGUID;
         
         private ScriptableObjectCollection cachedScriptableObjectCollection;
         public ScriptableObjectCollection Collection
@@ -26,7 +29,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (cachedScriptableObjectCollection == null)
                 {
-                    if (!string.IsNullOrEmpty(collectionGUID))
+                    if (collectionGUID.IsValid())
                     {
                         cachedScriptableObjectCollection = CollectionsRegistry.Instance.GetCollectionByGUID(collectionGUID);
                     }
@@ -35,7 +38,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         CollectionsRegistry.Instance.TryGetCollectionFromItemType(GetType(), out cachedScriptableObjectCollection);
                         if (cachedScriptableObjectCollection != null)
                         {
-                            Debug.Log($"Collection Item ({this.name}) was missing the Collection GUID, assigned to {cachedScriptableObjectCollection.name}");
                             collectionGUID = cachedScriptableObjectCollection.GUID;
                             ObjectUtility.SetDirty(this);
                         }
@@ -44,17 +46,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 
                 return cachedScriptableObjectCollection;
             }
-        }
-
-        public bool IsReference()
-        {
-            return TryGetReference(out _);
-        }
-        
-        public virtual bool TryGetReference(out ScriptableObjectReferenceItem reference)
-        {
-            reference = null;
-            return false;
         }
 
         public void SetCollection(ScriptableObjectCollection collection)
@@ -66,7 +57,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public int CompareTo(ScriptableObjectCollectionItem other)
         {
-            return string.Compare(GUID, other.GUID, StringComparison.Ordinal);
+            return string.Compare(name, other.name, StringComparison.Ordinal);
         }
 
         public override bool Equals(object o)
@@ -96,38 +87,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return !(left == right);
         }
-
-        private void SyncGUID()
-        {
-            if (!string.IsNullOrEmpty(guid)) 
-                return;
-            
-            guid = Guid.NewGuid().ToString();
-#if UNITY_EDITOR
-            string assetPath = UnityEditor.AssetDatabase.GetAssetPath(this);
-            if (!string.IsNullOrEmpty(assetPath))
-            {
-                guid = UnityEditor.AssetDatabase.AssetPathToGUID(assetPath);
-                ObjectUtility.SetDirty(this);
-            }
-#endif
-            
-        }
         
         public override int GetHashCode()
         {
             return GUID.GetHashCode();
         }
-
-        public void ValidateGUID()
-        {
-            SyncGUID();
-        }
-
+        
         public void GenerateNewGUID()
         {
-            guid = string.Empty;
-            SyncGUID();
+            guid = LongGuid.NewGuid();
+            ObjectUtility.SetDirty(this);
         }
     }
 }

@@ -44,7 +44,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             T foundInstance = GetInstance();
             SerializedObject serializedObject = new SerializedObject(foundInstance);
             IEnumerable<string> keywords = SettingsProvider.GetSearchKeywordsFromSerializedObject(serializedObject);
-            SettingsProvider provider = new SettingsProvider(settingsProviderPath, SettingsScope.User, keywords);
+            SettingsProvider provider = new SettingsProvider(settingsProviderPath, SettingsScope.Project, keywords);
             provider.guiHandler += _ => OnGuiHandler(onGUI, onGUIExtra);
             return provider;
         }

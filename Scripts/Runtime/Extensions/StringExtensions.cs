@@ -60,6 +60,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             StringBuilder targetNumberString = new StringBuilder();
             int endIndex = 0;
             bool needToConvert = false;
+            bool allDigits = true;
             for (int i = 0; i < input.Length; i++)
             {
                 char c = input[i];
@@ -71,17 +72,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 else
                 {
                     endIndex = i;
+                    allDigits = false;
                     break;
                 }
             }
 
             if (!needToConvert)
                 return input;
+
             input = input.Substring(endIndex);
             
             int targetNumberValue = Int32.Parse(targetNumberString.ToString());
 
-            return NumberToWords(targetNumberValue) + input.FirstToUpper();
+            string numberToWords = NumberToWords(targetNumberValue);
+            if (allDigits)
+                return numberToWords;
+
+            return numberToWords + input.FirstToUpper();
         }
 
         private static string NumberToWords(int number)

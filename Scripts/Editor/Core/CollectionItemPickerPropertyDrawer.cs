@@ -12,15 +12,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomPropertyDrawer(typeof(CollectionItemPicker<>))]
     public class CollectionItemPickerPropertyDrawer : PropertyDrawer
     {
-        private readonly List<ScriptableObjectCollectionItem>
-            tempMaskItems = new List<ScriptableObjectCollectionItem>();
+        private readonly List<ScriptableObject>
+            tempMaskItems = new List<ScriptableObject>();
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             return EditorGUIUtility.singleLineHeight;
         }
 
-        private static bool Contains(SerializedProperty itemsProperty, ScriptableObjectCollectionItem item)
+        private static bool Contains(SerializedProperty itemsProperty, ScriptableObject item)
         {
             for (int i = 0; i < itemsProperty.arraySize; i++)
             {
@@ -56,11 +56,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Reserve space for the buttons. We can't use AdvancedDropdown for Flags kind of behaviour, so we have
             // to use a real MaskField to get it done. I still want to support adding a new entry from the inspector
             // though. For that reason I am adding an Add button next to the dropdown.
-            position.width -= CollectionItemPropertyDrawer.BUTTON_WIDTH * 2;
+            position.width -= SOCItemPropertyDrawer.BUTTON_WIDTH * 2;
             Rect goToButtonRect = new Rect(
-                position.xMax, position.y, CollectionItemPropertyDrawer.BUTTON_WIDTH, position.height);
+                position.xMax, position.y, SOCItemPropertyDrawer.BUTTON_WIDTH, position.height);
             Rect addButtonRect = new Rect(
-                goToButtonRect.xMax, position.y, CollectionItemPropertyDrawer.BUTTON_WIDTH, position.height);
+                goToButtonRect.xMax, position.y, SOCItemPropertyDrawer.BUTTON_WIDTH, position.height);
             
             // If the collection is empty, we cannot use MaskField with an empty array because that throws exceptions.
             // Because of that we treat it as a special case where we draw a disabled PopUp field. You can then use

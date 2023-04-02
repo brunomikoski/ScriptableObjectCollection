@@ -24,28 +24,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 Type type = AssetDatabase.GetMainAssetTypeAtPath(importedAssetPath);
 
-                if (typeof(ScriptableObjectCollectionItem).IsAssignableFrom(type))
+                if (typeof(ScriptableObject).IsAssignableFrom(type))
                 {
-                    ScriptableObjectCollectionItem scriptableObjectCollectionItem =
-                        AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(importedAssetPath);
+                    ScriptableObject collectionItem =
+                        AssetDatabase.LoadAssetAtPath<ScriptableObject>(importedAssetPath);
 
-                    if (scriptableObjectCollectionItem != null)
+                    if (collectionItem != null)
                     {
-                        if (scriptableObjectCollectionItem.Collection == null)
+                        if (collectionItem is ISOCItem socItem)
                         {
-                            Debug.LogError(
-                                $"CollectionItem ({scriptableObjectCollectionItem.name}) has null Collection, please assign it some Collection",
-                                scriptableObjectCollectionItem
-                            );
-                        }
-                        else
-                        {
-                            if (!scriptableObjectCollectionItem.Collection.Contains(scriptableObjectCollectionItem) && 
-                                !scriptableObjectCollectionItem.Collection.ContainsReferenceTo(scriptableObjectCollectionItem))
+                            if (socItem.Collection == null)
                             {
-                                scriptableObjectCollectionItem.Collection.Add(scriptableObjectCollectionItem);
-                                Debug.Log($"{scriptableObjectCollectionItem.name} has collection assigned "
-                                          + $"{scriptableObjectCollectionItem.Collection} but its missing from collection list, adding it");
+                                Debug.LogError(
+                                    $"CollectionItem ({collectionItem.name}) has null Collection, please assign it some Collection",
+                                    collectionItem
+                                );
+                            }
+                            else
+                            {
+                                if (!socItem.Collection.Contains(collectionItem))
+                                {
+                                    if (socItem.Collection.TryGetItemByGUID(socItem.GUID, out _))
+                                        socItem.GenerateNewGUID();
+                                    
+                                    socItem.Collection.Add(collectionItem);
+                                    Debug.Log($"{collectionItem.name} has collection assigned "
+                                              + $"{socItem.Collection} but its missing from collection list, adding it");
+                                }
                             }
                         }
                     }

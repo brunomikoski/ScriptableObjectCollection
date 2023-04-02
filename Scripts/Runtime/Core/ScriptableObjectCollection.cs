@@ -123,8 +123,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             items.Add(item);
 
-                socItem.SetCollection(this);
-            
+            socItem.SetCollection(this);
+
             ObjectUtility.SetDirty(this);
             ClearCachedValues();
             return true;
@@ -137,12 +137,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
 #if UNITY_EDITOR
-        public ScriptableObject AddNew(Type collectionType, string assetName = "")
+        public ScriptableObject AddNew(Type itemType, string assetName = "")
         {
             if (Application.isPlaying)
                 throw new NotSupportedException();
+
+            if (!typeof(ISOCItem).IsAssignableFrom(itemType))
+                throw new Exception($"{itemType} does not implement {nameof(ISOCItem)}");
             
-            ScriptableObject item = CreateInstance(collectionType);
+            ScriptableObject newItem = CreateInstance(itemType);
             string assetPath = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
             string parentFolderPath = Path.Combine(assetPath, "Items" );
             AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolderPath);
@@ -154,7 +157,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 int count = Count;
                 while (true)
                 {
-                    itemName = $"New{collectionType.Name}{count}";
+                    itemName = $"New{itemType.Name}{count}";
                     string testPath = Path.Combine(parentFolderPath, itemName);
 
                     if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
@@ -164,22 +167,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
             
-            item.name = itemName;
+            newItem.name = itemName;
 
             if(itemName.IsReservedKeyword())
                 Debug.LogError($"{itemName} is a reserved keyword name, will cause issues with code generation, please rename it");
 
-            string newFileName = Path.Combine(parentFolderPath, item.name + ".asset");
-            
-            this.Add(item);
+            string newFileName = Path.Combine(parentFolderPath, newItem.name + ".asset");
 
-            AssetDatabase.CreateAsset(item, newFileName);
+            ISOCItem socItem = newItem as ISOCItem;
+            socItem.GenerateNewGUID();
+            
+            this.Add(newItem);
+
+            AssetDatabase.CreateAsset(newItem, newFileName);
             ObjectUtility.SetDirty(this);
 
             SerializedObject serializedObject = new SerializedObject(this);
             serializedObject.ApplyModifiedProperties();
 
-            return item;
+            return newItem;
         }
 #endif
 

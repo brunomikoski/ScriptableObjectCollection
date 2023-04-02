@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0]
+## PRE-RELEASE [2.0.0]
 ### Changed
 - Fixed issue with name parser that would still treat digits as string and added to the final name
 - Fixed issue with PropertyDrawer of indirect reference without attribute would cause a null reference

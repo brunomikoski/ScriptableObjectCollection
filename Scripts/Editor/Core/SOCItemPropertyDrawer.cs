@@ -179,8 +179,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (initialized)
                 return;
 
+            
             OptionsAttribute = optionsAttribute;
-
+            if (OptionsAttribute == null)
+                OptionsAttribute = new SOCItemEditorOptionsAttribute();
+            
             collectionItemDropdown = new CollectionItemDropdown(
                 new AdvancedDropdownState(),
                 collectionItemType,

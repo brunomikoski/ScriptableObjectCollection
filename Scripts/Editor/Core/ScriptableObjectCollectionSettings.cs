@@ -22,7 +22,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public int MaximumNamespaceDepth => maximumNamespaceDepth;
         
         [SerializeField]
-        private string generatedScriptsDefaultFilePath = "Assets\\Generated\\Scripts";
+        private string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
         public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
 
 

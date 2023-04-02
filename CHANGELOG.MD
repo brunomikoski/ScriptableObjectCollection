@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.0]
 ### Changed
-- Fixed issue with name parser that would still treat digits as string and ad~~~~d to the final name
+- Fixed issue with name parser that would still treat digits as string and added to the final name
 - Fixed issue with PropertyDrawer of indirect reference without attribute would cause a null reference
 - Refactored the system to use ScriptableObject as a base class instead of `ScriptableObjectCollectionItem` now any `ScriptableObject` can be used as a collection item as long as implements the `ISCOItem` interface
 - Fixed issue with `CollectionItemPicker` that would not work properly with `ScriptableObject` that are not in the same assembly as the `ScriptableObjectCollection`

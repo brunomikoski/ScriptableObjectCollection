@@ -104,11 +104,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             item = null;
 
-            if (itemGUIDValueASerializedProperty.longValue == 0 ||
-                itemGUIDValueBSerializedProperty.longValue == 0 ||
-                collectionGUIDValueASerializedProperty.longValue == 0 ||
-                collectionGUIDValueBSerializedProperty.longValue == 0)
+            if (itemGUIDValueASerializedProperty.longValue == 0 || itemGUIDValueBSerializedProperty.longValue == 0 ||
+                collectionGUIDValueASerializedProperty.longValue == 0 || collectionGUIDValueBSerializedProperty.longValue == 0)
+            {
                 return false;
+            }
             
             LongGuid itemGUID = new LongGuid(itemGUIDValueASerializedProperty.longValue, itemGUIDValueBSerializedProperty.longValue);
             LongGuid collectionGUID = new LongGuid(collectionGUIDValueASerializedProperty.longValue, collectionGUIDValueBSerializedProperty.longValue);
@@ -160,7 +160,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (attributes.Length > 0)
                 return attributes[0] as SOCItemEditorOptionsAttribute;
 
-            return new SOCItemEditorOptionsAttribute();
+            return null;
         }
     }
 }

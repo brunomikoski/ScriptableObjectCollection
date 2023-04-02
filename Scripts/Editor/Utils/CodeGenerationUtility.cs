@@ -183,14 +183,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        public static void ValidateIfCanBePartial(ScriptableObjectCollection collection)
+        public static void DisablePartialClassGenerationIfDisallowed(ScriptableObjectCollection collection)
         {
             SerializedObject collectionSerializedObject = new SerializedObject(collection);
 
             bool canBePartial = CheckIfCanBePartial(collection);
-            if (collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue && !canBePartial)
+            SerializedProperty partialClassSP = collectionSerializedObject.FindProperty("generateAsPartialClass");
+            if (partialClassSP.boolValue && !canBePartial)
             {
-                collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue = false;
+                partialClassSP.boolValue = false;
                 collectionSerializedObject.ApplyModifiedProperties();
             }
         }
@@ -218,7 +219,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
-            ValidateIfCanBePartial(collection);
+            DisablePartialClassGenerationIfDisallowed(collection);
 
             SerializedObject collectionSerializedObject = new SerializedObject(collection);
             string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;

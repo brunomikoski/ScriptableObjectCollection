@@ -379,17 +379,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool TryGetItemByGUID(LongGuid itemGUID, out ScriptableObject scriptableObjectCollectionItem)
         {
-            for (int i = 0; i < items.Count; i++)
+            if (itemGUID.IsValid())
             {
-                ScriptableObject item = items[i];
-                ISOCItem socItem = item as ISOCItem;
-                if (socItem == null)
-                    continue;
-                
-                if (socItem.GUID == itemGUID)
+                for (int i = 0; i < items.Count; i++)
                 {
-                    scriptableObjectCollectionItem = item;
-                    return true;
+                    ScriptableObject item = items[i];
+                    ISOCItem socItem = item as ISOCItem;
+                    if (socItem == null)
+                        continue;
+                
+                    if (socItem.GUID == itemGUID)
+                    {
+                        scriptableObjectCollectionItem = item;
+                        return true;
+                    }
                 }
             }
 

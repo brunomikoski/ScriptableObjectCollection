@@ -71,7 +71,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
 
-            if (!multipleCollections)
+            if (!multipleCollections && !itemType.IsAbstract)
             {
                 root.AddSeparator();
                 root.AddChild(new AdvancedDropdownItem(CREATE_NEW_TEXT));

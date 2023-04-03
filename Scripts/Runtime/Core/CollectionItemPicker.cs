@@ -11,7 +11,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     /// </summary>
     [Serializable]
     public class CollectionItemPicker<ItemType> : IList<ItemType>
-        where ItemType : ScriptableObjectCollectionItem
+        where ItemType : ScriptableObject, ISOCItem
     {
         [SerializeField] private List<ItemType> items = new List<ItemType>();
         public List<ItemType> Items => items;

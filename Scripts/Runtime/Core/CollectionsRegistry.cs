@@ -55,7 +55,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
-        
+        public bool TryGetCollectionByName<T>(string targetCollectionName, out ScriptableObjectCollection<T> resultCollection) where T: ScriptableObject, ISOCItem
+        {
+            if (TryGetCollectionByName(targetCollectionName, out ScriptableObjectCollection collection))
+            {
+                resultCollection = (ScriptableObjectCollection<T>) collection;
+                return true;
+            }
+
+            resultCollection = null;
+            return false;
+        }
+
         public bool TryGetCollectionByName(string targetCollectionName, out ScriptableObjectCollection resultCollection)
         {
             for (int i = 0; i < collections.Count; i++)
@@ -192,13 +203,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool TryGetCollectionByGUID(LongGuid targetGUID, out ScriptableObjectCollection resultCollection)
         {
-            for (int i = 0; i < collections.Count; i++)
+            if (targetGUID.IsValid())
             {
-                ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (scriptableObjectCollection.GUID == targetGUID)
+                for (int i = 0; i < collections.Count; i++)
                 {
-                    resultCollection = scriptableObjectCollection;
-                    return true;
+                    ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                    if (scriptableObjectCollection.GUID == targetGUID)
+                    {
+                        resultCollection = scriptableObjectCollection;
+                        return true;
+                    }
                 }
             }
 
@@ -206,12 +220,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
-        public bool TryGetCollectionByGUID<T>(LongGuid targetGUID, out ScriptableObjectCollection<T> resultCollection) where T : ScriptableObjectCollectionItem
+        public bool TryGetCollectionByGUID<T>(LongGuid targetGUID, out ScriptableObjectCollection<T> resultCollection) where T : ScriptableObject, ISOCItem
         {
-            if (TryGetCollectionByGUID(targetGUID, out ScriptableObjectCollection foundCollection))
+            if (targetGUID.IsValid())
             {
-                resultCollection = foundCollection as ScriptableObjectCollection<T>;
-                return true;
+                if (TryGetCollectionByGUID(targetGUID, out ScriptableObjectCollection foundCollection))
+                {
+                    resultCollection = foundCollection as ScriptableObjectCollection<T>;
+                    return true;
+                }
             }
 
             resultCollection = null;

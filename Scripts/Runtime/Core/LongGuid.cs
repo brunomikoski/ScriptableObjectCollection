@@ -27,7 +27,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return new LongGuid(guidValue1, guidValue2);
         }
 
-        public (long, long) GetValue()
+        public (long, long) GetRawValues()
         {
             return (value1, value2);
         }

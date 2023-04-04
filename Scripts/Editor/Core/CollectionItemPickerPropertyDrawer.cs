@@ -161,7 +161,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (scriptableObject is ISOCItem item)
             {
-                (long, long) values = item.GUID.GetValue();
+                (long, long) values = item.GUID.GetRawValues();
                 itemGUIDValueASerializedProperty.longValue = values.Item1;
                 itemGUIDValueBSerializedProperty.longValue = values.Item2;
             }
@@ -240,15 +240,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             this.collection = collection;
 
-            UpgradeFromPreviousListSystem(property);
+            UpgradeFromPreviousSystem(property);
             
             buttonStyle = EditorStyles.textArea;
-            labelStyle = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("AssetLabel");
-            
+            GUIStyle assetLabelStyle = new GUIStyle(EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("AssetLabel"));
+            labelStyle = assetLabelStyle;
             initialized = true;
         }
 
-        private void UpgradeFromPreviousListSystem(SerializedProperty property)
+        private void UpgradeFromPreviousSystem(SerializedProperty property)
         {
             SerializedProperty oldItemsProperty = property.FindPropertyRelative("items");
             if (oldItemsProperty == null || oldItemsProperty.arraySize == 0)

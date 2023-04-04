@@ -132,7 +132,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void SetCollectionItem(ISOCItem item)
         {
-            (long, long) collectionItemValues = item.GUID.GetValue();
+            (long, long) collectionItemValues = item.GUID.GetRawValues();
             collectionItemGUIDValueA = collectionItemValues.Item1;
             collectionItemGUIDValueB = collectionItemValues.Item2;
             itemLastKnownName = item.name;
@@ -140,7 +140,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void SetCollection(ScriptableObjectCollection targetCollection)
         {
-            (long,long) collectionGUIDValues = targetCollection.GUID.GetValue();
+            (long,long) collectionGUIDValues = targetCollection.GUID.GetRawValues();
             collectionGUIDValueA = collectionGUIDValues.Item1;
             collectionGUIDValueB = collectionGUIDValues.Item2;
             collectionLastKnowName = targetCollection.name;

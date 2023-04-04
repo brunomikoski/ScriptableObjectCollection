@@ -97,12 +97,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (item is ISOCItem socItem)
                 {
-                    (long, long) itemGUIDValues = socItem.GUID.GetValue();
+                    (long, long) itemGUIDValues = socItem.GUID.GetRawValues();
                     itemGUIDValueASerializedProperty.longValue = itemGUIDValues.Item1;
                     itemGUIDValueBSerializedProperty.longValue = itemGUIDValues.Item2;
                     itemLastKnowNameSerializedProperty.stringValue = socItem.name;
 
-                    (long, long) collectionGUIDValues = socItem.Collection.GUID.GetValue();
+                    (long, long) collectionGUIDValues = socItem.Collection.GUID.GetRawValues();
                     collectionGUIDValueASerializedProperty.longValue = collectionGUIDValues.Item1;
                     collectionGUIDValueBSerializedProperty.longValue = collectionGUIDValues.Item2;
                     collectionLastKnowNameSerializedProperty.stringValue = socItem.Collection.name;

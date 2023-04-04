@@ -115,9 +115,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool Add(ScriptableObject item)
         {
-            ISOCItem socItem = item as ISOCItem;
-            if (socItem == null)
+            if (item is not ISOCItem socItem)
                 return false;
+            
             if (items.Contains(item))
                 return false;
             
@@ -192,8 +192,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public Type GetItemType()
         {
             Type enumType = GetGenericItemType();
-            if (enumType == null) return null;
-            return enumType.GetGenericArguments().First();
+            return enumType?.GetGenericArguments().First();
         }
 
         private Type GetGenericItemType()
@@ -331,7 +330,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (item == null)
                     continue;
 
-                if (!(item is ISOCItem socItem))
+                if (item is not ISOCItem socItem)
                     continue;
                 
                 if (socItem.Collection != this)

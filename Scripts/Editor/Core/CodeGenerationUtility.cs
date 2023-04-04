@@ -271,6 +271,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static bool CanGenerateStaticFile(ScriptableObjectCollection collection, out string errorMessage)
         {
+            CollectionsRegistry.Instance.ValidateCollections();
+            
             List<ScriptableObjectCollection> collectionsOfSameType = CollectionsRegistry.Instance.GetCollectionsByItemType(collection.GetItemType());
             if (collectionsOfSameType.Count > 1)
             {

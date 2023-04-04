@@ -319,7 +319,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
 
             bool changed = false;
-            string folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
+            string assetPath = AssetDatabase.GetAssetPath(this);
+            if (string.IsNullOrEmpty(assetPath))
+                return;
+            
+            string folder = Path.GetDirectoryName(assetPath);
             string[] guids = AssetDatabase.FindAssets($"t:{collectionType.Name}", new []{folder});
 
             for (int i = 0; i < guids.Length; i++)
@@ -332,16 +336,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (item is not ISOCItem socItem)
                     continue;
-                
-                if (socItem.Collection != this)
-                    continue;
 
-                if (socItem.Collection.Contains(item))
-                    continue;
-                
-                Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");
-                Add(item);
-                changed = true;
+
+                if (socItem.Collection != null)
+                {
+                    if (socItem.Collection != this)
+                        continue;
+
+                    if (socItem.Collection.Contains(item))
+                        continue;
+                }
+
+                if (Add(item))
+                    changed = true;
             }
 
             for (int i = items.Count - 1; i >= 0; i--)

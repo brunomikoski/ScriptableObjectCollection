@@ -25,7 +25,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
         public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
 
-
+        
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
             "When using the Create New Collection wizard," +

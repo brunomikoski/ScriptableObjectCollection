@@ -7,6 +7,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [SerializeField, HideInInspector]
         private LongGuid guid;
+
+
         public LongGuid GUID
         {
             get

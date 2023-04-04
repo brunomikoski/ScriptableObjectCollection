@@ -144,22 +144,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type properFieldType = arrayOrListType ?? fieldInfo.FieldType;
-            collectionItemType = GetGenericItemType(properFieldType).GetGenericArguments()[0];
-        }
-
-        private Type GetGenericItemType(Type targetType)
-        {
-            Type baseType = targetType.BaseType;
-
-            while (baseType != null)
-            {
-                if (baseType.IsGenericType &&
-                    baseType.GetGenericTypeDefinition() == typeof(CollectionItemIndirectReference<>))
-                    return baseType;
-                baseType = baseType.BaseType;
-            }
-
-            return null;
+            collectionItemType = properFieldType.GetBaseGenericType().GetGenericArguments()[0];
         }
 
         private SOCItemEditorOptionsAttribute GetOptionsAttribute()

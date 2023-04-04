@@ -1,129 +1,277 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    /// <summary>
-    /// Lets you pick one or more items from a collection, similar to how an enum field would work if the enum had the
-    /// [Flags] attribute applied to it.
-    /// </summary>
-    [CustomPropertyDrawer(typeof(CollectionItemPicker<>))]
+    [CustomPropertyDrawer(typeof(CollectionItemPicker<>), true)]
     public class CollectionItemPickerPropertyDrawer : PropertyDrawer
     {
-        private readonly List<ScriptableObject>
-            tempMaskItems = new List<ScriptableObject>();
+        private const string LONG_GUID_VALUE_1_PROPERTY_PATH = "value1";
+        private const string LONG_GUID_VALUE_2_PROPERTY_PATH = "value2";
+
+        private const string ITEMS_PROPERTY_NAME = "itemsGuids";
+
+        private bool initialized;
+        private PopupList<PopupItem> popupList = new PopupList<PopupItem>();
+        private static GUIStyle labelStyle;
+        private static GUIStyle buttonStyle;
+        private ScriptableObjectCollection collection;
+        private float buttonHeight = EditorGUIUtility.singleLineHeight;
+
+        private struct PopupItem : IPopupListItem
+        {
+            private readonly string name;
+            public string Name => name;
+
+            public PopupItem(ScriptableObject scriptableObject)
+            {
+                name = scriptableObject.name;
+            }
+        }
+
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return EditorGUIUtility.singleLineHeight;
-        }
-
-        private static bool Contains(SerializedProperty itemsProperty, ScriptableObject item)
-        {
-            for (int i = 0; i < itemsProperty.arraySize; i++)
-            {
-                if (itemsProperty.GetArrayElementAtIndex(i).objectReferenceValue == item)
-                    return true;
-            }
-
-            return false;
+            return Mathf.Max(buttonHeight,
+                EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            // Figure out the collection item type.
-            Type[] genericArguments = fieldInfo.FieldType.GetGenericArguments();
-            Type collectionItemType = genericArguments[0];
+            Initialize(property);
 
-            // Now figure out the collection type.
-            ScriptableObjectCollection collection;
-            CollectionsRegistry.Instance.TryGetCollectionFromItemType(collectionItemType, out collection);
-            
-            // TODO: Should this support multiple collections? I'm not sure how that use case works. I just saw it
-            // being used elsewhere.
+            EditorGUI.BeginProperty(position, label, property);
+            position = EditorGUI.PrefixLabel(position, label);
 
-            if (collection == null)
+            Rect totalPosition = position;
+            Rect buttonRect = position;
+
+            totalPosition.height = buttonHeight;
+            buttonRect.height = buttonHeight;
+
+            if (!popupList.IsOpen)
+                SetSelectedValuesOnPopup(property);
+
+            if (GUI.Button(totalPosition, "", buttonStyle))
             {
-                EditorGUI.LabelField(position, label, new GUIContent("Could not determine collection."));
-                return;
+                EditorWindow inspectorWindow = EditorWindow.focusedWindow;
+
+                popupList.OnClosedEvent += () =>
+                {
+                    GetValuesFromPopup(property);
+                    SetSelectedValuesOnPopup(property);
+                };
+                popupList.OnItemSelectedEvent += (x, y) => { inspectorWindow.Repaint(); };
+                PopupWindow.Show(buttonRect, popupList);
             }
-            
-            // Get the list of items.
-            SerializedProperty itemsProperty = property.FindPropertyRelative("items");
-            
-            // Reserve space for the buttons. We can't use AdvancedDropdown for Flags kind of behaviour, so we have
-            // to use a real MaskField to get it done. I still want to support adding a new entry from the inspector
-            // though. For that reason I am adding an Add button next to the dropdown.
-            position.width -= SOCItemPropertyDrawer.BUTTON_WIDTH * 2;
-            Rect goToButtonRect = new Rect(
-                position.xMax, position.y, SOCItemPropertyDrawer.BUTTON_WIDTH, position.height);
-            Rect addButtonRect = new Rect(
-                goToButtonRect.xMax, position.y, SOCItemPropertyDrawer.BUTTON_WIDTH, position.height);
-            
-            // If the collection is empty, we cannot use MaskField with an empty array because that throws exceptions.
-            // Because of that we treat it as a special case where we draw a disabled PopUp field. You can then use
-            // the Go To and Add buttons to add an item to the collection and then you can begin picking.
-            if (collection.Count == 0)
-            {
-                // Calculate the rects for the label and the add button and such.
-                Rect labelRect = new Rect(position.x, position.y, EditorGUIUtility.labelWidth, position.height);
-                Rect valueRect = new Rect(
-                    position.x + EditorGUIUtility.labelWidth, position.y, position.width - EditorGUIUtility.labelWidth,
-                    position.height);
 
-                // Draw the label.
-                EditorGUI.LabelField(labelRect, label);
+            buttonRect.width = 0;
+
+            Rect labelRect = buttonRect;
+
+            labelRect.y += 2;
+            labelRect.height -= 4;
+
+            float currentLineWidth = position.x + 4;
+            float maxHeight = 0;
+            float inspectorWidth = EditorGUIUtility.currentViewWidth;
+            float currentLineMaxHeight = 0;
+
+            Color originalColor = GUI.backgroundColor;
+            for (int i = 0; i < popupList.Count; i++)
+            {
+                ScriptableObject item = collection[i];
+
+                if (!popupList.GetSelected(i))
+                    continue;
+
+                GUIContent labelContent = new GUIContent(item.name);
+                Vector2 size = labelStyle.CalcSize(labelContent);
+
+                if (currentLineWidth + size.x + 4 > inspectorWidth)
+                {
+                    labelRect.y += currentLineMaxHeight + 4;
+                    maxHeight += currentLineMaxHeight + 4;
+                    currentLineWidth = position.x + 4;
+                    currentLineMaxHeight = 0;
+                }
+
+                currentLineMaxHeight = Mathf.Max(currentLineMaxHeight, size.y);
+
+                labelRect.x = currentLineWidth;
+                labelRect.width = size.x;
+
+                currentLineWidth += size.x + 4;
+
+                if (item is ISOCColorizedItem coloredItem)
+                    GUI.backgroundColor = coloredItem.LabelColor;
+                else
+                    GUI.backgroundColor = originalColor;
                 
-                // Draw the inactive dropdown.
-                bool wasGuiEnabled = GUI.enabled;
-                GUI.enabled = false;
-                EditorGUI.Popup(valueRect, GUIContent.none, 0, new[] {new GUIContent("")});
-                GUI.enabled = wasGuiEnabled;
+                GUI.Label(labelRect, labelContent, labelStyle);
+            }
+
+            GUI.backgroundColor = originalColor;
+
+            maxHeight += currentLineMaxHeight;
+
+            buttonHeight = Mathf.Max(maxHeight + EditorGUIUtility.standardVerticalSpacing * 3,
+                EditorGUIUtility.singleLineHeight);
+
+            EditorGUI.EndProperty();
+        }
+
+        private void GetValuesFromPopup(SerializedProperty property)
+        {
+            SerializedProperty itemsProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+            itemsProperty.ClearArray();
+
+            int selectedCount = 0;
+            for (int i = 0; i < popupList.Count; i++)
+            {
+                if (popupList.GetSelected(i))
+                {
+                    selectedCount++;
+                }
+            }
+
+            itemsProperty.arraySize = selectedCount;
+
+            int propertyArrayIndex = 0;
+
+            for (int i = 0; i < popupList.Count; i++)
+            {
+                if (popupList.GetSelected(i))
+                {
+                    SerializedProperty newProperty = itemsProperty.GetArrayElementAtIndex(propertyArrayIndex);
+                    AssignItemGUIDToProperty(collection[i], newProperty);
+                    propertyArrayIndex++;
+                }
+            }
+
+            itemsProperty.serializedObject.ApplyModifiedProperties();
+        }
+
+        private void AssignItemGUIDToProperty(ScriptableObject scriptableObject, SerializedProperty newProperty)
+        {
+            SerializedProperty itemGUIDValueASerializedProperty = newProperty.FindPropertyRelative(LONG_GUID_VALUE_1_PROPERTY_PATH);
+            SerializedProperty itemGUIDValueBSerializedProperty = newProperty.FindPropertyRelative(LONG_GUID_VALUE_2_PROPERTY_PATH);
+
+            if (scriptableObject is ISOCItem item)
+            {
+                (long, long) values = item.GUID.GetValue();
+                itemGUIDValueASerializedProperty.longValue = values.Item1;
+                itemGUIDValueBSerializedProperty.longValue = values.Item2;
+            }
+        }
+
+        private void SetSelectedValuesOnPopup(SerializedProperty property)
+        {
+            popupList.DeselectAll();
+
+            SerializedProperty itemsProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+
+            int arraySize = itemsProperty.arraySize;
+            for (int i = arraySize - 1; i >= 0; i--)
+            {
+                SerializedProperty elementProperty = itemsProperty.GetArrayElementAtIndex(i);
+
+                LongGuid socItemGUID = GetGUIDFromProperty(elementProperty);
+
+
+                if (collection.TryGetItemByGUID(socItemGUID, out ScriptableObject result))
+                {
+                    int indexOf = collection.IndexOf(result);
+                    if (indexOf >= 0)
+                    {
+                        popupList.SetSelected(indexOf, true);
+                    }
+                    else
+                    {
+                        itemsProperty.DeleteArrayElementAtIndex(i);
+                    }
+                }
+                else
+                {
+                    itemsProperty.DeleteArrayElementAtIndex(i);
+
+                }
+            }
+        }
+
+        private LongGuid GetGUIDFromProperty(SerializedProperty property)
+        {
+            SerializedProperty itemGUIDValueASerializedProperty = property.FindPropertyRelative(LONG_GUID_VALUE_1_PROPERTY_PATH);
+            SerializedProperty itemGUIDValueBSerializedProperty = property.FindPropertyRelative(LONG_GUID_VALUE_2_PROPERTY_PATH);
+
+            return new LongGuid(itemGUIDValueASerializedProperty.longValue, itemGUIDValueBSerializedProperty.longValue);
+        }
+
+
+        private void Initialize(SerializedProperty property)
+        {
+            if (initialized)
+                return;
+
+            Type itemType;
+            if (fieldInfo == null)
+            {
+                Type parentType = property.serializedObject.targetObject.GetType();
+                itemType = property.GetFieldInfoFromPathByType(parentType).FieldType;
             }
             else
             {
-                // Create an array of displayed options.
-                string[] displayedOptions = new string[collection.Count];
-                int mask = 0;
-                for (int i = 0; i < collection.Count; i++)
-                {
-                    displayedOptions[i] = collection[i].name;
-                    if (Contains(itemsProperty, collection[i]))
-                        mask |= 1 << i;
-                }
-
-                int maskNew = EditorGUI.MaskField(position, label, mask, displayedOptions);
-                if (mask != maskNew)
-                {
-                    // First convert the newly selected mask to a list of items.
-                    tempMaskItems.Clear();
-                    for (int i = 0; i < collection.Count; i++)
-                    {
-                        int flag = 1 << i;
-                        if ((maskNew & flag) == flag)
-                            tempMaskItems.Add(collection[i]);
-                    }
-
-                    // Now update the property to have the values in that list...
-                    itemsProperty.arraySize = tempMaskItems.Count;
-                    for (int i = 0; i < tempMaskItems.Count; i++)
-                    {
-                        itemsProperty.GetArrayElementAtIndex(i).objectReferenceValue = tempMaskItems[i];
-                    }
-                }
+                Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
+                itemType = arrayOrListType ?? fieldInfo.FieldType;
             }
+
+            if (!CollectionsRegistry.Instance.TryGetCollectionFromItemType(itemType, out ScriptableObjectCollection collection))
+                throw new Exception($"No collection found for item type {itemType}");
+
+
+            popupList.Clear();
+            for (int i = 0; i < collection.Count; i++)
+            {
+                ScriptableObject scriptableObject = collection[i];
+                popupList.AddItem(new PopupItem(scriptableObject), false);
+            }
+
+            this.collection = collection;
+
+            UpgradeFromPreviousListSystem(property);
             
-            // Draw the Go To button.
-            bool shouldGoToCollection = GUI.Button(goToButtonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR);
-            if (shouldGoToCollection)
-                Selection.activeObject = collection;
+            buttonStyle = EditorStyles.textArea;
+            labelStyle = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("AssetLabel");
             
-            // Draw the add button.
-            bool shouldCreateNewItem = GUI.Button(addButtonRect, "+");
-            if (shouldCreateNewItem)
-                CollectionCustomEditor.AddNewItem(collection, collectionItemType);
+            initialized = true;
+        }
+
+        private void UpgradeFromPreviousListSystem(SerializedProperty property)
+        {
+            SerializedProperty oldItemsProperty = property.FindPropertyRelative("items");
+            if (oldItemsProperty == null || oldItemsProperty.arraySize == 0)
+                return;
+
+            SerializedProperty newItemsGUIDProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+
+            int arraySize = oldItemsProperty.arraySize;
+            for (int i = arraySize - 1; i >= 0; i--)
+            {
+                SerializedProperty elementProperty = oldItemsProperty.GetArrayElementAtIndex(i);
+
+                ScriptableObject scriptableObject = elementProperty.objectReferenceValue as ScriptableObject;
+                if (scriptableObject == null)
+                    continue;
+
+                newItemsGUIDProperty.arraySize++;
+                SerializedProperty newProperty = newItemsGUIDProperty.GetArrayElementAtIndex(newItemsGUIDProperty.arraySize - 1);
+                AssignItemGUIDToProperty(scriptableObject, newProperty);
+            }
+
+            oldItemsProperty.arraySize = 0;
+            newItemsGUIDProperty.serializedObject.ApplyModifiedProperties();
         }
     }
 }

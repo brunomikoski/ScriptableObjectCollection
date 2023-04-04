@@ -234,7 +234,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             resultCollection = null;
             return false;
         }
-        
+
         public void ReloadCollections()
         {
 #if UNITY_EDITOR
@@ -364,6 +364,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
         }
+
     }
 }
 

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public static class CopyCollectionItemUtils
+    public static class CopyCollectionItemUtility
     {
         private static ScriptableObject source;
 

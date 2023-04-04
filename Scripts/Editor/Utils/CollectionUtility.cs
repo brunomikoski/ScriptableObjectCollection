@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using UnityEditor;
+﻿using System;
+using System.Collections.Generic;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -9,19 +8,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         private static Dictionary<int, bool> objectToFoldOut = new Dictionary<int, bool>();
 
-        [MenuItem("Assets/Create/ScriptableObject Collection/New Collection", false, 100)]
-        private static void CreateNewItem()
-        {
-            string targetPath = "";
-            if (Selection.objects.FirstOrDefault() is DefaultAsset folder)
-                targetPath = AssetDatabase.GetAssetPath(folder);
-            
-            CreateCollectionWizard.Show(targetPath);
-        }
-
         private static int GetHasCount(Object[] objects)
         {
-            int hasValue = 0;
+            int hashValue = 0;
             for (int i = 0; i < objects.Length; i++)
             {
                 Object targetObj = objects[i];
@@ -29,10 +18,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (targetObj == null)
                     continue;
 
-                hasValue += targetObj.GetHashCode();
+                hashValue += HashCode.Combine(hashValue, targetObj.GetHashCode());
             }
 
-            return hasValue;
+            return hashValue;
         }
 
         public static bool IsFoldoutOpen(params Object[] objects)

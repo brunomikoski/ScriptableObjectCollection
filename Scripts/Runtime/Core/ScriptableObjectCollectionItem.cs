@@ -3,10 +3,12 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>, ISOCItem
+    public class ScriptableObjectCollectionItem : ScriptableObject, IComparable<ScriptableObjectCollectionItem>, ISOCItem, IEquatable<ISOCItem>
     {
         [SerializeField, HideInInspector]
         private LongGuid guid;
+
+
         public LongGuid GUID
         {
             get
@@ -58,6 +60,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public int CompareTo(ScriptableObjectCollectionItem other)
         {
             return string.Compare(name, other.name, StringComparison.Ordinal);
+        }
+
+        public bool Equals(ISOCItem other)
+        {
+            if (other == null)
+                return false;
+
+            return GUID == other.GUID;
         }
 
         public override bool Equals(object o)

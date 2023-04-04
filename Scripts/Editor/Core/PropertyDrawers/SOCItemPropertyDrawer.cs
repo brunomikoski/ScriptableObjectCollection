@@ -142,7 +142,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (fieldInfo == null)
             {
                 Type parentType = property.serializedObject.targetObject.GetType();
-                itemType = GetFieldViaPath(parentType, property.propertyPath).FieldType;
+                itemType = property.GetFieldInfoFromPathByType(parentType).FieldType;
             }
             else
             {
@@ -151,22 +151,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             Initialize(itemType, property.serializedObject.targetObject, GetOptionsAttribute());
-        }
-
-        private static FieldInfo GetFieldViaPath(Type parentType, string path)
-        {
-            FieldInfo fieldInfo = parentType.GetField(path);
-            string[] perDot = path.Split('.');
-            foreach (string fieldName in perDot)
-            {
-                fieldInfo = parentType.GetField(fieldName);
-                if (fieldInfo == null) 
-                    return null;
-                
-                parentType = fieldInfo.FieldType;
-            }
-            
-            return fieldInfo;
         }
 
         internal void Initialize(Type collectionItemType, SOCItemEditorOptionsAttribute optionsAttribute)

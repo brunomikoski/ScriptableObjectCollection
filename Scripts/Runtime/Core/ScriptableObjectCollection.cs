@@ -115,9 +115,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool Add(ScriptableObject item)
         {
-            ISOCItem socItem = item as ISOCItem;
-            if (socItem == null)
+            if (item is not ISOCItem socItem)
                 return false;
+            
             if (items.Contains(item))
                 return false;
             
@@ -192,8 +192,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public Type GetItemType()
         {
             Type enumType = GetGenericItemType();
-            if (enumType == null) return null;
-            return enumType.GetGenericArguments().First();
+            return enumType?.GetGenericArguments().First();
         }
 
         private Type GetGenericItemType()
@@ -320,7 +319,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
 
             bool changed = false;
-            string folder = Path.GetDirectoryName(AssetDatabase.GetAssetPath(this));
+            string assetPath = AssetDatabase.GetAssetPath(this);
+            if (string.IsNullOrEmpty(assetPath))
+                return;
+            
+            string folder = Path.GetDirectoryName(assetPath);
             string[] guids = AssetDatabase.FindAssets($"t:{collectionType.Name}", new []{folder});
 
             for (int i = 0; i < guids.Length; i++)
@@ -331,18 +334,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (item == null)
                     continue;
 
-                if (!(item is ISOCItem socItem))
-                    continue;
-                
-                if (socItem.Collection != this)
+                if (item is not ISOCItem socItem)
                     continue;
 
-                if (socItem.Collection.Contains(item))
-                    continue;
-                
-                Debug.Log($"Adding {item.name} to the Collection {this.name} its inside of the folder {folder}");
-                Add(item);
-                changed = true;
+
+                if (socItem.Collection != null)
+                {
+                    if (socItem.Collection != this)
+                        continue;
+
+                    if (socItem.Collection.Contains(item))
+                        continue;
+                }
+
+                if (Add(item))
+                    changed = true;
             }
 
             for (int i = items.Count - 1; i >= 0; i--)
@@ -379,17 +385,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool TryGetItemByGUID(LongGuid itemGUID, out ScriptableObject scriptableObjectCollectionItem)
         {
-            for (int i = 0; i < items.Count; i++)
+            if (itemGUID.IsValid())
             {
-                ScriptableObject item = items[i];
-                ISOCItem socItem = item as ISOCItem;
-                if (socItem == null)
-                    continue;
-                
-                if (socItem.GUID == itemGUID)
+                for (int i = 0; i < items.Count; i++)
                 {
-                    scriptableObjectCollectionItem = item;
-                    return true;
+                    ScriptableObject item = items[i];
+                    ISOCItem socItem = item as ISOCItem;
+                    if (socItem == null)
+                        continue;
+                
+                    if (socItem.GUID == itemGUID)
+                    {
+                        scriptableObjectCollectionItem = item;
+                        return true;
+                    }
                 }
             }
 

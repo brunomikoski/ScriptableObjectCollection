@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduced automatic collection guid reloading to reduce performance impact on larger projects
 - Fixed issues with target scripts generation folder not being saved properly
 - Minimum supported Unity version is now 2021 _(I'm DONE with 2020, its the worst unity ever 😒)_
+- Refactored `CollectionItemPicker` to only use `LongGUID` and also the PropertyDrawer has been remade, now looks nicer 🤩
+- Added multiple helpers to `CollectionItemPicker` to be used more like a label system/
+- Added `ISOCColorizedItem` to allow coloring of the `CollectionItemPicker` on the inspector, I will expand this to other areas as well. 
 
 ### Removed
  - Removed support for Addressables, it was not working properly and it was not being used by a lot of teams, I think the addressables support should be handled elsewhere.

@@ -307,11 +307,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AUTOMATIC_NAMESPACE_BASED_ON_FOLDER_KEY, true);
 
         private Vector2 scrollPosition;
-        [NonSerialized] private bool didFocusDefaultControl;
+        [NonSerialized] 
+        private bool didFocusDefaultControl;
 
         private string warningText;
         private Fields fieldsFilledInIncorrectly;
 
+        [MenuItem("Assets/Create/ScriptableObject Collection/New Collection", false, 100)]
+        private static void CreateNewItem()
+        {
+            string targetPath = "";
+            if (Selection.objects.FirstOrDefault() is DefaultAsset folder)
+                targetPath = AssetDatabase.GetAssetPath(folder);
+            
+            Show(targetPath);
+        }
+        
         private static CreateCollectionWizard GetWindowInstance()
         {
             if (windowInstance == null)
@@ -710,7 +721,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Type targetType = Type.GetType($"{LastCollectionFullName.Value}, {assemblyName}");
             
             ScriptableObjectCollection collectionAsset =
-                ScriptableObjectCollectionUtils.CreateScriptableObjectOfType(targetType, 
+                ScriptableObjectCollectionUtility.CreateScriptableObjectOfType(targetType, 
                     windowInstance.ScriptableObjectFolderPath, windowInstance.CollectionName) as ScriptableObjectCollection;
             
             Selection.objects = new Object[] {collectionAsset};

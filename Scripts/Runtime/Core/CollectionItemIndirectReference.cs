@@ -1,11 +1,10 @@
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [Serializable]
-    public abstract class CollectionItemIndirectReference
+    public abstract class CollectionItemIndirectReference: IEquatable<CollectionItemIndirectReference>, IEquatable<ISOCItem>
     {
         [SerializeField]
         protected long collectionItemGUIDValueA;
@@ -22,11 +21,48 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         protected LongGuid CollectionGUID => new LongGuid(collectionGUIDValueA, collectionGUIDValueB);
 
+        [SerializeField]
+        protected string itemLastKnownName;
+        [SerializeField]
+        protected string collectionLastKnowName;
+
+        public bool Equals(CollectionItemIndirectReference other)
+        {
+            if (other == null)
+                return false;
+            
+            return CollectionGUID == other.CollectionGUID && CollectionItemGUID == other.CollectionItemGUID;
+        }
+
+        public bool Equals(ISOCItem other)
+        {
+            if (other == null)
+                return false;
+            
+            return CollectionGUID == other.Collection.GUID && CollectionItemGUID == other.GUID;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj))
+                return false;
+            if (ReferenceEquals(this, obj))
+                return true;
+            if (obj.GetType() != this.GetType())
+                return false;
+            
+            return Equals((CollectionItemIndirectReference) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(CollectionItemGUID.GetHashCode(), CollectionGUID.GetHashCode());
+        }
     }
 
     [Serializable]
-    public abstract class CollectionItemIndirectReference<TObject> : CollectionItemIndirectReference
-        where TObject : ScriptableObjectCollectionItem
+    public class CollectionItemIndirectReference<TObject> : CollectionItemIndirectReference
+        where TObject : ScriptableObject, ISOCItem
     {
         [NonSerialized]
         private TObject cachedRef;
@@ -35,22 +71,48 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get
             {
                 if (cachedRef != null)
-                {
                     return cachedRef;
-                }
 
-                if (CollectionsRegistry.Instance.TryGetCollectionByGUID(CollectionGUID,
-                    out ScriptableObjectCollection<TObject> collection))
-                {
-                    if (collection.TryGetItemByGUID(CollectionItemGUID, out ScriptableObject item))
-                    {
-                        cachedRef = item as TObject;
-                    }
-                }
-
+                if (TryResolveReference(out TObject resultObj))
+                    cachedRef = resultObj;
+                
                 return cachedRef;
             }
-            set => FromCollectionItem(value);
+        }
+
+        private bool TryResolveReference(out TObject result)
+        {
+            if (CollectionsRegistry.Instance.TryGetCollectionByGUID(CollectionGUID, out ScriptableObjectCollection<TObject> collection))
+            {
+                if (collection.TryGetItemByGUID(CollectionItemGUID, out ScriptableObject item))
+                {
+                    result = item as TObject;
+                    return true;
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(collectionLastKnowName))
+                {
+                    if (CollectionsRegistry.Instance.TryGetCollectionByName(collectionLastKnowName, out collection))
+                    {
+                        SetCollection(collection);
+
+                        if (!string.IsNullOrEmpty(itemLastKnownName))
+                        {
+                            if(collection.TryGetItemByName(itemLastKnownName, out ScriptableObject resultObj))
+                            {
+                                result = resultObj as TObject;
+                                SetCollectionItem(result);
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+
+            result = null;
+            return false;
         }
 
         public CollectionItemIndirectReference()
@@ -62,16 +124,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
             FromCollectionItem(item);
         }
 
-        public void FromCollectionItem(ScriptableObjectCollectionItem item)
+        public void FromCollectionItem(ISOCItem item)
         {
-            (long, long) collectionItemValues = item.GUID.GetValue();
+            SetCollectionItem(item);
+            SetCollection(item.Collection);
+        }
+
+        private void SetCollectionItem(ISOCItem item)
+        {
+            (long, long) collectionItemValues = item.GUID.GetRawValues();
             collectionItemGUIDValueA = collectionItemValues.Item1;
             collectionItemGUIDValueB = collectionItemValues.Item2;
+            itemLastKnownName = item.name;
+        }
 
-
-            (long,long) collectionGUIDValues = item.Collection.GUID.GetValue();
+        public void SetCollection(ScriptableObjectCollection targetCollection)
+        {
+            (long,long) collectionGUIDValues = targetCollection.GUID.GetRawValues();
             collectionGUIDValueA = collectionGUIDValues.Item1;
             collectionGUIDValueB = collectionGUIDValues.Item2;
+            collectionLastKnowName = targetCollection.name;
         }
     }
 }

@@ -33,5 +33,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return null;
         }
+
+        public static Type GetBaseGenericType(this Type type)
+        {
+            Type baseType = type.BaseType;
+
+            while (baseType != null)
+            {
+                if (baseType.IsGenericType &&
+                    baseType.GetGenericTypeDefinition() == typeof(CollectionItemIndirectReference<>))
+                    return baseType;
+                baseType = baseType.BaseType;
+            }
+
+            return null;
+        }
     }
 }

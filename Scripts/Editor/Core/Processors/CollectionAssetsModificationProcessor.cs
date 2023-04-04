@@ -27,6 +27,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 socItem.Collection.Remove(collectionItem);
                 return AssetDeleteResult.DidNotDelete;
             }
+
+            if (type.IsSubclassOf(typeof(ScriptableObjectCollection)) || type == typeof(ScriptableObjectCollection))
+            {
+                ScriptableObjectCollection collection =
+                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(targetAssetPath);
+
+                CollectionsRegistry.Instance.UnregisterCollection(collection);
+
+                return AssetDeleteResult.DidNotDelete;
+            }
             
             return AssetDeleteResult.DidNotDelete;
         }

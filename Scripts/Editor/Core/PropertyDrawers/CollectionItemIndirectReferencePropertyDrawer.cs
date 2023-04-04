@@ -10,8 +10,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         private const string COLLECTION_ITEM_GUID_VALUE_A_PROPERTY_PATH = "collectionItemGUIDValueA";
         private const string COLLECTION_ITEM_GUID_VALUE_B_PROPERTY_PATH = "collectionItemGUIDValueB";
+        private const string COLLECTION_ITEM_LAST_KNOW_NAME_PROPERTY_PATH = "itemLastKnownName";
         private const string COLLECTION_GUID_VALUE_A_PROPERTY_PATH = "collectionGUIDValueA";
         private const string COLLECTION_GUID_VALUE_B_PROPERTY_PATH = "collectionGUIDValueB";
+        private const string COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH = "collectionLastKnowName";
 
         private Type collectionItemType;
         private SOCItemPropertyDrawer socItemPropertyDrawer;
@@ -19,8 +21,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private SerializedProperty drawingProperty;
         private SerializedProperty itemGUIDValueASerializedProperty;
         private SerializedProperty itemGUIDValueBSerializedProperty;
+        private SerializedProperty itemLastKnowNameSerializedProperty;
         private SerializedProperty collectionGUIDValueASerializedProperty;
         private SerializedProperty collectionGUIDValueBSerializedProperty;
+        private SerializedProperty collectionLastKnowNameSerializedProperty;
 
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -42,8 +46,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             drawingProperty = property;
             itemGUIDValueASerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A_PROPERTY_PATH);
             itemGUIDValueBSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B_PROPERTY_PATH);
+            itemLastKnowNameSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_LAST_KNOW_NAME_PROPERTY_PATH);
             collectionGUIDValueASerializedProperty = property.FindPropertyRelative(COLLECTION_GUID_VALUE_A_PROPERTY_PATH);
             collectionGUIDValueBSerializedProperty = property.FindPropertyRelative(COLLECTION_GUID_VALUE_B_PROPERTY_PATH);
+            collectionLastKnowNameSerializedProperty = property.FindPropertyRelative(COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH);
 
             TryGetCollectionItem(out ScriptableObject collectionItem);
             
@@ -83,19 +89,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 itemGUIDValueBSerializedProperty.longValue = 0;
                 collectionGUIDValueASerializedProperty.longValue = 0;
                 collectionGUIDValueBSerializedProperty.longValue = 0;
-                
+                itemLastKnowNameSerializedProperty.stringValue = string.Empty;
+                collectionLastKnowNameSerializedProperty.stringValue = string.Empty;
+
             }
             else
             {
                 if (item is ISOCItem socItem)
                 {
-                    (long, long) itemGUIDValues = socItem.GUID.GetValue();
+                    (long, long) itemGUIDValues = socItem.GUID.GetRawValues();
                     itemGUIDValueASerializedProperty.longValue = itemGUIDValues.Item1;
                     itemGUIDValueBSerializedProperty.longValue = itemGUIDValues.Item2;
+                    itemLastKnowNameSerializedProperty.stringValue = socItem.name;
 
-                    (long, long) collectionGUIDValues = socItem.Collection.GUID.GetValue();
+                    (long, long) collectionGUIDValues = socItem.Collection.GUID.GetRawValues();
                     collectionGUIDValueASerializedProperty.longValue = collectionGUIDValues.Item1;
                     collectionGUIDValueBSerializedProperty.longValue = collectionGUIDValues.Item2;
+                    collectionLastKnowNameSerializedProperty.stringValue = socItem.Collection.name;
                 }
             }
         }
@@ -134,22 +144,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type properFieldType = arrayOrListType ?? fieldInfo.FieldType;
-            collectionItemType = GetGenericItemType(properFieldType).GetGenericArguments()[0];
-        }
-
-        private Type GetGenericItemType(Type targetType)
-        {
-            Type baseType = targetType.BaseType;
-
-            while (baseType != null)
-            {
-                if (baseType.IsGenericType &&
-                    baseType.GetGenericTypeDefinition() == typeof(CollectionItemIndirectReference<>))
-                    return baseType;
-                baseType = baseType.BaseType;
-            }
-
-            return null;
+            collectionItemType = properFieldType.GetBaseGenericType().GetGenericArguments()[0];
         }
 
         private SOCItemEditorOptionsAttribute GetOptionsAttribute()

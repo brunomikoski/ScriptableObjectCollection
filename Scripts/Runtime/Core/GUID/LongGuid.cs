@@ -27,7 +27,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return new LongGuid(guidValue1, guidValue2);
         }
 
-        public (long, long) GetValue()
+        public (long, long) GetRawValues()
         {
             return (value1, value2);
         }
@@ -58,7 +58,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override int GetHashCode()
         {
-            return Tuple.Create(value1, value2).GetHashCode();
+            return HashCode.Combine(value1, value2);
         }
 
         public static bool operator ==(LongGuid left, LongGuid right)

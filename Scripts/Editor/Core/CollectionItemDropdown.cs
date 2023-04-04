@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -71,7 +70,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
 
-            if (!multipleCollections)
+            if (!multipleCollections && !itemType.IsAbstract)
             {
                 root.AddSeparator();
                 root.AddChild(new AdvancedDropdownItem(CREATE_NEW_TEXT));

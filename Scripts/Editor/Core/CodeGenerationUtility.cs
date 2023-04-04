@@ -19,49 +19,47 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (File.Exists(Path.GetFullPath(finalFilePath)))
                 return false;
-            
-            using (StreamWriter writer = new StreamWriter(finalFilePath))
+
+            using StreamWriter writer = new StreamWriter(finalFilePath);
+            bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
+            int indentation = 0;
+
+            foreach (string directive in directives)
             {
-                bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
-                int indentation = 0;
-
-                foreach (string directive in directives)
-                {
-                    if (string.IsNullOrWhiteSpace(directive))
-                        continue;
+                if (string.IsNullOrWhiteSpace(directive))
+                    continue;
                     
-                    writer.WriteLine($"using {directive};");
-                }
-                
-                writer.WriteLine();
-                if (hasNameSpace)
-                {
-                    writer.WriteLine($"namespace {nameSpace}");
-                    writer.WriteLine("{");
-                    indentation++;
-                }
-
-                if (!string.IsNullOrEmpty(classAttributes))
-                    writer.WriteLine($"{GetIndentation(indentation)}{classAttributes}");
-                
-                writer.WriteLine($"{GetIndentation(indentation)}{classDeclarationString}");
-                writer.WriteLine(GetIndentation(indentation)+"{");
-                indentation++;
-                if(innerContent != null)
-                {
-                    foreach (var content in innerContent)
-                    {
-                        if (content == "}") indentation--;
-                        writer.WriteLine(GetIndentation(indentation)+content);
-                        if (content == "{") indentation++;
-                    }
-                }
-                indentation--;
-                writer.WriteLine(GetIndentation(indentation)+"}");
-                
-                if (hasNameSpace)
-                    writer.WriteLine("}");
+                writer.WriteLine($"using {directive};");
             }
+                
+            writer.WriteLine();
+            if (hasNameSpace)
+            {
+                writer.WriteLine($"namespace {nameSpace}");
+                writer.WriteLine("{");
+                indentation++;
+            }
+
+            if (!string.IsNullOrEmpty(classAttributes))
+                writer.WriteLine($"{GetIndentation(indentation)}{classAttributes}");
+                
+            writer.WriteLine($"{GetIndentation(indentation)}{classDeclarationString}");
+            writer.WriteLine(GetIndentation(indentation)+"{");
+            indentation++;
+            if(innerContent != null)
+            {
+                foreach (string content in innerContent)
+                {
+                    if (content == "}") indentation--;
+                    writer.WriteLine(GetIndentation(indentation)+content);
+                    if (content == "{") indentation++;
+                }
+            }
+            indentation--;
+            writer.WriteLine(GetIndentation(indentation)+"}");
+                
+            if (hasNameSpace)
+                writer.WriteLine("}");
 
             return true;
         }
@@ -247,9 +245,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 string className = collection.GetItemType().Name;
 
                 if (!writeAsPartial)
-                {
                     className = fileName;
-                }
+                
                 else if (className.Equals(nameof(ScriptableObject)))
                 {
                     Debug.LogWarning($"Cannot create static class using the collection type name ({nameof(ScriptableObject)})"+
@@ -274,6 +271,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static bool CanGenerateStaticFile(ScriptableObjectCollection collection, out string errorMessage)
         {
+            CollectionsRegistry.Instance.ValidateCollections();
+            
             List<ScriptableObjectCollection> collectionsOfSameType = CollectionsRegistry.Instance.GetCollectionsByItemType(collection.GetItemType());
             if (collectionsOfSameType.Count > 1)
             {
@@ -352,7 +351,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             indentation++;
             AppendLine(writer, indentation, $"if ({cachedValuesName} == null)");
             indentation++;
-            (long, long) collectionGUIDValues = collection.GUID.GetValue();
+            (long, long) collectionGUIDValues = collection.GUID.GetRawValues();
             AppendLine(writer, indentation,
                 $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}));");
             indentation--;
@@ -386,7 +385,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
                 indentation++;
-                (long, long) collectionItemGUIDValues = socItem.GUID.GetValue();
+                (long, long) collectionItemGUIDValues = socItem.GUID.GetRawValues();
                 AppendLine(writer, indentation,
                     $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}));");
                 indentation--;

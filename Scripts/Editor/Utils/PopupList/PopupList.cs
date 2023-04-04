@@ -5,7 +5,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace BrunoMikoski.ScriptableObjectCollections
+namespace BrunoMikoski.ScriptableObjectCollections.Popup
 {
     public class PopupList<T> : PopupWindowContent where T : IPopupListItem
     {

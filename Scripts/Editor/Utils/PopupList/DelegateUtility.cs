@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BrunoMikoski.ScriptableObjectCollections
+namespace BrunoMikoski.ScriptableObjectCollections.Popup
 {
     public class DelegateUtility
     {

@@ -248,17 +248,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     false,
                     () =>
                     {
-                        CopyCollectionItemUtils.SetSource(scriptableObject);
+                        CopyCollectionItemUtility.SetSource(scriptableObject);
                     }
                 );
-                if (CopyCollectionItemUtils.CanPasteToTarget(scriptableObject))
+                if (CopyCollectionItemUtility.CanPasteToTarget(scriptableObject))
                 {
                     menu.AddItem(
                         new GUIContent("Paste Values"),
                         false,
                         () =>
                         {
-                            CopyCollectionItemUtils.ApplySourceToTarget(scriptableObject);
+                            CopyCollectionItemUtility.ApplySourceToTarget(scriptableObject);
                         }
                     );
                 }

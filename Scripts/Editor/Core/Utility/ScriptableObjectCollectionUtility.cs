@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public static class ScriptableObjectCollectionUtils
+    public static class ScriptableObjectCollectionUtility
     {
         public static T CreateScriptableObjectOfType<T>(DefaultAsset parentFolder, string name) where T : ScriptableObject
         {

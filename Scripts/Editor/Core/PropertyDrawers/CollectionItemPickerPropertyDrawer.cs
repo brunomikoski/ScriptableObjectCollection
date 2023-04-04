@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
+using BrunoMikoski.ScriptableObjectCollections.Popup;
 using UnityEditor;
 using UnityEngine;
+using PopupWindow = UnityEditor.PopupWindow;
 
-namespace BrunoMikoski.ScriptableObjectCollections
+namespace BrunoMikoski.ScriptableObjectCollections.Picker
 {
     [CustomPropertyDrawer(typeof(CollectionItemPicker<>), true)]
     public class CollectionItemPickerPropertyDrawer : PropertyDrawer
@@ -20,7 +21,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private ScriptableObjectCollection collection;
         private float buttonHeight = EditorGUIUtility.singleLineHeight;
 
-        private struct PopupItem : IPopupListItem
+        private readonly struct PopupItem : IPopupListItem
         {
             private readonly string name;
             public string Name => name;
@@ -30,7 +31,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 name = scriptableObject.name;
             }
         }
-
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -215,18 +215,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (initialized)
                 return;
 
-            Type itemType;
-            if (fieldInfo == null)
-            {
-                Type parentType = property.serializedObject.targetObject.GetType();
-                itemType = property.GetFieldInfoFromPathByType(parentType).FieldType;
-            }
-            else
-            {
-                Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
-                itemType = arrayOrListType ?? fieldInfo.FieldType;
-            }
+            Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
+            Type itemType = arrayOrListType ?? fieldInfo.FieldType;
 
+            if (itemType.IsGenericType)
+                itemType = itemType.GetGenericArguments()[0];
+            
             if (!CollectionsRegistry.Instance.TryGetCollectionFromItemType(itemType, out ScriptableObjectCollection collection))
                 throw new Exception($"No collection found for item type {itemType}");
 

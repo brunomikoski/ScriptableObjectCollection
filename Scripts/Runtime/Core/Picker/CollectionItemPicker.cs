@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace BrunoMikoski.ScriptableObjectCollections
+namespace BrunoMikoski.ScriptableObjectCollections.Picker
 {
     /// <summary>
     /// Collection Item Picker lets you pick one or more items from a collection, similar to how an enum field would

@@ -7,8 +7,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [SerializeField, HideInInspector]
         private LongGuid guid;
-
-
         public LongGuid GUID
         {
             get
@@ -56,6 +54,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectionGUID = cachedScriptableObjectCollection.GUID;
             ObjectUtility.SetDirty(this);
         }
+        
+        public void GenerateNewGUID()
+        {
+            guid = LongGuid.NewGuid();
+            ObjectUtility.SetDirty(this);
+        }
 
         public int CompareTo(ScriptableObjectCollectionItem other)
         {
@@ -101,12 +105,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public override int GetHashCode()
         {
             return GUID.GetHashCode();
-        }
-        
-        public void GenerateNewGUID()
-        {
-            guid = LongGuid.NewGuid();
-            ObjectUtility.SetDirty(this);
         }
     }
 }

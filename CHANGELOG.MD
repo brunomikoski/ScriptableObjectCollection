@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [2.0.3]
+### Changed
+- Added `[DrawAsSOCItem]` attribute to allow drawing of `ScriptableObject, ISOCItem` should not affect anything else, than users that have custom ScriptableObjects that implement `ISOCItem`, and this is only needed for versions bellow 2022.
+
 ## [2.0.2]
 ### Changed
  - Updated Labels from `CollectionItemPicker` to use black as the default interface

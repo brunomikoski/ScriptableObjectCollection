@@ -7,7 +7,11 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
+#if UNITY_2022_2_OR_NEWER
     [CustomPropertyDrawer(typeof(ISOCItem), true)]
+#else
+    [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
+#endif
     public class SOCItemPropertyDrawer : PropertyDrawer
     {
         public const float BUTTON_WIDTH = 30;
@@ -24,12 +28,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private CollectionItemDropdown collectionItemDropdown;
         private ScriptableObject item;
         private float totalHeight;
+        
+        private FieldInfo overrideFieldInfo;
+        private FieldInfo TargetFieldInfo
+        {
+            get
+            {
+                if (overrideFieldInfo == null)
+                    return fieldInfo;
+                return overrideFieldInfo;
+            }
+        }
 
         private SOCItemEditorOptionsAttribute GetOptionsAttribute()
         {
-            if (fieldInfo == null)
+            if (TargetFieldInfo == null)
                 return DefaultAttribute;
-            object[] attributes = fieldInfo.GetCustomAttributes(typeof(SOCItemEditorOptionsAttribute), false);
+            object[] attributes = TargetFieldInfo.GetCustomAttributes(typeof(SOCItemEditorOptionsAttribute), false);
             if (attributes.Length > 0)
                 return attributes[0] as SOCItemEditorOptionsAttribute;
             return DefaultAttribute;
@@ -139,15 +154,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
 
             Type itemType;
-            if (fieldInfo == null)
+            if (TargetFieldInfo == null)
             {
                 Type parentType = property.serializedObject.targetObject.GetType();
                 itemType = property.GetFieldInfoFromPathByType(parentType).FieldType;
             }
             else
             {
-                Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
-                itemType = arrayOrListType ?? fieldInfo.FieldType;
+                Type arrayOrListType = TargetFieldInfo.FieldType.GetArrayOrListType();
+                itemType = arrayOrListType ?? TargetFieldInfo.FieldType;
             }
             
             Initialize(itemType, property.serializedObject.targetObject, GetOptionsAttribute());
@@ -199,7 +214,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (!OptionsAttribute.ShouldDrawGotoButton) 
                 return;
 
-            if (!(collectionItem is ISOCItem socItem))
+            if (collectionItem is not ISOCItem socItem)
                 return;
             
             Rect buttonRect = popupRect;
@@ -234,6 +249,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 CollectionUtility.SetFoldoutOpen(!CollectionUtility.IsFoldoutOpen(targetItem, currentObject), targetItem, currentObject);
                 ObjectUtility.SetDirty(targetItem);
             }
+        }
+
+        public void OverrideFieldInfo(FieldInfo targetFieldInfo)
+        {
+            overrideFieldInfo = targetFieldInfo;
         }
     }
 }

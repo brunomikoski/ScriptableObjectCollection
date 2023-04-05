@@ -19,8 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public string ValidateMethod { get; set; }
     }
-    
-    
+
     //Temporary 
     [Obsolete("CollectionItemEditorOptions is deprecated, please use SOCItemEditorOptionsAttribute instead.")]
     public class CollectionItemEditorOptions : SOCItemEditorOptionsAttribute

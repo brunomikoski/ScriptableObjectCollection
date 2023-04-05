@@ -108,7 +108,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 if (item is ISOCColorizedItem coloredItem)
                     GUI.backgroundColor = coloredItem.LabelColor;
                 else
-                    GUI.backgroundColor = originalColor;
+                    GUI.backgroundColor = Color.black;
                 
                 GUI.Label(labelRect, labelContent, labelStyle);
             }

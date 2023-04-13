@@ -58,6 +58,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 for (int j = 0; j < collection.Count; j++)
                 {
                     ScriptableObject collectionItem = collection[j];
+
+                    if (!itemType.IsInstanceOfType(collectionItem))
+                        continue;
                     
                     if (validationMethod != null)
                     {

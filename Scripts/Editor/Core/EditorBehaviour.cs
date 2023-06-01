@@ -14,15 +14,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (playModeStateChange == PlayModeStateChange.EnteredPlayMode)
             {                
-                CollectionsRegistry.Instance.ReloadCollections();
                 CollectionsRegistry.Instance.RemoveNonAutomaticallyInitializedCollections();
-                CollectionsRegistry.Instance.PrepareForPlayMode();
-
             }
             else if (playModeStateChange == PlayModeStateChange.EnteredEditMode)
             {
-                CollectionsRegistry.Instance.ReloadCollections();
-                CollectionsRegistry.Instance.PrepareForEditorMode();
+                if (CollectionsRegistry.Instance.AutoSearchForCollections)
+                    CollectionsRegistry.Instance.ReloadCollections();
             }
         }
     }

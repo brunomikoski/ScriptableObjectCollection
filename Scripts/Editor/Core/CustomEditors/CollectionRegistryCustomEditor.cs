@@ -18,6 +18,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (GUILayout.Button("Generate All Existent Static Access Files"))
                 GenerateAllExistentStaticAccessFiles();
+
+            CollectionsRegistry.Instance.SetAutoSearchForCollections(GUILayout.Toggle(CollectionsRegistry.Instance.AutoSearchForCollections, "Auto Search For Collections"));
         }
 
         private void GenerateAllExistentStaticAccessFiles()

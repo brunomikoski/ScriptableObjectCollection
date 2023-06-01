@@ -76,6 +76,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static void RefreshRegistry()
         {
+            if (Application.isPlaying)
+                return;
+
             if (EditorApplication.isCompiling)
             {
                 RefreshRegistryAfterRecompilation = true;

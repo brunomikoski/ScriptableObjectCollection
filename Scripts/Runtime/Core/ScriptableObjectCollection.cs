@@ -25,10 +25,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return guid;
             }
         }
-
-
-        [NonSerialized]
-        private List<ScriptableObject> editorSerializedItems = new List<ScriptableObject>();
         
         [SerializeField]
         protected List<ScriptableObject> items = new List<ScriptableObject>();
@@ -313,7 +309,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
-            
             Type collectionType = GetItemType();
             if (collectionType == null)
                 return;
@@ -336,7 +331,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (item is not ISOCItem socItem)
                     continue;
-
 
                 if (socItem.Collection != null)
                 {
@@ -404,19 +398,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             scriptableObjectCollectionItem = null;
             return false;
-        }
-
-        internal void PrepareForPlayMode()
-        {
-            editorSerializedItems.Clear();
-            editorSerializedItems.AddRange(items);
-        }
-
-        internal void PrepareForEditorMode()
-        {
-            items.Clear();
-            items.AddRange(editorSerializedItems);
-            editorSerializedItems.Clear();
         }
 
         protected virtual void ClearCachedValues()

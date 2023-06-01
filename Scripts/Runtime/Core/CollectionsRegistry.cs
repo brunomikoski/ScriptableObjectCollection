@@ -16,6 +16,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField] 
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
         public IReadOnlyList<ScriptableObjectCollection> Collections => collections;
+        
+        [SerializeField]
+        private bool autoSearchForCollections = true;
+        public bool AutoSearchForCollections => autoSearchForCollections;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Initialize()
@@ -281,6 +285,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void PreBuildProcess()
         {
+            ReloadCollections();
             RemoveNonAutomaticallyInitializedCollections();
 #if UNITY_EDITOR
             AssetDatabase.SaveAssets();
@@ -308,19 +313,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ReloadCollections();
         }
 
-#if UNITY_EDITOR
-        public void PrepareForPlayMode()
-        {
-            for (int i = 0; i < collections.Count; i++)
-                collections[i].PrepareForPlayMode();
-        }
-
-        public void PrepareForEditorMode()
-        {
-            for (int i = 0; i < collections.Count; i++)
-                collections[i].PrepareForEditorMode();
-        }
-#endif
         public void ValidateCollections()
         {
             for (int i = collections.Count - 1; i >= 0; i--)
@@ -371,6 +363,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        public void SetAutoSearchForCollections(bool isOn)
+        {
+            autoSearchForCollections = isOn;
+            ObjectUtility.SetDirty(this);
+        }
     }
 }
 

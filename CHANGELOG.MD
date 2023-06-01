@@ -8,9 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.2]
 ### Changed
+ - Fixed editor only icons causing issue when the project recompiles during playmode.
+ - Added option to disable automatically reloading of collection on the CollectionRegistry
  - Updated Labels from `CollectionItemPicker` to use black as the default interface
  - Added some helpers to help project upgrade
- - Added `[DrawAsSOCItem]` attribute to allow drawing of `ScriptableObject, ISOCItem` as a regular CollectionItem, this is only necessary for unity versions bellow 2022, should not affect anything else.
+ - Added `[DrawAsSOCItem]` attribute to allow drawing of custom `ScriptableObjec` that implements `ISOCItem` as a CollectionItem, this is only necessary for unity versions bellow 2022, should not affect anything else.
+ - Syncronize Assets button on the Collection will also perform a reload of the collection
 
 ## [2.0.1]
 ### Changed

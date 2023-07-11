@@ -12,12 +12,12 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
-    public sealed class CollectionCustomEditor : Editor
+    public class CollectionCustomEditor : Editor
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         private static ScriptableObject LAST_ADDED_COLLECTION_ITEM;
 
-        private ScriptableObjectCollection collection;
+        protected ScriptableObjectCollection collection;
         private string searchString = "";
 
         private SearchField searchField;
@@ -27,17 +27,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool[] itemHidden;
         private ReorderableList reorderableList;
         private SerializedProperty itemsSerializedProperty;
-        private int lastCheckedForValidItemsArraySize;
+        protected int lastCheckedForValidItemsArraySize;
         private readonly Dictionary<int, Rect> itemIndexToRect = new();
         private float? reorderableListYPosition;
 
+        protected virtual bool DisplayAddButton => true;
+        protected virtual bool DisplayRemoveButton => true;
+        protected virtual bool AllowCustomTypeCreation => true;
+        
         private static bool IsWaitingForNewTypeBeCreated
         {
             get => EditorPrefs.GetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, false);
             set => EditorPrefs.SetBool(WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY, value);
         }
 
-        public void OnEnable()
+        protected virtual void OnEnable()
         {
             collection = (ScriptableObjectCollection)target;
 
@@ -57,7 +61,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateReorderableList()
         {
-            reorderableList = new ReorderableList(serializedObject, itemsSerializedProperty, true, true, true, true);
+            reorderableList = new ReorderableList(serializedObject, itemsSerializedProperty, true, true, DisplayAddButton, DisplayRemoveButton);
             reorderableList.drawElementCallback += DrawCollectionItemAtIndex;
             reorderableList.elementHeightCallback += GetCollectionItemHeight;
             reorderableList.onAddDropdownCallback += OnClickToAddNewItem;
@@ -66,7 +70,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             reorderableList.drawHeaderCallback += OnDrawerHeader;
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             if (reorderableList == null)
                 return;
@@ -95,7 +99,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             RemoveItemAtIndex(selectedIndex);
         }
 
-        private void RemoveItemAtIndex(int selectedIndex)
+        protected void RemoveItemAtIndex(int selectedIndex)
         {
             SerializedProperty selectedProperty = reorderableList.serializedProperty.GetArrayElementAtIndex(selectedIndex);
             Object asset = selectedProperty.objectReferenceValue;
@@ -155,13 +159,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                GUI.SetNextControlName(collectionItemSerializedProperty.objectReferenceValue.name);
+                string collectionItemName = "";
+                if (!string.IsNullOrEmpty(collectionItemSerializedProperty.objectReferenceValue.name))
+                    collectionItemName = collectionItemSerializedProperty.objectReferenceValue.name;
+
+                if (!string.IsNullOrEmpty(collectionItemName))
+                    GUI.SetNextControlName(collectionItemName);
+                
                 Rect nameRect = rect;
-                string newName = EditorGUI.DelayedTextField(nameRect, collectionItemSerializedProperty.objectReferenceValue.name, CollectionEditorGUI.ItemNameStyle);
+                string newName = EditorGUI.DelayedTextField(nameRect, collectionItemName, CollectionEditorGUI.ItemNameStyle);
                 
                 if (LAST_ADDED_COLLECTION_ITEM == collectionItemSerializedProperty.objectReferenceValue)
                 {
-                    EditorGUI.FocusTextInControl( collectionItemSerializedProperty.objectReferenceValue.name);
+                    EditorGUI.FocusTextInControl( collectionItemName);
                     reorderableList.index = index;
                     LAST_ADDED_COLLECTION_ITEM = null;
                 }
@@ -489,18 +499,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
                 
             optionsMenu.AddSeparator("");
-            
-            for (int i = 0; i < itemsSubclasses.Count; i++)
-            {
-                Type itemSubClass = itemsSubclasses[i];
 
-                if (itemSubClass.IsSealed)
-                    continue;
-                
-                AddMenuOption(optionsMenu, $"Create New/class $NEW : {itemSubClass.Name}", () =>
+            if (AllowCustomTypeCreation)
+            {
+                for (int i = 0; i < itemsSubclasses.Count; i++)
                 {
-                    EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(itemSubClass); };
-                });
+                    Type itemSubClass = itemsSubclasses[i];
+
+                    if (itemSubClass.IsSealed)
+                        continue;
+                
+                    AddMenuOption(optionsMenu, $"Create New/class $NEW : {itemSubClass.Name}", () =>
+                    {
+                        EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(itemSubClass); };
+                    });
+                }
             }
 
             optionsMenu.ShowAsContext();

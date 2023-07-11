@@ -103,7 +103,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (scriptableObject == null)
                 return;
 
-            if (!CollectionUtility.IsFoldoutOpen(scriptableObject, currentObject))
+            if (!CollectionUtility.IsCollectionItemExpanded((ISOCItem) scriptableObject))
                 return;
 
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -111,13 +111,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             rect.y += 10;
             float beginPositionY = rect.y;
 
-            SerializedObject collectionItemSerializedObject = new SerializedObject(scriptableObject);
+            SerializedObject collectionItemSerializedObject = new(scriptableObject);
 
             EditorGUI.indentLevel++;
             rect = EditorGUI.IndentedRect(rect);
             SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
 
-            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            using (EditorGUI.ChangeCheckScope changeCheck = new())
             {
                 for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
                 {
@@ -225,7 +225,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
                 Selection.activeObject = socItem.Collection;
-                CollectionUtility.SetFoldoutOpen(true, collectionItem, socItem.Collection);
+                CollectionUtility.SetOnlyCollectionItemExpanded((ISOCItem) collectionItem, socItem.Collection);
             }
         }
 
@@ -241,12 +241,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
 
             GUIContent guiContent = CollectionEditorGUI.EditGUIContent;
-            if (CollectionUtility.IsFoldoutOpen(targetItem, currentObject))
+
+            if (CollectionUtility.IsCollectionItemExpanded((ISOCItem) targetItem))
                 guiContent = CollectionEditorGUI.CloseGUIContent;
 
             if (GUI.Button(buttonRect, guiContent))
             {
-                CollectionUtility.SetFoldoutOpen(!CollectionUtility.IsFoldoutOpen(targetItem, currentObject), targetItem, currentObject);
+                CollectionUtility.SetCollectionItemExpanded(!CollectionUtility.IsCollectionItemExpanded((ISOCItem) targetItem), (ISOCItem) targetItem);
+                
                 ObjectUtility.SetDirty(targetItem);
             }
         }

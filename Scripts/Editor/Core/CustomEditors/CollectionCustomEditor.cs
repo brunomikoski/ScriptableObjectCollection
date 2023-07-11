@@ -28,6 +28,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private ReorderableList reorderableList;
         private SerializedProperty itemsSerializedProperty;
         private int lastCheckedForValidItemsArraySize;
+        private readonly Dictionary<int, Rect> itemIndexToRect = new();
+        private float? reorderableListYPosition;
 
         private static bool IsWaitingForNewTypeBeCreated
         {
@@ -185,38 +187,49 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 rect.y += EditorGUIUtility.standardVerticalSpacing; 
 
-                SerializedObject collectionItemSerializedObject = new SerializedObject(collectionItemSerializedProperty.objectReferenceValue);
-                
-                EditorGUI.indentLevel++;
-                
-                SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
-
-                using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+                if (itemIndexToRect.TryGetValue(index, out Rect actualRect) && reorderableListYPosition.HasValue)
                 {
-                    for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
-                    {
-                        bool guiEnabled = GUI.enabled;
-                        if (iterator.displayName.Equals("Script"))
-                            GUI.enabled = false;
+                    actualRect.y = rect.y + reorderableListYPosition.Value + reorderableList.headerHeight;
 
-                        EditorGUI.PropertyField(rect, iterator, true);
-                        GUI.enabled = guiEnabled;
+                    // Have to indent the rect here because otherwise it overlaps with the drag handle
+                    EditorGUI.indentLevel++;
+                    actualRect = EditorGUI.IndentedRect(actualRect);
+                    EditorGUI.indentLevel--;
 
-                        rect.y += EditorGUI.GetPropertyHeight(iterator, true) +
-                                  EditorGUIUtility.standardVerticalSpacing;
-                    }
+                    GUILayout.BeginArea(actualRect);
+                    EditorGUI.indentLevel++;
 
-                    if (changeCheck.changed)
-                        iterator.serializedObject.ApplyModifiedProperties();
+                    Editor editor = EditorCache.GetOrCreateEditorForObject(collectionItemSerializedProperty.objectReferenceValue);
+                    editor.OnInspectorGUI();
+
+                    EditorGUI.indentLevel--;
+                    GUILayout.EndArea();
+
+                    collectionItemSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    rect.y += actualRect.height;
                 }
+                else
+                {
+                    Rect verticalRect = EditorGUILayout.BeginVertical();
+            
+                    Editor editor = EditorCache.GetOrCreateEditorForObject(collectionItemSerializedProperty.objectReferenceValue);
+                    editor.OnInspectorGUI();
 
-                EditorGUI.indentLevel--;
+                    EditorGUILayout.EndVertical();
+
+                    if (Event.current.type == EventType.Repaint)
+                    {
+                        itemIndexToRect[index] = verticalRect;
+                    }
+                }
             }
 
             CheckForContextInputOnItem(collectionItemSerializedProperty, index, originY, rect);
-            
+    
             heights[index] = rect.y - originY;
         }
+
+       
 
         private void SetAllExpanded(bool expanded)
         {
@@ -344,6 +357,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 DrawSearchField();
                 DrawSynchronizeButton();
                 reorderableList.DoLayoutList();
+                if (Event.current.type == EventType.Repaint)
+                {
+                    reorderableListYPosition = GUILayoutUtility.GetLastRect().y;
+                }
                 DrawBottomMenu();
             }
             DrawSettings();

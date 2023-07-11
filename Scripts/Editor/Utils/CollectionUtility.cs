@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -36,12 +38,54 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return value;
         }
+        
 
-        public static void SetFoldoutOpen(bool value, params Object[] objects)
+        public static void SetCollectionItemExpanded(bool isExpanded, ISOCItem targetItem)
         {
-            int hashCount = GetHasCount(objects);
+            ScriptableObjectCollection collection = targetItem.Collection;
+            SetCollectionItemExpanded(isExpanded, targetItem, collection);
+        }
 
-            objectToFoldOut[hashCount] = value;
+        public static bool IsCollectionItemExpanded(ISOCItem targetItem)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(targetItem.Collection);
+            SerializedProperty itemsProperty = collectionSerializedObject.FindProperty("items");
+            for (int i = 0; i < itemsProperty.arraySize; i++)
+            {
+                SerializedProperty itemProperty = itemsProperty.GetArrayElementAtIndex(i);
+                if (itemProperty.objectReferenceValue == (Object) targetItem)
+                {
+                    return itemProperty.isExpanded;
+                }
+            }
+
+            return false;
+        }
+
+        public static void SetCollectionItemExpanded(bool isExpanded, ISOCItem collectionItem, ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+            SerializedProperty itemsProperty = collectionSerializedObject.FindProperty("items");
+            for (int i = 0; i < itemsProperty.arraySize; i++)
+            {
+                SerializedProperty itemProperty = itemsProperty.GetArrayElementAtIndex(i);
+                if (itemProperty.objectReferenceValue == (Object) collectionItem)
+                {
+                    itemProperty.isExpanded = isExpanded;
+                    break;
+                }
+            }
+        }
+
+        public static void SetOnlyCollectionItemExpanded(ISOCItem collectionItem, ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+            SerializedProperty itemsProperty = collectionSerializedObject.FindProperty("items");
+            for (int i = 0; i < itemsProperty.arraySize; i++)
+            {
+                SerializedProperty itemProperty = itemsProperty.GetArrayElementAtIndex(i);
+                itemProperty.isExpanded = itemProperty.objectReferenceValue == (Object) collectionItem; 
+            }
         }
     }
 }

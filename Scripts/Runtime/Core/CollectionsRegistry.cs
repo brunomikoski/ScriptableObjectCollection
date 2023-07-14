@@ -202,7 +202,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             for (int i = 0; i < collections.Count; i++)
             {
-                if (collections[i].GUID == guid)
+                if (collections[i] != null && collections[i].GUID == guid)
                     return collections[i];
             }
 
@@ -365,17 +365,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             for (int i = collections.Count - 1; i >= 0; i--)
             {
-                ScriptableObjectCollection collectionA = collections[i];
-                if (collectionA == null)
-                {
+                if (collections[i] == null)
                     collections.RemoveAt(i);
-                    continue;
-                }
+            }
+
+            for (int i = collections.Count - 1; i >= 0; i--)
+            {
+                ScriptableObjectCollection collectionA = collections[i];
                     
                 for (int j = collections.Count - 1; j >= 0; j--)
                 {
                     ScriptableObjectCollection collectionB = collections[j];
-
 
                     if (i == j)
                         continue;

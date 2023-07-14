@@ -175,7 +175,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get
             {
                 if (string.IsNullOrEmpty(cachedNamespacePrefix))
-                    cachedNamespacePrefix = ScriptableObjectCollectionSettings.GetInstance().NamespacePrefix;
+                    cachedNamespacePrefix = SOCSettings.Instance.NamespacePrefix;
                 return cachedNamespacePrefix;
             }
             set
@@ -184,7 +184,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     return;
                 
                 cachedNamespacePrefix = value;
-                ScriptableObjectCollectionSettings.GetInstance().SetNamespacePrefix(cachedNamespacePrefix);
+                SOCSettings.Instance.SetNamespacePrefix(cachedNamespacePrefix);
             }
         }
 
@@ -224,25 +224,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private bool UseMaximumNamespaceDepth
         {
-            get => ScriptableObjectCollectionSettings.GetInstance().UseMaximumNamespaceDepth;
+            get => SOCSettings.Instance.UseMaximumNamespaceDepth;
             set
             {
                 if (UseMaximumNamespaceDepth == value)
                     return;
                 
-                ScriptableObjectCollectionSettings.GetInstance().SetUseMaximumNamespaceDepth(value);
+                SOCSettings.Instance.SetUseMaximumNamespaceDepth(value);
             }
         }
         
         private int MaximumNamespaceDepth
         {
-            get => ScriptableObjectCollectionSettings.GetInstance().MaximumNamespaceDepth;
+            get => SOCSettings.Instance.MaximumNamespaceDepth;
             set
             {
                 if (MaximumNamespaceDepth == value)
                     return;
                 
-                ScriptableObjectCollectionSettings.GetInstance().SetMaximumNamespaceDepth(value);
+                SOCSettings.Instance.SetMaximumNamespaceDepth(value);
             }
         }
 

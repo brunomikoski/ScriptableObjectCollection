@@ -708,7 +708,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 
             if (pathObject == null && !string.IsNullOrEmpty(serializedObject.FindProperty("generatedFileLocationPath").stringValue))
             {
-                pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(ScriptableObjectCollectionSettings.GetInstance().GeneratedScriptsDefaultFilePath);
+                pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(SOCSettings.Instance.GeneratedScriptsDefaultFilePath);
+                
             }
                 
             pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
@@ -725,9 +726,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 serializedObject.ApplyModifiedProperties();
                     
 
-                if (string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().GeneratedScriptsDefaultFilePath))
+                if (string.IsNullOrEmpty(SOCSettings.Instance.GeneratedScriptsDefaultFilePath))
                 {
-                    ScriptableObjectCollectionSettings.GetInstance().SetGeneratedScriptsDefaultFilePath(assetPath);
+                    SOCSettings.Instance.SetGeneratedScriptsDefaultFilePath(assetPath);
                 }
             }
         }
@@ -788,10 +789,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (!string.IsNullOrEmpty(serializedObject.FindProperty("generatedFileLocationPath").stringValue))
                 return;
 
-            if (!string.IsNullOrEmpty(ScriptableObjectCollectionSettings.GetInstance().GeneratedScriptsDefaultFilePath))
+            if (!string.IsNullOrEmpty(SOCSettings.Instance.GeneratedScriptsDefaultFilePath))
             {
                 serializedObject.FindProperty("generatedFileLocationPath").stringValue =
-                    ScriptableObjectCollectionSettings.GetInstance()
+                    SOCSettings.Instance
                         .GeneratedScriptsDefaultFilePath;
             }
             else

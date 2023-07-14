@@ -234,38 +234,10 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             this.collection = collection;
 
-            UpgradeFromPreviousSystem(property);
-            
             buttonStyle = EditorStyles.textArea;
             GUIStyle assetLabelStyle = new GUIStyle(EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("AssetLabel"));
             labelStyle = assetLabelStyle;
             initialized = true;
-        }
-
-        private void UpgradeFromPreviousSystem(SerializedProperty property)
-        {
-            SerializedProperty oldItemsProperty = property.FindPropertyRelative("items");
-            if (oldItemsProperty == null || oldItemsProperty.arraySize == 0)
-                return;
-
-            SerializedProperty newItemsGUIDProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
-
-            int arraySize = oldItemsProperty.arraySize;
-            for (int i = arraySize - 1; i >= 0; i--)
-            {
-                SerializedProperty elementProperty = oldItemsProperty.GetArrayElementAtIndex(i);
-
-                ScriptableObject scriptableObject = elementProperty.objectReferenceValue as ScriptableObject;
-                if (scriptableObject == null)
-                    continue;
-
-                newItemsGUIDProperty.arraySize++;
-                SerializedProperty newProperty = newItemsGUIDProperty.GetArrayElementAtIndex(newItemsGUIDProperty.arraySize - 1);
-                AssignItemGUIDToProperty(scriptableObject, newProperty);
-            }
-
-            oldItemsProperty.arraySize = 0;
-            newItemsGUIDProperty.serializedObject.ApplyModifiedProperties();
         }
     }
 }

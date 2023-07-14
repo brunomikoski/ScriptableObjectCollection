@@ -205,7 +205,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        public bool TryGetCollectionByGUID(LongGuid targetGUID, out ScriptableObjectCollection resultCollection)
+
+        public bool TryGetCollectionByGUID<T>(LongGuid targetGUID, out T resultCollection) where T: ScriptableObjectCollection
         {
             if (targetGUID.IsValid())
             {
@@ -214,8 +215,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     ScriptableObjectCollection scriptableObjectCollection = collections[i];
                     if (scriptableObjectCollection.GUID == targetGUID)
                     {
-                        resultCollection = scriptableObjectCollection;
-                        return true;
+                        resultCollection = (T) scriptableObjectCollection;
+                        return resultCollection != null;
                     }
                 }
             }

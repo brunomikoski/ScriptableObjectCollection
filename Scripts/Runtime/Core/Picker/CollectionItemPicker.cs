@@ -17,16 +17,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private List<LongGuid> itemsGuids = new List<LongGuid>();
 
 
+        private bool hasCachedCollection;
         private ScriptableObjectCollection cachedCollection;
         private ScriptableObjectCollection Collection
         {
             get
             {
-                if (cachedCollection == null)
+                if (!hasCachedCollection)
                 {
-                    if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(typeof(TItemType),
-                            out ScriptableObjectCollection result))
-                        cachedCollection = result;
+                    hasCachedCollection = CollectionsRegistry.Instance.TryGetCollectionFromItemType(typeof(TItemType),
+                        out cachedCollection);
                 }
 
                 return cachedCollection;
@@ -36,6 +36,17 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public event Action<TItemType> OnItemTypeAddedEvent;
         public event Action<TItemType> OnItemTypeRemovedEvent;
         public event Action OnChangedEvent;
+        
+        public CollectionItemPicker()
+        {
+            
+        }
+        
+        public CollectionItemPicker(params TItemType[] items)
+        {
+            for (int i = 0; i < items.Length; i++)
+                Add(items[i]);
+        }
 
         #region Boleans and Checks
         public bool HasAny(params TItemType[] itemTypes)

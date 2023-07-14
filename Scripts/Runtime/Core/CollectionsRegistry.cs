@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 using UnityEngine.Scripting;
@@ -101,19 +102,72 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return result;
         }
 
-        public List<ScriptableObject> GetAllCollectionItemsOfType(Type itemType)
+        public List<ScriptableObject> GetAllCollectionItemsOfType(Type targetItemType)
         {
             List<ScriptableObject> results = new List<ScriptableObject>();
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (!itemType.IsAssignableFrom(scriptableObjectCollection.GetItemType()))
+                Type collectionItemType = scriptableObjectCollection.GetItemType();
+                if (!targetItemType.IsAssignableFrom(collectionItemType))
                     continue;
 
                 results.AddRange(scriptableObjectCollection.Items);
             }
 
             return results;
+        }
+
+
+        public bool TryGetCollectionsOfItemType(Type targetType, out List<ScriptableObjectCollection> results)
+        {
+            List<ScriptableObjectCollection> availables = new List<ScriptableObjectCollection>();
+            for (int i = 0; i < Collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = Collections[i];
+
+                if (collection.GetItemType() == targetType || collection.GetItemType().IsAssignableFrom(targetType))
+                {
+                    availables.Add(collection);
+                }
+            }
+
+            if (availables.Count == 0)
+            {
+                results = null;
+                return false;
+            }
+
+            if (availables.Count == 1)
+            {
+                results = availables;
+                return true;
+            }
+
+            results = new List<ScriptableObjectCollection>();
+            for (int i = 0; i < availables.Count; i++)
+            {
+                ScriptableObjectCollection collection = availables[i];
+                if (collection.GetItemType() == targetType)
+                    results.Add(collection);
+            }
+
+            return results.Count > 0;
+        }
+
+        public bool TryGetCollectionsOfItemType<T>(out List<ScriptableObjectCollection<T>> results)
+            where T : ScriptableObject, ISOCItem
+        {
+            Type targetType = typeof(T);
+
+            if (TryGetCollectionsOfItemType(targetType, out List<ScriptableObjectCollection> collections))
+            {
+                results = collections.Cast<ScriptableObjectCollection<T>>().ToList();
+                return true;
+            }
+
+            results = null;
+            return false;
         }
 
         public List<ScriptableObjectCollection> GetCollectionsByItemType<T>() where T : ScriptableObjectCollectionItem
@@ -170,26 +224,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
             resultCollection = null;
             return false;
         }
-
-        public bool TryGetCollectionFromItemType(Type targetType, out ScriptableObjectCollection scriptableObjectCollection)
+        
+        public bool TryGetCollectionFromItemType(Type targetType, out ScriptableObjectCollection resultCollection)
         {
-            List<ScriptableObjectCollection> possibleCollections = new List<ScriptableObjectCollection>();
-            for (int i = 0; i < collections.Count; i++)
+            if (TryGetCollectionsOfItemType(targetType, out List<ScriptableObjectCollection> possibleCollections))
             {
-                ScriptableObjectCollection collection = collections[i];
-                if (collection.GetItemType() == targetType || collection.GetItemType().IsAssignableFrom(targetType))
+                if (possibleCollections.Count == 1)
                 {
-                    possibleCollections.Add(collection);
+                    resultCollection = possibleCollections[0];
+                    return true;
                 }
             }
 
-            if (possibleCollections.Count == 1)
-            {
-                scriptableObjectCollection = possibleCollections[0];
-                return true;
-            }
-
-            scriptableObjectCollection = null;
+            resultCollection = null;
             return false;
         }
 

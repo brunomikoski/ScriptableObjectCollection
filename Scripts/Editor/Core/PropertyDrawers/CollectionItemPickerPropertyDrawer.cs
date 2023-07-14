@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Popup;
 using UnityEditor;
 using UnityEngine;
@@ -18,17 +20,34 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private PopupList<PopupItem> popupList = new PopupList<PopupItem>();
         private static GUIStyle labelStyle;
         private static GUIStyle buttonStyle;
-        private ScriptableObjectCollection collection;
         private float buttonHeight = EditorGUIUtility.singleLineHeight;
+        private List<ScriptableObjectCollection> possibleCollections;
+        private List<ScriptableObject> availableItems = new List<ScriptableObject>();
 
         private readonly struct PopupItem : IPopupListItem
         {
             private readonly string name;
             public string Name => name;
+            
+            private readonly LongGuid collectionGUID;
+            public LongGuid CollectionGuid => collectionGUID;
+
+            private readonly LongGuid socItemGUID;
+            public LongGuid SocItemGuid => socItemGUID;
+
 
             public PopupItem(ScriptableObject scriptableObject)
             {
                 name = scriptableObject.name;
+                if (scriptableObject is ISOCItem socItem)
+                {
+                    collectionGUID = socItem.Collection.GUID;
+                    socItemGUID = socItem.GUID;
+                    return;
+                }
+
+                collectionGUID = default;
+                socItemGUID = default;
             }
         }
 
@@ -82,12 +101,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             Color originalColor = GUI.backgroundColor;
             for (int i = 0; i < popupList.Count; i++)
             {
-                ScriptableObject item = collection[i];
-
                 if (!popupList.GetSelected(i))
                     continue;
 
-                GUIContent labelContent = new GUIContent(item.name);
+                ScriptableObject collectionItem = availableItems[i];
+                GUIContent labelContent = new GUIContent(collectionItem.name);
                 Vector2 size = labelStyle.CalcSize(labelContent);
 
                 if (currentLineWidth + size.x + 4 > inspectorWidth)
@@ -105,7 +123,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                 currentLineWidth += size.x + 4;
 
-                if (item is ISOCColorizedItem coloredItem)
+                if (collectionItem is ISOCColorizedItem coloredItem)
                     GUI.backgroundColor = coloredItem.LabelColor;
                 else
                     GUI.backgroundColor = Color.black;
@@ -146,7 +164,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 if (popupList.GetSelected(i))
                 {
                     SerializedProperty newProperty = itemsProperty.GetArrayElementAtIndex(propertyArrayIndex);
-                    AssignItemGUIDToProperty(collection[i], newProperty);
+                    AssignItemGUIDToProperty(availableItems[i], newProperty);
                     propertyArrayIndex++;
                 }
             }
@@ -181,9 +199,21 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 LongGuid socItemGUID = GetGUIDFromProperty(elementProperty);
 
 
-                if (collection.TryGetItemByGUID(socItemGUID, out ScriptableObject result))
+                ScriptableObject foundItem = availableItems.FirstOrDefault(so =>
                 {
-                    int indexOf = collection.IndexOf(result);
+                    if (so is ISOCItem item)
+                    {
+                        if(item.GUID == socItemGUID)
+                        {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+                if (foundItem != null)
+                {
+                    int indexOf = availableItems.IndexOf(foundItem);
                     if (indexOf >= 0)
                     {
                         popupList.SetSelected(indexOf, true);
@@ -196,7 +226,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 else
                 {
                     itemsProperty.DeleteArrayElementAtIndex(i);
-
                 }
             }
         }
@@ -214,25 +243,28 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         {
             if (initialized)
                 return;
-
+            
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type itemType = arrayOrListType ?? fieldInfo.FieldType;
 
             if (itemType.IsGenericType)
                 itemType = itemType.GetGenericArguments()[0];
-            
-            if (!CollectionsRegistry.Instance.TryGetCollectionFromItemType(itemType, out ScriptableObjectCollection collection))
-                throw new Exception($"No collection found for item type {itemType}");
 
+            if (!CollectionsRegistry.Instance.TryGetCollectionsOfItemType(itemType, out possibleCollections))
+                throw new Exception($"No collection found for item type {itemType}");
+            
 
             popupList.Clear();
-            for (int i = 0; i < collection.Count; i++)
+            availableItems.Clear();
+            for (int i = 0; i < possibleCollections.Count; i++)
             {
-                ScriptableObject scriptableObject = collection[i];
-                popupList.AddItem(new PopupItem(scriptableObject), false);
+                for (int j = 0; j < possibleCollections[i].Count; j++)
+                {
+                    ScriptableObject scriptableObject = possibleCollections[i][j];
+                    availableItems.Add(scriptableObject);
+                    popupList.AddItem(new PopupItem(scriptableObject), false);
+                }
             }
-
-            this.collection = collection;
 
             buttonStyle = EditorStyles.textArea;
             GUIStyle assetLabelStyle = new GUIStyle(EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("AssetLabel"));

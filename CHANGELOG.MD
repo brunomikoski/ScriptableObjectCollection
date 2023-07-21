@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [2.0.4]
+### Changed
+- Added boolean check for static generated files to improve performance
+- Changed settings to be stored on ProjectSettings folder and be shared by subversion
+- Fixed `CollectionItemPickerPropertyDrawer` to support multiple collections of the same type
+- Other small optimizations and code formatting
+
 ## [2.0.3]
 ### Changed
  - Collection now uses the appropriated Editor for each CollectionItem when displayed on the Collection

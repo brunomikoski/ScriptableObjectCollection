@@ -435,6 +435,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.0.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.4
 [2.0.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.3
 [2.0.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.2
 [2.0.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.1

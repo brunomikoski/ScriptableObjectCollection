@@ -13,32 +13,40 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     public class CollectionItemPicker<TItemType> : IList<TItemType>
         where TItemType : ScriptableObject, ISOCItem
     {
-        [SerializeField] 
-        private List<TItemType> items = new List<TItemType>();
-        
         [SerializeField]
         private List<LongGuid> itemsGuids = new List<LongGuid>();
 
 
+        private bool hasCachedCollection;
         private ScriptableObjectCollection cachedCollection;
         private ScriptableObjectCollection Collection
         {
             get
             {
-                if (cachedCollection == null)
+                if (!hasCachedCollection)
                 {
-                    if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(typeof(TItemType),
-                            out ScriptableObjectCollection result))
-                        cachedCollection = result;
+                    hasCachedCollection = CollectionsRegistry.Instance.TryGetCollectionFromItemType(typeof(TItemType),
+                        out cachedCollection);
                 }
 
                 return cachedCollection;
             }
         }
         
-        public event Action<TItemType> onItemTypeAddedEvent;
-        public event Action<TItemType> onItemTypeRemovedEvent;
-        public event Action onChangedEvent;
+        public event Action<TItemType> OnItemTypeAddedEvent;
+        public event Action<TItemType> OnItemTypeRemovedEvent;
+        public event Action OnChangedEvent;
+        
+        public CollectionItemPicker()
+        {
+            
+        }
+        
+        public CollectionItemPicker(params TItemType[] items)
+        {
+            for (int i = 0; i < items.Length; i++)
+                Add(items[i]);
+        }
 
         #region Boleans and Checks
         public bool HasAny(params TItemType[] itemTypes)
@@ -157,15 +165,18 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         public void Add(TItemType item)
         {
+            if (Contains(item))
+                return;
+            
             itemsGuids.Add(item.GUID);
-            onItemTypeAddedEvent?.Invoke(item);
-            onChangedEvent?.Invoke();
+            OnItemTypeAddedEvent?.Invoke(item);
+            OnChangedEvent?.Invoke();
         }
 
         public void Clear()
         {
             itemsGuids.Clear();
-            onChangedEvent?.Invoke();
+            OnChangedEvent?.Invoke();
         }
 
         public bool Contains(TItemType item)
@@ -196,8 +207,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             bool removed = itemsGuids.Remove(item.GUID);
             if (removed)
             {
-                onChangedEvent?.Invoke();
-                onItemTypeRemovedEvent?.Invoke(removedItem);
+                OnChangedEvent?.Invoke();
+                OnItemTypeRemovedEvent?.Invoke(removedItem);
             }
 
             return removed;
@@ -227,8 +238,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             TItemType removedItem = (TItemType) item;
             itemsGuids.RemoveAt(index);
-            onChangedEvent?.Invoke();
-            onItemTypeRemovedEvent?.Invoke(removedItem);
+            OnChangedEvent?.Invoke();
+            OnItemTypeRemovedEvent?.Invoke(removedItem);
         }
 
         public TItemType this[int index]

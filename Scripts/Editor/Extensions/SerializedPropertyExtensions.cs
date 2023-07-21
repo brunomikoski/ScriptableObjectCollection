@@ -4,6 +4,7 @@ using UnityEditor;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
+    
     public static class SerializedPropertyExtensions
     {
         public static FieldInfo GetFieldInfoFromPathByType(this SerializedProperty property, Type parentType)

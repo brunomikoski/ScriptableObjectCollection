@@ -377,7 +377,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
 
-        public bool TryGetItemByGUID(LongGuid itemGUID, out ScriptableObject scriptableObjectCollectionItem)
+        public bool TryGetItemByGUID<T>(LongGuid itemGUID, out T scriptableObjectCollectionItem)
+            where T : ScriptableObject
         {
             if (itemGUID.IsValid())
             {
@@ -390,14 +391,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 
                     if (socItem.GUID == itemGUID)
                     {
-                        scriptableObjectCollectionItem = item;
-                        return true;
+                        scriptableObjectCollectionItem = item as T;
+                        return scriptableObjectCollectionItem != null;
                     }
                 }
             }
 
             scriptableObjectCollectionItem = null;
             return false;
+        }
+        public bool TryGetItemByGUID(LongGuid itemGUID, out ScriptableObject scriptableObjectCollectionItem)
+        {
+            return TryGetItemByGUID<ScriptableObject>(itemGUID, out scriptableObjectCollectionItem);
         }
 
         protected virtual void ClearCachedValues()

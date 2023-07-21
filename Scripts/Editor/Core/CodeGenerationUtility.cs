@@ -239,7 +239,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 directives.Add(typeof(CollectionsRegistry).Namespace);
                 directives.Add(collection.GetType().Namespace);
                 directives.Add(typeof(List<>).Namespace);
-                directives.Add("System.Linq");
                 directives.Add("System");
                 directives.AddRange(GetCollectionDirectives(collection));
                 string className = collection.GetItemType().Name;
@@ -325,6 +324,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ref int indentation, bool useBaseClass)
         {
             string cachedValuesName = "values";
+            string hasCachedValuesNames = "hasCachedValues";
+            AppendLine(writer, indentation, $"private static bool {hasCachedValuesNames};");
             AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
 
             AppendLine(writer, indentation);
@@ -333,6 +334,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObject collectionItem = collection.Items[i];
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
+                AppendLine(writer, indentation, 
+                    $"private static bool hasCached{collectionItem.name.Sanitize().FirstToUpper()};");
                 AppendLine(writer, indentation, 
                     $"private static {type.FullName} cached{collectionItem.name.Sanitize().FirstToUpper()};");
             }
@@ -349,11 +352,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AppendLine(writer, indentation, "get");
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, $"if ({cachedValuesName} == null)");
+            AppendLine(writer, indentation, $"if (!{hasCachedValuesNames})");
             indentation++;
             (long, long) collectionGUIDValues = collection.GUID.GetRawValues();
             AppendLine(writer, indentation,
-                $"{cachedValuesName} = ({collection.GetType()})CollectionsRegistry.Instance.GetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}));");
+                $"{hasCachedValuesNames} = CollectionsRegistry.Instance.TryGetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}), out {cachedValuesName});");
             indentation--;
             AppendLine(writer, indentation, $"return {cachedValuesName};");
             indentation--;
@@ -368,42 +371,34 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObject collectionItem = collection.Items[i];
                 string collectionNameFirstUpper = collectionItem.name.Sanitize().FirstToUpper();
-                string privateStaticName = $"cached{collectionNameFirstUpper}";
+                string privateStaticCachedName = $"cached{collectionNameFirstUpper}";
+                string privateHasCachedName = $"hasCached{collectionNameFirstUpper}";
                 Type type = useBaseClass ? collection.GetItemType() : collectionItem.GetType();
 
                 ISOCItem socItem = collectionItem as ISOCItem;
                 if (socItem == null)
                     continue;
                 
-                AppendLine(writer, indentation,
-                    $"public static {type.FullName} {collectionNameFirstUpper}");
+                AppendLine(writer, indentation, $"public static {type.FullName} {collectionNameFirstUpper}");
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, "get");
                 AppendLine(writer, indentation, "{");
                 indentation++;
 
-                AppendLine(writer, indentation, $"if ({privateStaticName} == null)");
+                AppendLine(writer, indentation, $"if (!{privateHasCachedName})");
                 indentation++;
                 (long, long) collectionItemGUIDValues = socItem.GUID.GetRawValues();
                 AppendLine(writer, indentation,
-                    $"{privateStaticName} = ({type.FullName}){valuesName}.GetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}));");
+                    $"{privateHasCachedName} = Values.TryGetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}), out {privateStaticCachedName});");
                 indentation--;
-                AppendLine(writer, indentation, $"return {privateStaticName};");
+                AppendLine(writer, indentation, $"return {privateStaticCachedName};");
                 indentation--;
                 AppendLine(writer, indentation, "}");
                 indentation--;
                 AppendLine(writer, indentation, "}");
                 AppendLine(writer, indentation);
             }
-            
-            
-            AppendLine(writer, indentation, $"public static IEnumerable<T> GetValues<T>() where T : {collection.GetItemType().Name}");
-            AppendLine(writer, indentation, "{");
-            indentation++;
-            AppendLine(writer, indentation, $"return Values.Where(item => item is T).Cast<T>();");
-            indentation--;
-            AppendLine(writer, indentation, "}");
             
             AppendLine(writer, indentation);
         }

@@ -1,15 +1,56 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public class ScriptableObjectCollectionSettings : ScriptableObjectForPreferences<ScriptableObjectCollectionSettings>
+    
+    [Serializable]
+    public class SOCSettings
     {
+        private const string STORAGE_PATH = "ProjectSettings/ScriptableObjectCollection.json";
         private const int MINIMUM_NAMESPACE_DEPTH = 1;
+
+        [SettingsProvider]
+        public static SettingsProvider CreateSettingsProvider()
+        {
+            SettingsProvider provider = new("Project/Scriptable Object Collection", SettingsScope.Project)
+            {
+                label = "Scriptable Object Collection",
+                guiHandler = Instance.OnSceneGUI,
+                // Populate the search keywords to enable smart search filtering and label highlighting:
+                keywords = new HashSet<string>(new[] { "Editor", "SOC", "Scriptable Objects", "Scriptable Objects Collection" })
+            };
+
+            return provider;
+        }
         
-        [FormerlySerializedAs("defaultNamespace")] [SerializeField]
+        private static SOCSettings instance;
+        public static SOCSettings Instance
+        {
+            get
+            {
+                if (instance == null)
+                {
+                    if (File.Exists(STORAGE_PATH))
+                    {
+                        // Load settings from file.
+                        string json = File.ReadAllText(STORAGE_PATH);
+                        instance = JsonUtility.FromJson<SOCSettings>(json);
+                    }
+                    else
+                    {
+                        // Create new settings instance if file doesn't exist.
+                        instance = new SOCSettings();
+                    }
+                }
+                return instance;
+            }
+        }
+
+        [SerializeField]
         private string namespacePrefix;
         public string NamespacePrefix => namespacePrefix;
         
@@ -36,79 +77,63 @@ namespace BrunoMikoski.ScriptableObjectCollections
             "If specified, automatically derived namespaces will only include up to this many folders inside your " +
             "project's Scripts folder.");
 
-        [SettingsProvider]
-        private static SettingsProvider SettingsProvider()
-        {
-            return CreateSettingsProvider("ScriptableObject Collection/Settings", OnSettingsGUI);
-        }
-
-        private void Changed()
-        {
-            EditorUtility.SetDirty(this);
-            AssetDatabase.SaveAssets();
-        }
         
         [Obsolete("Default Namespace has been renamed to Namespace Prefix. Please use the corresponding function.")]
         public void SetDefaultNamespace(string namespacePrefix)
         {
             SetNamespacePrefix(namespacePrefix);
-            Changed();
+            Save();
         }
         
         public void SetNamespacePrefix(string namespacePrefix)
         {
             this.namespacePrefix = namespacePrefix;
-            Changed();
+            Save();
         }
         
         public void SetUseMaximumNamespaceDepth(bool useMaximumNamespaceDepth)
         {
             this.useMaximumNamespaceDepth = useMaximumNamespaceDepth;
-            Changed();
+            Save();
         }
         
         public void SetMaximumNamespaceDepth(int maximumNamespaceDepth)
         {
             this.maximumNamespaceDepth = Mathf.Max(MINIMUM_NAMESPACE_DEPTH, maximumNamespaceDepth);
-            Changed();
+            Save();
         }
 
-        private static void OnSettingsGUI(SerializedObject serializedObject)
+        public void OnSceneGUI(string search)
         {
             EditorGUILayout.LabelField("Namespaces", EditorStyles.boldLabel);
-            SerializedProperty namespacePrefixSerializedProperty = serializedObject.FindProperty("namespacePrefix");
-            SerializedProperty useMaximumNamespaceDepthSerializedProperty = serializedObject.FindProperty("useMaximumNamespaceDepth");
-            SerializedProperty maximumNamespaceDepthSerializedProperty = serializedObject.FindProperty("maximumNamespaceDepth");
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
                 string newNamespacePrefix = EditorGUILayout.DelayedTextField(
-                    namespacePrefixGUIContent, namespacePrefixSerializedProperty.stringValue);
+                    namespacePrefixGUIContent, namespacePrefix);
 
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(
-                    useMaximumNamespaceDepthSerializedProperty, namespaceUseMaxDepthGUIContent,
-                    GUILayout.Width(EditorGUIUtility.labelWidth + 16));
+                useMaximumNamespaceDepth = EditorGUILayout.Toggle("Use Maximum Namespace Depth",
+                    useMaximumNamespaceDepth, GUILayout.Width(EditorGUIUtility.labelWidth + 16));
 
                 bool wasGuiEnabled = GUI.enabled;
-                GUI.enabled = useMaximumNamespaceDepthSerializedProperty.boolValue;
+                GUI.enabled = useMaximumNamespaceDepth;
                 int newMaximumNamespaceDepth = EditorGUILayout.DelayedIntField(
-                    GUIContent.none, maximumNamespaceDepthSerializedProperty.intValue);
+                    GUIContent.none, maximumNamespaceDepth);
                 GUI.enabled = wasGuiEnabled;
                 EditorGUILayout.EndHorizontal();
                 
                 if (changeCheck.changed)
                 {
-                    namespacePrefixSerializedProperty.stringValue = newNamespacePrefix;
-                    maximumNamespaceDepthSerializedProperty.intValue = newMaximumNamespaceDepth;
-                    namespacePrefixSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    namespacePrefix = newNamespacePrefix;
+                    maximumNamespaceDepth = newMaximumNamespaceDepth;
+                    Save();
                 }
             }
             
             EditorGUILayout.LabelField("Default Generated Scripts Folder", EditorStyles.boldLabel);
-            SerializedProperty generatedScriptsDefaultFilePathSerializedProperty = serializedObject.FindProperty("generatedScriptsDefaultFilePath");
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
-                DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsDefaultFilePathSerializedProperty.stringValue);
+                DefaultAsset pathObject = AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsDefaultFilePath);
                 
                 pathObject = (DefaultAsset) EditorGUILayout.ObjectField(
                     "Generated Scripts Parent Folder",
@@ -120,8 +145,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (changeCheck.changed)
                 {
-                    generatedScriptsDefaultFilePathSerializedProperty.stringValue = assetPath;
-                    generatedScriptsDefaultFilePathSerializedProperty.serializedObject.ApplyModifiedProperties();
+                    generatedScriptsDefaultFilePath = assetPath;
+                    Save();
                 }
             }
         }
@@ -129,7 +154,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SetGeneratedScriptsDefaultFilePath(string assetPath)
         {
             generatedScriptsDefaultFilePath = assetPath;
-            EditorUtility.SetDirty(this);
-       }
+            Save();
+        }
+        
+        public void Save()
+        {
+            string json = EditorJsonUtility.ToJson(this, prettyPrint: true);
+            File.WriteAllText(STORAGE_PATH, json);
+        }
+
     }
 }

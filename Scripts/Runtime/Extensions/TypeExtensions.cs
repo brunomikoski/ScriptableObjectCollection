@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    public static class TypeExtensions
+    public static partial class TypeExtensions
     {
         private static bool IsList(this Type type)
         {

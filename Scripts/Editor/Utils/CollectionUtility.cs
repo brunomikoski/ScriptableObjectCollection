@@ -10,12 +10,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         private static Dictionary<int, bool> objectToFoldOut = new Dictionary<int, bool>();
 
-        private static int GetHasCount(Object[] objects)
+        private static int GetHasgCount(object[] objects)
         {
             int hashValue = 0;
             for (int i = 0; i < objects.Length; i++)
             {
-                Object targetObj = objects[i];
+                object targetObj = objects[i];
 
                 if (targetObj == null)
                     continue;
@@ -28,7 +28,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static bool IsFoldoutOpen(params Object[] objects)
         {
-            int hashCount = GetHasCount(objects);
+            int hashCount = GetHasgCount(objects);
            
             if (hashCount == 0)
                 return false;
@@ -60,6 +60,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             return false;
+        }
+
+        public static bool IsCollectionItemExpanded(params object[] objects)
+        {
+            int hash = GetHasgCount(objects);
+            if (objectToFoldOut.TryGetValue(hash, out bool isOpen))
+                return isOpen;
+            return false;
+        }
+
+        public static void SetCollectionItemExpanded(bool isExpanded, params object[] objects)
+        {
+            int hashCount = GetHasgCount(objects);
+            objectToFoldOut[hashCount] = isExpanded;
         }
 
         public static void SetCollectionItemExpanded(bool isExpanded, ISOCItem collectionItem, ScriptableObjectCollection collection)

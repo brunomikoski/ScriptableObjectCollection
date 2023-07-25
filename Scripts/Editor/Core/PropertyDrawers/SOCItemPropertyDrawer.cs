@@ -14,10 +14,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
     public class SOCItemPropertyDrawer : PropertyDrawer
     {
-        public const float BUTTON_WIDTH = 30;
+        private const float BUTTON_WIDTH = 30;
         
-        private static readonly SOCItemEditorOptionsAttribute DefaultAttribute
-            = new SOCItemEditorOptionsAttribute();
+        private static readonly SOCItemEditorOptionsAttribute DefaultAttribute = new();
 
         internal SOCItemEditorOptionsAttribute OptionsAttribute { get; private set; }
 
@@ -103,7 +102,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (scriptableObject == null)
                 return;
 
-            if (!CollectionUtility.IsCollectionItemExpanded((ISOCItem) scriptableObject))
+            if (!CollectionUtility.IsCollectionItemExpanded(scriptableObject, this))
                 return;
 
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -225,7 +224,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
                 Selection.activeObject = socItem.Collection;
-                CollectionUtility.SetOnlyCollectionItemExpanded((ISOCItem) collectionItem, socItem.Collection);
+                CollectionUtility.SetOnlyCollectionItemExpanded(socItem, socItem.Collection);
             }
         }
 
@@ -242,14 +241,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             GUIContent guiContent = CollectionEditorGUI.EditGUIContent;
 
-            if (CollectionUtility.IsCollectionItemExpanded((ISOCItem) targetItem))
+            if (CollectionUtility.IsCollectionItemExpanded(targetItem, this))
                 guiContent = CollectionEditorGUI.CloseGUIContent;
 
             if (GUI.Button(buttonRect, guiContent))
             {
-                CollectionUtility.SetCollectionItemExpanded(!CollectionUtility.IsCollectionItemExpanded((ISOCItem) targetItem), (ISOCItem) targetItem);
-                
-                ObjectUtility.SetDirty(targetItem);
+                bool isCollectionItemExpanded = CollectionUtility.IsCollectionItemExpanded(targetItem, this);
+                CollectionUtility.SetCollectionItemExpanded(!isCollectionItemExpanded, targetItem, this);
             }
         }
 

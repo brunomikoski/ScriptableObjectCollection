@@ -410,27 +410,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
     }
 
-    public class ScriptableObjectCollection<ObjectType> : ScriptableObjectCollection, IList<ObjectType>
-        where ObjectType : ScriptableObject, ISOCItem
+    public class ScriptableObjectCollection<TObjectType> : ScriptableObjectCollection, IList<TObjectType>
+        where TObjectType : ScriptableObject, ISOCItem
     {
-        private static List<ObjectType> cachedValues;
-        public static IReadOnlyList<ObjectType> Values
+        private static List<TObjectType> cachedValues;
+        public static IReadOnlyList<TObjectType> Values
         {
             get
             {
                 if (cachedValues == null)
-                    cachedValues = CollectionsRegistry.Instance.GetAllCollectionItemsOfType<ObjectType>();
+                    cachedValues = CollectionsRegistry.Instance.GetAllCollectionItemsOfType<TObjectType>();
                 return cachedValues;
             }
         }
 
-        public new ObjectType this[int index]
+        public new TObjectType this[int index]
         {
-            get => (ObjectType)base[index];
+            get => (TObjectType)base[index];
             set => base[index] = value;
         }
 
-        public new IEnumerator<ObjectType> GetEnumerator()
+        public new IEnumerator<TObjectType> GetEnumerator()
         {
             using (IEnumerator<ScriptableObject> itemEnum = base.GetEnumerator())
             {
@@ -438,7 +438,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     if (itemEnum.Current.IsNull())
                         continue;
-                    ObjectType obj = itemEnum.Current as ObjectType;
+                    TObjectType obj = itemEnum.Current as TObjectType;
                     if (obj == null)
                         continue;
                     yield return obj;
@@ -448,7 +448,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 #if UNITY_EDITOR
 
-        public T GetOrAddNew<T>(string targetName = null) where T : ObjectType
+        public T GetOrAddNew<T>(string targetName = null) where T : TObjectType
         {
             if (!string.IsNullOrEmpty(targetName))
             {
@@ -460,43 +460,43 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return (T) AddNew(typeof(T), targetName);
         }
         
-        public ObjectType GetOrAddNew(Type collectionType, string targetName)
+        public TObjectType GetOrAddNew(Type collectionType, string targetName)
         {
-            ObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
+            TObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as TObjectType;
             if (item != null)
                 return item;
 
-            return (ObjectType) AddNew(collectionType, targetName);
+            return (TObjectType) AddNew(collectionType, targetName);
         }
         
-        public ObjectType GetOrAddNew(string targetName)
+        public TObjectType GetOrAddNew(string targetName)
         {
-            ObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ObjectType;
+            TObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as TObjectType;
             if (item != null)
                 return item;
 
             return AddNew(targetName);
         }
         
-        public ObjectType AddNew(string targetName)
+        public TObjectType AddNew(string targetName)
         {
-            return (ObjectType) AddNew(GetItemType(), targetName);
+            return (TObjectType) AddNew(GetItemType(), targetName);
         } 
         
-        public ObjectType AddNew() 
+        public TObjectType AddNew() 
         {
-            return (ObjectType)AddNew(GetItemType());
+            return (TObjectType)AddNew(GetItemType());
         } 
 #endif
 
         [Obsolete("GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class")]
-        public ObjectType GetItemByGUID(string targetGUID)
+        public TObjectType GetItemByGUID(string targetGUID)
         {
             throw new Exception(
                 $"GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class");
         }
 
-        public ObjectType GetItemByGUID(LongGuid targetGUID)
+        public TObjectType GetItemByGUID(LongGuid targetGUID)
         {
             for (int i = 0; i < Items.Count; i++)
             {
@@ -506,13 +506,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 if (socItem.GUID == targetGUID)
-                    return (ObjectType) item;
+                    return (TObjectType) item;
             }
 
             return null;
         }
 
-        public void Add(ObjectType item)
+        public void Add(TObjectType item)
         {
             base.Add(item);
             ClearCachedValues();
@@ -525,41 +525,41 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return count;
         }
 
-        public bool Contains(ObjectType item)
+        public bool Contains(TObjectType item)
         {
             return base.Contains(item);
         }
 
-        public void CopyTo(ObjectType[] array, int arrayIndex)
+        public void CopyTo(TObjectType[] array, int arrayIndex)
         {
             base.CopyTo(array, arrayIndex);
         }
 
-        public int IndexOf(ObjectType item)
+        public int IndexOf(TObjectType item)
         {
             return base.IndexOf(item);
         }
 
-        public void Insert(int index, ObjectType item)
+        public void Insert(int index, TObjectType item)
         {
             base.Insert(index, item);
             ClearCachedValues();
         }
 
-        public bool Remove(ObjectType item)
+        public bool Remove(TObjectType item)
         {
             bool remove = base.Remove(item);
             ClearCachedValues();
             return remove;
         }
         
-        IEnumerator<ObjectType> IEnumerable<ObjectType>.GetEnumerator()
+        IEnumerator<TObjectType> IEnumerable<TObjectType>.GetEnumerator()
         {
             using (IEnumerator<ScriptableObject> enumerator = base.GetEnumerator())
             {
                 while (enumerator.MoveNext())
                 {
-                    yield return (ObjectType)enumerator.Current;
+                    yield return (TObjectType)enumerator.Current;
                 }
             }
         }

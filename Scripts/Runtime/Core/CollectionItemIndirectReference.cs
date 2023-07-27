@@ -100,9 +100,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                         if (!string.IsNullOrEmpty(itemLastKnownName))
                         {
-                            if(collection.TryGetItemByName(itemLastKnownName, out ScriptableObject resultObj))
+                            if(collection.TryGetItemByName(itemLastKnownName, out result))
                             {
-                                result = resultObj as TObject;
                                 SetCollectionItem(result);
                                 return true;
                             }

@@ -512,6 +512,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return null;
         }
 
+        public bool TryGetItemByName<T>(string targetItemName, out T scriptableObjectCollectionItem) where T : TObjectType
+        {
+            for (int i = 0; i < items.Count; i++)
+            {
+                ScriptableObject item = items[i];
+                if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
+                {
+                    scriptableObjectCollectionItem = item as T;
+                    return scriptableObjectCollectionItem != null;
+                }
+            }
+
+            scriptableObjectCollectionItem = null;
+            return false;
+        }
+
         public void Add(TObjectType item)
         {
             base.Add(item);

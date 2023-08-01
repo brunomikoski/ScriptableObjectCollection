@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections.Picker
@@ -36,7 +37,33 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public event Action<TItemType> OnItemTypeAddedEvent;
         public event Action<TItemType> OnItemTypeRemovedEvent;
         public event Action OnChangedEvent;
-        
+
+        private bool isDirty = true;
+        private List<TItemType> cachedItems = new();
+        public List<TItemType> Items
+        {
+            get
+            {
+                if (isDirty)
+                {
+                    cachedItems.Clear();
+
+                    foreach (ScriptableObject sObject in Collection)
+                    {
+                        if (sObject is TItemType itemType)
+                        {
+                            if (Contains(itemType))
+                                cachedItems.Add(itemType);
+                        }
+                    }
+
+                    isDirty = false;
+                }
+
+                return cachedItems;
+            }
+        }
+
         public CollectionItemPicker()
         {
             
@@ -155,12 +182,12 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         public IEnumerator<TItemType> GetEnumerator()
         {
-            return (IEnumerator<TItemType>) Collection.GetEnumerator();
+            return Items.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable) itemsGuids).GetEnumerator();
+            return Items.GetEnumerator();
         }
 
         public void Add(TItemType item)
@@ -169,6 +196,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 return;
             
             itemsGuids.Add(item.GUID);
+            isDirty = true;
             OnItemTypeAddedEvent?.Invoke(item);
             OnChangedEvent?.Invoke();
         }
@@ -176,6 +204,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public void Clear()
         {
             itemsGuids.Clear();
+            isDirty = true;
             OnChangedEvent?.Invoke();
         }
 
@@ -207,6 +236,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             bool removed = itemsGuids.Remove(item.GUID);
             if (removed)
             {
+                isDirty = true;
                 OnChangedEvent?.Invoke();
                 OnItemTypeRemovedEvent?.Invoke(removedItem);
             }
@@ -226,6 +256,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public void Insert(int index, TItemType item)
         {
             itemsGuids.Insert(index, item.GUID);
+            isDirty = true;
         }
 
         public void RemoveAt(int index)
@@ -238,6 +269,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             TItemType removedItem = (TItemType) item;
             itemsGuids.RemoveAt(index);
+            isDirty = true;
             OnChangedEvent?.Invoke();
             OnItemTypeRemovedEvent?.Invoke(removedItem);
         }
@@ -250,7 +282,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     return null;
                 return item as TItemType;
             }
-            set => itemsGuids[index] = value.GUID;
+            set
+            {
+                itemsGuids[index] = value.GUID;
+                isDirty = true;
+            }
         }
 
         #endregion

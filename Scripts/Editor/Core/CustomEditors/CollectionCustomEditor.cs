@@ -452,6 +452,28 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (socItem.Collection == null)
                     socItem.SetCollection(collection);
+
+                for (int j = itemsSerializedProperty.arraySize - 1; j >= 0; j--)
+                {
+                    SerializedProperty other = itemsSerializedProperty.GetArrayElementAtIndex(j);
+                    if (other.objectReferenceValue == null)
+                        continue;
+
+                    ISOCItem otherSocItem = (ScriptableObject) other.objectReferenceValue as ISOCItem;
+                    if (otherSocItem == null)
+                        continue;
+
+                    if (Equals(socItem, otherSocItem))
+                        continue;
+
+                    if (socItem.GUID.Equals(otherSocItem.GUID))
+                    {
+                        Debug.LogWarning(
+                            $"Item {socItem.name} has same GUID as item {otherSocItem.name}, generating new one for {socItem.name}");
+                        socItem.GenerateNewGUID();
+                        itemProperty.serializedObject.ApplyModifiedProperties();
+                    }
+                }
             }
 
             if (modified)

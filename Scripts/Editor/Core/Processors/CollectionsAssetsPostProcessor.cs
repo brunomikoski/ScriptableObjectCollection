@@ -45,7 +45,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                 if (!socItem.Collection.Contains(collectionItem))
                                 {
                                     if (socItem.Collection.TryGetItemByGUID(socItem.GUID, out _))
+                                    {
+                                        Debug.LogWarning(
+                                            $"Collection already contains one item with the same GUID" +
+                                            $" ({socItem.GUID}) but different name ({socItem.name}), generating new GUID");
                                         socItem.GenerateNewGUID();
+                                    }
                                     
                                     socItem.Collection.Add(collectionItem);
                                     Debug.Log($"{collectionItem.name} has collection assigned "

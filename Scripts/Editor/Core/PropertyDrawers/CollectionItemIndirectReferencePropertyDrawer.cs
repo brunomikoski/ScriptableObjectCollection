@@ -14,7 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string COLLECTION_GUID_VALUE_A_PROPERTY_PATH = "collectionGUIDValueA";
         private const string COLLECTION_GUID_VALUE_B_PROPERTY_PATH = "collectionGUIDValueB";
         private const string COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH = "collectionLastKnowName";
-
+        
         private Type collectionItemType;
         private SOCItemPropertyDrawer socItemPropertyDrawer;
 

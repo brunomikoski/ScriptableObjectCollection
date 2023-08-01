@@ -21,37 +21,41 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         [SerializeField, HideInInspector]
         private LongGuid collectionGUID;
-        
-        private ScriptableObjectCollection cachedScriptableObjectCollection;
+
+
+        private bool hasCachedCollection;
+        private ScriptableObjectCollection cachedCollection;
         public ScriptableObjectCollection Collection
         {
             get
             {
-                if (cachedScriptableObjectCollection == null)
+                if (!hasCachedCollection)
                 {
                     if (collectionGUID.IsValid())
                     {
-                        cachedScriptableObjectCollection = CollectionsRegistry.Instance.GetCollectionByGUID(collectionGUID);
+                        cachedCollection = CollectionsRegistry.Instance.GetCollectionByGUID(collectionGUID);
                     }
                     else
                     {
-                        CollectionsRegistry.Instance.TryGetCollectionFromItemType(GetType(), out cachedScriptableObjectCollection);
-                        if (cachedScriptableObjectCollection != null)
+                        CollectionsRegistry.Instance.TryGetCollectionFromItemType(GetType(), out cachedCollection);
+                        if (cachedCollection != null)
                         {
-                            collectionGUID = cachedScriptableObjectCollection.GUID;
+                            collectionGUID = cachedCollection.GUID;
                             ObjectUtility.SetDirty(this);
                         }
                     }
+
+                    hasCachedCollection = cachedCollection != null;
                 }
                 
-                return cachedScriptableObjectCollection;
+                return cachedCollection;
             }
         }
 
         public void SetCollection(ScriptableObjectCollection collection)
         {
-            cachedScriptableObjectCollection = collection;
-            collectionGUID = cachedScriptableObjectCollection.GUID;
+            cachedCollection = collection;
+            collectionGUID = cachedCollection.GUID;
             ObjectUtility.SetDirty(this);
         }
         

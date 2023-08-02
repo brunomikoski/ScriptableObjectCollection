@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [2.0.5]
+### Changed
+- Reverted the change where the `isExpanded` property would be shared between the collection editor and the property drawer.
+- Renamed `ObjectType` to `TObjectType` to keep standardized
+- Added `TryGetItemByName` for the `ScriptableObjectCollection.cs`
+- Added extra safety methods for checking duplicated `Guids` on collections and collection items
+- Properly implemented `CollectionItemPicker` `IEnumerator<TItemType> GetEnumerator()`
+
 ## [2.0.4]
 ### Changed
 - Added boolean check for static generated files to improve performance
@@ -435,6 +443,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.0.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.5
 [2.0.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.4
 [2.0.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.3
 [2.0.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.2

@@ -185,10 +185,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 #endif
 
-        public Type GetItemType()
+        public virtual Type GetItemType()
         {
-            Type enumType = GetGenericItemType();
-            return enumType?.GetGenericArguments().First();
+            Type itemType = GetGenericItemType();
+            return itemType?.GetGenericArguments().First();
         }
 
         private Type GetGenericItemType()
@@ -282,35 +282,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             (items[targetIndex], items[newIndex]) = (items[newIndex], items[targetIndex]);
             ObjectUtility.SetDirty(this);
         }
-
-        public void ClearBadItems()
-        {
-            for (int i = items.Count - 1; i >= 0; i--)
-            {
-                ScriptableObject scriptableObject = items[i];
-                if (scriptableObject.IsNull() || scriptableObject == null)
-                    items.RemoveAt(i);
-
-                ISOCItem socItem = scriptableObject as ISOCItem;
-                if (socItem == null)
-                {
-                    items.RemoveAt(i);
-                    continue;
-                }
-
-                if (socItem.Collection.IsNull() || socItem.Collection == null)
-                    items.RemoveAt(i);
-            }
-            
-            ObjectUtility.SetDirty(this);
-        }
         
         [ContextMenu("Refresh Collection")]
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
-            Type collectionType = GetItemType();
-            if (collectionType == null)
+            Type collectionItemType = GetItemType();
+            if (collectionItemType == null)
                 return;
 
             bool changed = false;
@@ -319,7 +297,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             
             string folder = Path.GetDirectoryName(assetPath);
-            string[] guids = AssetDatabase.FindAssets($"t:{collectionType.Name}", new []{folder});
+            string[] guids = AssetDatabase.FindAssets($"t:{collectionItemType.Name}", new []{folder});
 
             for (int i = 0; i < guids.Length; i++)
             {
@@ -331,6 +309,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (item is not ISOCItem socItem)
                     continue;
+
+                
 
                 if (socItem.Collection != null)
                 {
@@ -347,13 +327,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = items.Count - 1; i >= 0; i--)
             {
-                ScriptableObject scriptableObject = items[i];
+                if (items[i] == null)
+                {
+                    RemoveAt(i);
+                    Debug.Log($"Removing item at index {i} as it is null");
+                    changed = true;
 
-                if (scriptableObject is ISOCItem)
+                }
+                
+                ScriptableObject scriptableObject = items[i];
+                if (scriptableObject.GetType() == GetItemType() || scriptableObject.GetType().IsSubclassOf(GetItemType()))
                     continue;
                 
                 RemoveAt(i);
-                changed = true;
+                Debug.Log($"Removing item at index {i} {scriptableObject} since it is not of type {GetItemType()}");
             }
 
             if (changed)
@@ -429,6 +416,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => (TObjectType)base[index];
             set => base[index] = value;
         }
+
 
         public new IEnumerator<TObjectType> GetEnumerator()
         {

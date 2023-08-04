@@ -58,6 +58,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return HashCode.Combine(CollectionItemGUID.GetHashCode(), CollectionGUID.GetHashCode());
         }
+
+        public bool IsValid()
+        {
+            return CollectionItemGUID.IsValid() && CollectionGUID.IsValid();
+        }
     }
 
     [Serializable]

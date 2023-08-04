@@ -261,6 +261,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 for (int j = 0; j < possibleCollections[i].Count; j++)
                 {
                     ScriptableObject scriptableObject = possibleCollections[i][j];
+                    Type scriptableObjectType = scriptableObject.GetType();
+
+                    if (scriptableObjectType != itemType || scriptableObjectType.IsSubclassOf(itemType))
+                        continue;
+                    
                     availableItems.Add(scriptableObject);
                     popupList.AddItem(new PopupItem(scriptableObject), false);
                 }

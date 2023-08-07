@@ -4,12 +4,10 @@ namespace UnityEngine
     {
         public static void SetDirty(Object targetObject)
         {
+#if UNITY_EDITOR
             if (targetObject == null)
                 return;
-            
-            if (Application.isPlaying)
-                return;
-#if UNITY_EDITOR
+
             UnityEditor.EditorUtility.SetDirty(targetObject);
 #endif
         }

@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -7,7 +8,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         Dropdown = 0,
         AsReference = 1
     }
-
+    
+#if UNITY_2022_2_OR_NEWER
+    [Obsolete("DrawAsSOCItemAttribute is not needed anymore, since Unity 2022 PropertyDrawers can be applied to interfaces")]
+#endif
+    [AttributeUsage(AttributeTargets.Field)]
+    public class DrawAsSOCItemAttribute : PropertyAttribute
+    {
+        
+    }
+    
+    
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class)]
     public class SOCItemEditorOptionsAttribute : Attribute
     {

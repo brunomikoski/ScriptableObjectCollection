@@ -10,7 +10,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected long collectionItemGUIDValueA;
         [SerializeField]
         protected long collectionItemGUIDValueB;
-
         protected LongGuid CollectionItemGUID => new LongGuid(collectionItemGUIDValueA, collectionItemGUIDValueB);
 
 
@@ -18,7 +17,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected long collectionGUIDValueA;
         [SerializeField]
         protected long collectionGUIDValueB;
-
         protected LongGuid CollectionGUID => new LongGuid(collectionGUIDValueA, collectionGUIDValueB);
 
         [SerializeField]

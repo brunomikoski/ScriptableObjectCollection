@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
-    public class CollectionCustomEditor : Editor
+    public class CollectionCustomEditor : BaseEditor<CollectionCustomEditor>
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         private static ScriptableObject LAST_ADDED_COLLECTION_ITEM;
@@ -81,6 +81,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
             reorderableList.onRemoveCallback -= OnClickToRemoveItem;
             reorderableList.onReorderCallback -= OnListOrderChanged;
             reorderableList.drawHeaderCallback -= OnDrawerHeader;
+        }
+
+        
+        protected virtual void HideProperties()
+        {
+            ExcludeProperty("guid");
+            ExcludeProperty("items");
+            ExcludeProperty("automaticallyLoaded");
+            ExcludeProperty("generateAsPartialClass");
+            ExcludeProperty("generateAsBaseClass");
+            ExcludeProperty("generatedFileLocationPath");
+            ExcludeProperty("generatedStaticClassFileName");
+            ExcludeProperty("generateStaticFileNamespace");
         }
 
         private void OnDrawerHeader(Rect rect)
@@ -359,6 +372,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override void OnInspectorGUI()
         {
+            base.BeginInspector();
+            HideProperties();
+
             ValidateCollectionItems();
             CheckHeightsAndHiddenArraySizes();
 
@@ -375,6 +391,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             DrawSettings();
             CheckForKeyboardShortcuts();
+            DrawRemainingPropertiesInInspector();
         }
 
         private void CheckHeightsAndHiddenArraySizes()

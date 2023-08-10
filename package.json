@@ -3,7 +3,7 @@
   "displayName": "Scriptable Object Collection",
   "version": "2.0.7",
   "unity": "2021.2",
-  "description": "A library to help improve the usability of Unity3D Scriptable Objects by grouping then into a collection and exposing then by code or nice inspectors!",
+  "description": "A library to help improve the usability of Unity3D Scriptable Objects by grouping them into a collection and exposing them by code or nice inspectors!",
   "keywords": [
     "scriptable object",
     "collection",

@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.7]
+### Changed
+- Moved `EditorPreference` to Runtime folder. It is safe and useful to be able to use it in runtime code.
+
 ## [2.0.6]
 ### Changed
 - Added `IsValid()` method for indirect references
@@ -454,6 +458,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.0.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.7
 [2.0.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.6
 [2.0.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.5
 [2.0.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.4

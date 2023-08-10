@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.7]
+### Changed
+- Moved `EditorPreference` to Runtime folder. It is safe and useful to be able to use it in runtime code.
+
 ## [2.0.6]
 ### Changed
 - Added `IsValid()` method for indirect references

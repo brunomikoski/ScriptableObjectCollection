@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
-    public class CollectionCustomEditor : Editor
+    public class CollectionCustomEditor : BaseEditor<CollectionCustomEditor>
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         private static ScriptableObject LAST_ADDED_COLLECTION_ITEM;
@@ -83,6 +83,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
             reorderableList.drawHeaderCallback -= OnDrawerHeader;
         }
 
+        
+        protected virtual void HideProperties()
+        {
+            ExcludeProperty("guid");
+            ExcludeProperty("items");
+            ExcludeProperty("automaticallyLoaded");
+            ExcludeProperty("generateAsPartialClass");
+            ExcludeProperty("generateAsBaseClass");
+            ExcludeProperty("generatedFileLocationPath");
+            ExcludeProperty("generatedStaticClassFileName");
+            ExcludeProperty("generateStaticFileNamespace");
+        }
+
         private void OnDrawerHeader(Rect rect)
         {
             EditorGUI.LabelField(rect, "Items", EditorStyles.boldLabel);
@@ -117,7 +130,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private float GetCollectionItemHeight(int index)
         {
             if (itemHidden == null || itemHidden.Length == 0 || itemHidden[index] || index > itemHidden.Length - 1)
-                return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+                return 0;
 
             return Mathf.Max(
                 heights[index],
@@ -156,6 +169,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (Event.current.alt)
                     SetAllExpanded(false);
             }
+            
+            if(wasExpanded != collectionItemSerializedProperty.isExpanded)
+                itemIndexToRect.Clear();
 
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
@@ -195,43 +211,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (collectionItemSerializedProperty.isExpanded)
             {
-                rect.y += EditorGUIUtility.standardVerticalSpacing; 
+                rect.y += EditorGUIUtility.standardVerticalSpacing;
 
-                if (itemIndexToRect.TryGetValue(index, out Rect actualRect) && reorderableListYPosition.HasValue)
-                {
-                    actualRect.y = rect.y + reorderableListYPosition.Value + reorderableList.headerHeight;
-
-                    // Have to indent the rect here because otherwise it overlaps with the drag handle
-                    EditorGUI.indentLevel++;
-                    actualRect = EditorGUI.IndentedRect(actualRect);
-                    EditorGUI.indentLevel--;
-
-                    GUILayout.BeginArea(actualRect);
-                    EditorGUI.indentLevel++;
-
-                    Editor editor = EditorCache.GetOrCreateEditorForObject(collectionItemSerializedProperty.objectReferenceValue);
-                    editor.OnInspectorGUI();
-
-                    EditorGUI.indentLevel--;
-                    GUILayout.EndArea();
-
-                    collectionItemSerializedProperty.serializedObject.ApplyModifiedProperties();
-                    rect.y += actualRect.height;
-                }
+                if (SOCSettings.Instance.ShouldDrawUsingCustomEditor(collection))
+                    DrawCustomEditor(ref rect, index, collectionItemSerializedProperty);
                 else
-                {
-                    Rect verticalRect = EditorGUILayout.BeginVertical();
-            
-                    Editor editor = EditorCache.GetOrCreateEditorForObject(collectionItemSerializedProperty.objectReferenceValue);
-                    editor.OnInspectorGUI();
-
-                    EditorGUILayout.EndVertical();
-
-                    if (Event.current.type == EventType.Repaint)
-                    {
-                        itemIndexToRect[index] = verticalRect;
-                    }
-                }
+                    DrawProperties(ref rect, index, collectionItemSerializedProperty);
             }
 
             CheckForContextInputOnItem(collectionItemSerializedProperty, index, originY, rect);
@@ -239,7 +224,77 @@ namespace BrunoMikoski.ScriptableObjectCollections
             heights[index] = rect.y - originY;
         }
 
-       
+        private void DrawProperties(ref Rect rect, int index, SerializedProperty collectionItemSerializedProperty)
+        {
+            EditorGUI.indentLevel++;
+
+            SerializedObject collectionItemSerializedObject = new SerializedObject(collectionItemSerializedProperty.objectReferenceValue);
+            SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
+
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
+                {
+                    bool guiEnabled = GUI.enabled;
+                    if (iterator.displayName.Equals("Script"))
+                        GUI.enabled = false;
+
+                    EditorGUI.PropertyField(rect, iterator, true);
+                    GUI.enabled = guiEnabled;
+                    
+                    rect.y += EditorGUI.GetPropertyHeight(iterator, true) +
+                              EditorGUIUtility.standardVerticalSpacing;
+                }
+
+                if (changeCheck.changed)
+                    iterator.serializedObject.ApplyModifiedProperties();
+            }
+            EditorGUI.indentLevel--;
+        }
+
+        private void DrawCustomEditor(ref Rect rect, int index, SerializedProperty collectionItemSerializedProperty)
+        {
+            Editor editor = EditorCache.GetOrCreateEditorForObject(collectionItemSerializedProperty.objectReferenceValue);
+
+            if (itemIndexToRect.TryGetValue(index, out Rect actualRect) && reorderableListYPosition.HasValue)
+            {
+                actualRect.y = rect.y + reorderableListYPosition.Value + reorderableList.headerHeight;
+
+                // Have to indent the rect here because otherwise it overlaps with the drag handle
+                EditorGUI.indentLevel++;
+                actualRect = EditorGUI.IndentedRect(actualRect);
+                EditorGUI.indentLevel--;
+
+                GUILayout.BeginArea(actualRect);
+                EditorGUI.indentLevel++;
+
+                EditorGUI.BeginChangeCheck();
+                editor.OnInspectorGUI();
+
+                EditorGUI.indentLevel--;
+                GUILayout.EndArea();
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    collectionItemSerializedProperty.serializedObject.ApplyModifiedProperties();
+                }
+
+                rect.y += actualRect.height;
+            }
+            else
+            {
+                Rect verticalRect = EditorGUILayout.BeginVertical();
+
+                editor.OnInspectorGUI();
+
+                EditorGUILayout.EndVertical();
+
+                if (Event.current.type == EventType.Repaint)
+                {
+                    itemIndexToRect[index] = verticalRect;
+                }
+            }
+        }
 
         private void SetAllExpanded(bool expanded)
         {
@@ -359,6 +414,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override void OnInspectorGUI()
         {
+            base.BeginInspector();
+            HideProperties();
+
             ValidateCollectionItems();
             CheckHeightsAndHiddenArraySizes();
 
@@ -375,6 +433,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             DrawSettings();
             CheckForKeyboardShortcuts();
+            DrawRemainingPropertiesInInspector();
         }
 
         private void CheckHeightsAndHiddenArraySizes()
@@ -653,11 +712,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     DrawUseBaseClassToggle();
                     DrawGeneratedFileName();
                     DrawGeneratedFileNamespace();
+                    DrawDrawOptions();
+
                     GUILayout.Space(10);
                     DrawDeleteCollection();
                     
                     EditorGUI.indentLevel--;
                 }
+            }
+        }
+
+        private void DrawDrawOptions()
+        {
+            using EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope();
+            bool drawUsingCustomEditor = EditorGUILayout.Toggle("Use Custom Editor", SOCSettings.Instance.ShouldDrawUsingCustomEditor(collection));
+            if (changeCheck.changed)
+            {
+                SOCSettings.Instance.SetUseCustomEditor(collection, drawUsingCustomEditor);
             }
         }
 

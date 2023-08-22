@@ -169,6 +169,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             results = null;
             return false;
         }
+        
+        public bool TryGetCollectionsOfType<T>(out List<T> inputActionMapCollections) where T : ScriptableObjectCollection
+        {
+            List<T> result = new List<T>();
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (scriptableObjectCollection.GetType() == typeof(T))
+                    result.Add((T)scriptableObjectCollection);
+            }
+
+            inputActionMapCollections = result;
+            return result.Count > 0;
+        }
 
         public List<ScriptableObjectCollection> GetCollectionsByItemType<T>() where T : ScriptableObjectCollectionItem
         {
@@ -416,6 +430,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             autoSearchForCollections = isOn;
             ObjectUtility.SetDirty(this);
         }
+
+        
     }
 }
 

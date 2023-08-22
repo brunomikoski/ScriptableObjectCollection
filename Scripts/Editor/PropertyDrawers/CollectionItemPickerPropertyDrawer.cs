@@ -11,10 +11,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     [CustomPropertyDrawer(typeof(CollectionItemPicker<>), true)]
     public class CollectionItemPickerPropertyDrawer : PropertyDrawer
     {
-        private const string LONG_GUID_VALUE_1_PROPERTY_PATH = "value1";
-        private const string LONG_GUID_VALUE_2_PROPERTY_PATH = "value2";
+        private const string COLLECTION_ITEM_GUID_VALUE_A = "collectionItemGUIDValueA";
+        private const string COLLECTION_ITEM_GUID_VALUE_B = "collectionItemGUIDValueB";
 
-        private const string ITEMS_PROPERTY_NAME = "itemsGuids";
+        private const string COLLECTION_GUID_VALUE_A = "collectionGUIDValueA";
+        private const string COLLECTION_GUID_VALUE_B = "collectionGUIDValueB";
+        
+        private const string ITEMS_PROPERTY_NAME = "cachedIndirectReferences";
 
         private bool initialized;
         private PopupList<PopupItem> popupList = new PopupList<PopupItem>();
@@ -174,14 +177,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         private void AssignItemGUIDToProperty(ScriptableObject scriptableObject, SerializedProperty newProperty)
         {
-            SerializedProperty itemGUIDValueASerializedProperty = newProperty.FindPropertyRelative(LONG_GUID_VALUE_1_PROPERTY_PATH);
-            SerializedProperty itemGUIDValueBSerializedProperty = newProperty.FindPropertyRelative(LONG_GUID_VALUE_2_PROPERTY_PATH);
-
             if (scriptableObject is ISOCItem item)
             {
-                (long, long) values = item.GUID.GetRawValues();
-                itemGUIDValueASerializedProperty.longValue = values.Item1;
-                itemGUIDValueBSerializedProperty.longValue = values.Item2;
+                (long, long) itemValues = item.GUID.GetRawValues();
+                (long, long) collectionValues = item.Collection.GUID.GetRawValues();
+
+                newProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A).longValue = itemValues.Item1;
+                newProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B).longValue = itemValues.Item2;
+
+                newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_A).longValue = collectionValues.Item1;
+                newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_B).longValue = collectionValues.Item2;
             }
         }
 
@@ -197,7 +202,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 SerializedProperty elementProperty = itemsProperty.GetArrayElementAtIndex(i);
 
                 LongGuid socItemGUID = GetGUIDFromProperty(elementProperty);
-
 
                 ScriptableObject foundItem = availableItems.FirstOrDefault(so =>
                 {
@@ -232,8 +236,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         private LongGuid GetGUIDFromProperty(SerializedProperty property)
         {
-            SerializedProperty itemGUIDValueASerializedProperty = property.FindPropertyRelative(LONG_GUID_VALUE_1_PROPERTY_PATH);
-            SerializedProperty itemGUIDValueBSerializedProperty = property.FindPropertyRelative(LONG_GUID_VALUE_2_PROPERTY_PATH);
+            SerializedProperty itemGUIDValueASerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A);
+            SerializedProperty itemGUIDValueBSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B);
 
             return new LongGuid(itemGUIDValueASerializedProperty.longValue, itemGUIDValueBSerializedProperty.longValue);
         }

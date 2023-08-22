@@ -5,7 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.0.8]
+### Changed
 - Fixed a small typo in the package description.
+- Since [2.0.3] the collection now uses the Editor for drawing the items on the collection, but this can cause some issues depending of how customized it is inside a ReorderableList, so you now can choose the item to use it or not by toggling the `Use Custom Editor` inside the advanced settings
+- Upgraded the `CollectionCustomEditor` to use `BaseEditor`
+- Updated `CollectionItemPicker<>` to use `IndirectReference<>` to store the items, since also contains the `LongGuid` reference to the Collection, allowing to work with multiple collections of the same time _(It should automatically upgrade to the new version automatically)_
+- Added ability to compare `CollectionItemPicker<>` to a `IList<>` of the same type
+- Other small fixes and improvements
+
 
 ## [2.0.7]
 ### Changed
@@ -459,6 +468,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.0.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.8
 [2.0.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.7
 [2.0.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.6
 [2.0.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.5

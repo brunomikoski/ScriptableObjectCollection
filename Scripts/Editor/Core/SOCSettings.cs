@@ -65,8 +65,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
         public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
-
         
+        [SerializeField]
+        private List<LongGuid> useCustomEditorDrawer = new List<LongGuid>();
+
+
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
             "When using the Create New Collection wizard," +
@@ -156,12 +159,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
             generatedScriptsDefaultFilePath = assetPath;
             Save();
         }
-        
+
         public void Save()
         {
             string json = EditorJsonUtility.ToJson(this, prettyPrint: true);
             File.WriteAllText(STORAGE_PATH, json);
         }
 
+
+        public bool ShouldDrawUsingCustomEditor(ScriptableObjectCollection collection)
+        {
+            return useCustomEditorDrawer.Contains(collection.GUID);
+        }
+        
+        public void SetUseCustomEditor(ScriptableObjectCollection collection, bool useCustomEditor)
+        {
+            if (useCustomEditor)
+            {
+                if (!useCustomEditorDrawer.Contains(collection.GUID))
+                {
+                    useCustomEditorDrawer.Add(collection.GUID);
+                    Save();
+                }
+            }
+            else
+            {
+                if (useCustomEditorDrawer.Contains(collection.GUID))
+                {
+                    useCustomEditorDrawer.Remove(collection.GUID);
+                    Save();
+                }
+            }
+        }
     }
 }

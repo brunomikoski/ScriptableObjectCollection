@@ -210,6 +210,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
+        public void OrderByName()
+        {
+            items = items.OrderBy(o => o.name).ToList();
+            ObjectUtility.SetDirty(this);
+        }
+
         public void Clear()
         {
             items.Clear();
@@ -266,6 +272,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             items.RemoveAt(index);
             ObjectUtility.SetDirty(this);
+        }
+
+        public bool Remove(LongGuid targetGuid)
+        {
+            if (TryGetItemByGUID(targetGuid, out ScriptableObject item))
+            {
+                return Remove(item);
+            }
+
+            return false;
         }
 
         object IList.this[int index]

@@ -30,7 +30,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected int lastCheckedForValidItemsArraySize;
         private readonly Dictionary<int, Rect> itemIndexToRect = new();
         private float? reorderableListYPosition;
+        private Dictionary<Object, SerializedObject> collectionItemSerializedObjectCache = new();
 
+        protected virtual bool CanBeReorderable => true;
         protected virtual bool DisplayAddButton => true;
         protected virtual bool DisplayRemoveButton => true;
         protected virtual bool AllowCustomTypeCreation => true;
@@ -61,7 +63,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateReorderableList()
         {
-            reorderableList = new ReorderableList(serializedObject, itemsSerializedProperty, true, true, DisplayAddButton, DisplayRemoveButton);
+            reorderableList = new ReorderableList(serializedObject, itemsSerializedProperty, CanBeReorderable, true, DisplayAddButton, DisplayRemoveButton);
             reorderableList.drawElementCallback += DrawCollectionItemAtIndex;
             reorderableList.elementHeightCallback += GetCollectionItemHeight;
             reorderableList.onAddDropdownCallback += OnClickToAddNewItem;
@@ -141,7 +143,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void DrawCollectionItemAtIndex(Rect rect, int index, bool isActive, bool isFocused)
         {
             SerializedProperty collectionItemSerializedProperty = reorderableList.serializedProperty.GetArrayElementAtIndex(index);
-
+            
             if (itemHidden[index] || collectionItemSerializedProperty.objectReferenceValue == null)
                 return;
             
@@ -212,7 +214,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItemSerializedProperty.isExpanded)
             {
                 rect.y += EditorGUIUtility.standardVerticalSpacing;
-
+                
                 if (SOCSettings.Instance.ShouldDrawUsingCustomEditor(collection))
                     DrawCustomEditor(ref rect, index, collectionItemSerializedProperty);
                 else
@@ -228,11 +230,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             EditorGUI.indentLevel++;
 
-            SerializedObject collectionItemSerializedObject = new SerializedObject(collectionItemSerializedProperty.objectReferenceValue);
-            SerializedProperty iterator = collectionItemSerializedObject.GetIterator();
+            if (!collectionItemSerializedObjectCache.TryGetValue(collectionItemSerializedProperty.objectReferenceValue, out SerializedObject serializedObject))
+            {
+                serializedObject = new SerializedObject(collectionItemSerializedProperty.objectReferenceValue);
+                collectionItemSerializedObjectCache.Add(collectionItemSerializedProperty.objectReferenceValue, serializedObject);
+            }
 
+            serializedObject.Update();
+            
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
+                SerializedProperty iterator = serializedObject.GetIterator();
+
                 for (bool enterChildren = true; iterator.NextVisible(enterChildren); enterChildren = false)
                 {
                     bool guiEnabled = GUI.enabled;
@@ -241,14 +250,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     EditorGUI.PropertyField(rect, iterator, true);
                     GUI.enabled = guiEnabled;
-                    
+
                     rect.y += EditorGUI.GetPropertyHeight(iterator, true) +
                               EditorGUIUtility.standardVerticalSpacing;
                 }
-
+                
                 if (changeCheck.changed)
-                    iterator.serializedObject.ApplyModifiedProperties();
+                    serializedObject.ApplyModifiedProperties();
             }
+
             EditorGUI.indentLevel--;
         }
 
@@ -268,16 +278,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 GUILayout.BeginArea(actualRect);
                 EditorGUI.indentLevel++;
 
-                EditorGUI.BeginChangeCheck();
+                // EditorGUI.BeginChangeCheck();
                 editor.OnInspectorGUI();
 
                 EditorGUI.indentLevel--;
                 GUILayout.EndArea();
 
-                if (EditorGUI.EndChangeCheck())
-                {
-                    collectionItemSerializedProperty.serializedObject.ApplyModifiedProperties();
-                }
+                // if (EditorGUI.EndChangeCheck())
+                // {
+                //     collectionItemSerializedProperty.serializedObject.ApplyModifiedProperties();
+                // }
 
                 rect.y += actualRect.height;
             }
@@ -415,6 +425,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public override void OnInspectorGUI()
         {
             base.BeginInspector();
+            EditorGUI.BeginChangeCheck();
             HideProperties();
 
             ValidateCollectionItems();
@@ -434,6 +445,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             DrawSettings();
             CheckForKeyboardShortcuts();
             DrawRemainingPropertiesInInspector();
+            if (EditorGUI.EndChangeCheck())
+                serializedObject.ApplyModifiedProperties();
         }
 
         private void CheckHeightsAndHiddenArraySizes()
@@ -449,10 +462,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (GUILayout.Button("Synchronize Assets"))
             {
-                collection.RefreshCollection();
-                serializedObject.Update();
-                CheckHeightsAndHiddenArraySizes();
+                SynchronizeAssets();
             }
+        }
+
+        protected virtual void SynchronizeAssets()
+        {
+            collection.RefreshCollection();
+            CheckHeightsAndHiddenArraySizes();
         }
 
         private void CheckForKeyboardShortcuts()

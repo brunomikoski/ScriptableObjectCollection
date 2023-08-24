@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.0.9]
+### Changed
+- Editor serialization issues with new drawing methods.
+- Added sorting options for collections
+- Added option to make the collection not reorderable
+- Fixed issue with post processing and recent imported files
+
 ## [2.0.8]
 ### Changed
 - Fixed a small typo in the package description.
@@ -468,6 +476,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.0.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.9
 [2.0.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.8
 [2.0.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.7
 [2.0.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.6

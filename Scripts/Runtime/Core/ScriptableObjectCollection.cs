@@ -204,15 +204,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return null;
         }
 
-        public virtual void Sort()
-        {
-            items.Sort();
-            ObjectUtility.SetDirty(this);
-        }
-
         public void OrderByName()
         {
             items = items.OrderBy(o => o.name).ToList();
+            ObjectUtility.SetDirty(this);
+        }
+
+        public void Sort(IComparer<ScriptableObject> comparer)
+        {
+            items.Sort(comparer);
             ObjectUtility.SetDirty(this);
         }
 
@@ -572,6 +572,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ClearCachedValues();
             return remove;
         }
+        
         
         IEnumerator<TObjectType> IEnumerable<TObjectType>.GetEnumerator()
         {

@@ -80,9 +80,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             RunGenerator(typeof(GeneratorType));
         }
+        
+        public static void RunGenerator(IScriptableObjectCollectionGeneratorBase generator)
+        {
+            RunGeneratorInternal(generator, true);
+        }
 
         private static void RunGeneratorInternal(Type generatorType, bool refresh)
         {
+            IScriptableObjectCollectionGeneratorBase generator = GetGenerator(generatorType);
+
+            RunGeneratorInternal(generator, refresh);
+        }
+
+        private static void RunGeneratorInternal(IScriptableObjectCollectionGeneratorBase generator, bool refresh)
+        {
+            Type generatorType = generator.GetType();
+            
             GetGeneratorTypes(generatorType, out Type collectionType, out Type itemTemplateType);
 
             // Check that the corresponding collection exists.
@@ -95,9 +109,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     $"collection existed.");
                 return;
             }
-
-            // Get an instance of the generator.
-            IScriptableObjectCollectionGeneratorBase generator = GetGenerator(generatorType);
 
             // Make an empty list that will hold the generated item templates.
             Type genericListType = typeof(List<>);

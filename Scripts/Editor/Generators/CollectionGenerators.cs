@@ -58,24 +58,30 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return null;
         }
         
-        public static void GenerateAll()
+        public static void RunAllGenerators()
         {
             Type[] generatorTypes = GetGeneratorTypes();
             foreach (Type generatorType in generatorTypes)
             {
-                GenerateCollectionInternal(generatorType, false);
+                RunGeneratorInternal(generatorType, false);
             }
             
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
 
-        public static void GenerateCollection(Type generatorType)
+        public static void RunGenerator(Type generatorType)
         {
-            GenerateCollectionInternal(generatorType, true);
+            RunGeneratorInternal(generatorType, true);
+        }
+        
+        public static void RunGenerator<GeneratorType>()
+            where GeneratorType : IScriptableObjectCollectionGeneratorBase
+        {
+            RunGenerator(typeof(GeneratorType));
         }
 
-        private static void GenerateCollectionInternal(Type generatorType, bool refresh)
+        private static void RunGeneratorInternal(Type generatorType, bool refresh)
         {
             GetGeneratorTypes(generatorType, out Type collectionType, out Type itemTemplateType);
 

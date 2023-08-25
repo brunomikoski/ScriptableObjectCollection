@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
@@ -143,104 +144,42 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             foreach (FieldInfo field in fields)
             {
-                object value = field.GetValue(itemTemplate);
-                CopyFieldToSerializedProperty(field, value, serializedObject);
+                CopyFieldToSerializedProperty(field, itemTemplate, serializedObject);
             }
             
             serializedObject.ApplyModifiedProperties();
         }
 
-        private static void CopyFieldToSerializedProperty(FieldInfo fieldInfo, object value, SerializedObject serializedObject)
+        private static void CopyFieldToSerializedProperty(
+            FieldInfo field, object owner, SerializedObject serializedObject)
         {
             // Make sure the field is serializable.
-            if (fieldInfo.IsPrivate && fieldInfo.GetCustomAttribute<SerializeField>() == null)
+            if (field.IsPrivate && field.GetCustomAttribute<SerializeField>() == null)
                 return;
 
             // Get the property to copy the value to.
-            SerializedProperty serializedProperty = serializedObject.FindProperty(fieldInfo.Name);
+            SerializedProperty serializedProperty = serializedObject.FindProperty(field.Name);
             if (serializedProperty == null)
                 return;
-
-            switch (serializedProperty.propertyType)
+            
+            object value = field.GetValue(owner);
+            
+            // Support arrays.
+            if (serializedProperty.isArray && serializedProperty.propertyType == SerializedPropertyType.Generic)
             {
-                case SerializedPropertyType.Integer:
-                    serializedProperty.intValue = (int)value;
-                    break;
-                case SerializedPropertyType.Boolean:
-                    serializedProperty.boolValue = (bool)value;
-                    break;
-                case SerializedPropertyType.Float:
-                    serializedProperty.floatValue = (float)value;
-                    break;
-                case SerializedPropertyType.String:
-                    serializedProperty.stringValue = (string)value;
-                    break;
-                case SerializedPropertyType.Color:
-                    serializedProperty.colorValue = (Color)value;
-                    break;
-                case SerializedPropertyType.ObjectReference:
-                    serializedProperty.objectReferenceValue = (UnityEngine.Object)value;
-                    break;
-                case SerializedPropertyType.LayerMask:
-                    serializedProperty.intValue = (LayerMask)value;
-                    break;
-                case SerializedPropertyType.Enum:
-                    serializedProperty.intValue = (int)value;
-                    break;
-                case SerializedPropertyType.Vector2:
-                    serializedProperty.vector2Value = (Vector2)value;
-                    break;
-                case SerializedPropertyType.Vector3:
-                    serializedProperty.vector3Value = (Vector3)value;
-                    break;
-                case SerializedPropertyType.Vector4:
-                    serializedProperty.vector4Value = (Vector4)value;
-                    break;
-                case SerializedPropertyType.Rect:
-                    serializedProperty.rectValue = (Rect)value;
-                    break;
-                //case SerializedPropertyType.ArraySize:
-                    //break;
-                case SerializedPropertyType.Character:
-                    serializedProperty.stringValue = ((char)value).ToString();
-                    break;
-                case SerializedPropertyType.AnimationCurve:
-                    serializedProperty.animationCurveValue = (AnimationCurve)value;
-                    break;
-                case SerializedPropertyType.Bounds:
-                    serializedProperty.boundsValue = (Bounds)value;
-                    break;
-                //case SerializedPropertyType.Gradient:
-                    //break;
-                case SerializedPropertyType.Quaternion:
-                    serializedProperty.quaternionValue = (Quaternion)value;
-                    break;
-                //case SerializedPropertyType.ExposedReference:
-                    //break;
-                //case SerializedPropertyType.FixedBufferSize:
-                    //break;
-                case SerializedPropertyType.Vector2Int:
-                    serializedProperty.vector2IntValue = (Vector2Int)value;
-                    break;
-                case SerializedPropertyType.Vector3Int:
-                    serializedProperty.vector3IntValue = (Vector3Int)value;
-                    break;
-                case SerializedPropertyType.RectInt:
-                    serializedProperty.rectIntValue = (RectInt)value;
-                    break;
-                case SerializedPropertyType.BoundsInt:
-                    serializedProperty.boundsIntValue = (BoundsInt)value;
-                    break;
-                //case SerializedPropertyType.ManagedReference:
-                    //break;
-                //case SerializedPropertyType.Hash128:
-                    //break;
-                case SerializedPropertyType.Generic:
-                default:
-                    Debug.LogWarning($"Tried to copy value '{value}' from a template to an SOC item but apparently that's not supported.");
-                    break;
+                IEnumerable<object> collection = (IEnumerable<object>)value;
+                serializedProperty.arraySize = collection.Count();
+                int index = 0;
+                foreach (object arrayItem in collection)
+                {
+                    SerializedProperty arrayElement = serializedProperty.GetArrayElementAtIndex(index);
+                    arrayElement.SetValue(arrayItem);
+                    index++;
+                }
+                return;
             }
             
+            serializedProperty.SetValue(value);
         }
     }
 }

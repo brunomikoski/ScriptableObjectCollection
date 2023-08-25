@@ -31,6 +31,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return instance;
         }
+        
         private static void GetGeneratorTypes(Type generatorType, out Type collectionType, out Type templateType)
         {
             Type interfaceType = generatorType.GetInterface(InterfaceType.Name);
@@ -38,7 +39,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectionType = genericArguments[0];
             templateType = genericArguments[1];
         }
-        
         
         private static Type[] GetGeneratorTypes()
         {

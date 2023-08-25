@@ -183,6 +183,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return newItem;
         }
+        
+        public ISOCItem GetOrAddNewBaseItem(string targetName)
+        {
+            ISOCItem item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ISOCItem;
+            if (item != null)
+                return item;
+
+            return AddNew(GetItemType(), targetName) as ISOCItem;
+        }
 #endif
 
         public virtual Type GetItemType()

@@ -223,20 +223,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return null;
         }
         
-        public bool TryGetCollectionOfType<T>(out T resultCollection) where T: ScriptableObjectCollection
+        public bool TryGetCollectionOfType(Type type, out ScriptableObjectCollection resultCollection)
         {
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (scriptableObjectCollection is T collectionT)
+                if (scriptableObjectCollection.GetType() == type)
                 {
-                    resultCollection = collectionT;
+                    resultCollection = scriptableObjectCollection;
                     return true;
                 }
             }
 
             resultCollection = null;
             return false;
+        }
+        
+        public bool TryGetCollectionOfType<T>(out T resultCollection) where T: ScriptableObjectCollection
+        {
+            bool didFind = TryGetCollectionOfType(typeof(T), out ScriptableObjectCollection baseCollection);
+            resultCollection = baseCollection as T;
+            return didFind;
         }
         
         public bool TryGetCollectionFromItemType(Type targetType, out ScriptableObjectCollection resultCollection)

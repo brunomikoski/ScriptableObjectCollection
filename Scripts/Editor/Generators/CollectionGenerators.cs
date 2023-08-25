@@ -16,6 +16,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         private static readonly Dictionary<Type, IScriptableObjectCollectionGeneratorBase> generatorTypeToInstance 
             = new Dictionary<Type, IScriptableObjectCollectionGeneratorBase>();
+        
+        private static Type InterfaceType => typeof(IScriptableObjectCollectionGenerator<,>);
 
         private static IScriptableObjectCollectionGeneratorBase GetGenerator(Type type)
         {
@@ -29,14 +31,36 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return instance;
         }
+        private static void GetGeneratorTypes(Type generatorType, out Type collectionType, out Type templateType)
+        {
+            Type interfaceType = generatorType.GetInterface(InterfaceType.Name);
+            Type[] genericArguments = interfaceType.GetGenericArguments();
+            collectionType = genericArguments[0];
+            templateType = genericArguments[1];
+        }
         
-        [MenuItem("SOC/Generate All", false, int.MaxValue)]
+        
+        private static Type[] GetGeneratorTypes()
+        {
+            return InterfaceType.GetAllAssignableClasses();
+        }
+
+        public static Type GetGeneratorTypeForCollection(Type collectionType)
+        {
+            Type[] generatorTypes = GetGeneratorTypes();
+            foreach (Type generatorType in generatorTypes)
+            {
+                GetGeneratorTypes(generatorType, out Type generatorCollectionType, out Type generatorTemplateType);
+                if (generatorCollectionType == collectionType)
+                    return generatorType;
+            }
+
+            return null;
+        }
+        
         public static void GenerateAll()
         {
-            // Find all the generator types.
-            Type generatorInterface = typeof(IScriptableObjectCollectionGenerator<,>);
-            Type[] generatorTypes = generatorInterface.GetAllAssignableClasses();
-            
+            Type[] generatorTypes = GetGeneratorTypes();
             foreach (Type generatorType in generatorTypes)
             {
                 GenerateCollectionInternal(generatorType, false);
@@ -53,14 +77,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static void GenerateCollectionInternal(Type generatorType, bool refresh)
         {
-            Type generatorInterface = typeof(IScriptableObjectCollectionGenerator<,>);
-            
-            // Figure out what type of generator this is.
-            Type interfaceType = generatorType.GetInterface(generatorInterface.Name);
-            Type[] genericArguments = interfaceType.GetGenericArguments();
-            Type collectionType = genericArguments[0];
-            Type itemTemplateType = genericArguments[1];
-            
+            GetGeneratorTypes(generatorType, out Type collectionType, out Type itemTemplateType);
+
             // Check that the corresponding collection exists.
             CollectionsRegistry.Instance.TryGetCollectionOfType(
                 collectionType, out ScriptableObjectCollection collection);

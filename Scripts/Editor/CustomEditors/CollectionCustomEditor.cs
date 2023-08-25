@@ -31,6 +31,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private readonly Dictionary<int, Rect> itemIndexToRect = new();
         private float? reorderableListYPosition;
         private Dictionary<Object, SerializedObject> collectionItemSerializedObjectCache = new();
+        
+        private Type generatorType;
 
         protected virtual bool CanBeReorderable => true;
         protected virtual bool DisplayAddButton => true;
@@ -59,6 +61,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CheckGeneratedCodeLocation();
             CheckGeneratedStaticFileName();
             ValidateGeneratedFileNamespace();
+
+            generatorType = CollectionGenerators.GetGeneratorTypeForCollection(collection.GetType());
         }
 
         private void CreateReorderableList()
@@ -560,13 +564,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawBottomMenu()
         {
-            using (new EditorGUILayout.HorizontalScope("Box"))
+            using (new EditorGUILayout.VerticalScope("Box"))
             {
-                if (GUILayout.Button($"Generate Static Access File", EditorStyles.miniButtonRight))
+                if (GUILayout.Button($"Generate Static Access File", EditorStyles.miniButton))
                 {
                     EditorApplication.delayCall += () =>
                     {
                         CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+                    };
+                }
+                
+                if (generatorType != null && GUILayout.Button($"Generate Items", GUILayout.Height(40)))
+                {
+                    EditorApplication.delayCall += () =>
+                    {
+                        CollectionGenerators.GenerateCollection(generatorType);
                     };
                 }
             }

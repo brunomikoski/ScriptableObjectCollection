@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -48,6 +49,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             return null;
+        }
+        
+        public static Type[] GetAllAssignableClasses(
+            this Type type, bool includeAbstract = true, bool includeItself = false)
+        {
+            IEnumerable<Type> allTypes = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes());
+
+            if (type.IsGenericType)
+            {
+                if (type.IsInterface)
+                {
+                    return allTypes.Where(t => t.GetInterfaces().Any(
+                        i => i.IsGenericType && i.GetGenericTypeDefinition() == type)).ToArray();
+                }
+                return allTypes.Where(t => t.IsGenericType && t.GetGenericTypeDefinition() == type).ToArray();
+            }
+            
+            return allTypes.Where(
+                    t => type.IsAssignableFrom(t) && (t != type || includeItself) && (includeAbstract || !t.IsAbstract))
+                .ToArray();
         }
     }
 }

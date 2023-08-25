@@ -18,6 +18,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             = new Dictionary<Type, IScriptableObjectCollectionGeneratorBase>();
         
         private static Type InterfaceType => typeof(IScriptableObjectCollectionGenerator<,>);
+        
+        [InitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            // Make sure we clean this when code reloads.
+            generatorTypeToInstance.Clear();
+        }
 
         private static IScriptableObjectCollectionGeneratorBase GetGenerator(Type type)
         {

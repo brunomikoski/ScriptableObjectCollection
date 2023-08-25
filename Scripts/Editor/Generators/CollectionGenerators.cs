@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -83,10 +84,39 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 "GetItemTemplates", BindingFlags.Public | BindingFlags.Instance);
             getItemTemplatesMethod.Invoke(generator, new object[] {list, collection});
             
-            // Now try to find or create corresponding items in the collection and copy the fields over.
-            foreach (object item in list)
+            // If necessary, first remove any items that weren't re-generated.
+            bool shouldRemoveNonGeneratedItems = (bool)generatorType
+                .GetProperty("ShouldRemoveNonGeneratedItems", BindingFlags.Public | BindingFlags.Instance)
+                .GetValue(generator);
+            if (shouldRemoveNonGeneratedItems)
             {
-                ItemTemplate itemTemplate = (ItemTemplate)item;
+                for (int i = collection.Items.Count - 1; i >= 0; i--)
+                {
+                    bool didHaveTemplateItemWithSameName = false;
+                    for (int j = 0; j < list.Count; j++)
+                    {
+                        ItemTemplate itemTemplate = (ItemTemplate)list[j];
+                        if (collection.Items[i].name == itemTemplate.name)
+                        {
+                            didHaveTemplateItemWithSameName = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!didHaveTemplateItemWithSameName)
+                    {
+                        // No corresponding template existed, so remove this item.
+                        ScriptableObject itemToRemove = collection.Items[i];
+                        collection.RemoveAt(i);
+                        AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(itemToRemove));
+                    }
+                }
+            }
+            
+            // Now try to find or create corresponding items in the collection and copy the fields over.
+            for (int i = 0; i < list.Count; i++)
+            {
+                ItemTemplate itemTemplate = (ItemTemplate)list[i];
 
                 if (itemTemplate == null)
                     continue;

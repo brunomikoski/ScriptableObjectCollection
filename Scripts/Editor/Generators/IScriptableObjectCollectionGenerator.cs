@@ -12,6 +12,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         where CollectionType : ScriptableObjectCollection
         where TemplateType : ItemTemplate
     {
+        bool ShouldRemoveNonGeneratedItems { get; }
+
         void GetItemTemplates(List<TemplateType> templates, CollectionType collection);
     }
 

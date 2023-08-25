@@ -70,30 +70,32 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabase.Refresh();
         }
 
-        public static void RunGenerator(Type generatorType)
+        public static void RunGenerator(Type generatorType, bool generateStaticAccess = false)
         {
-            RunGeneratorInternal(generatorType, true);
+            RunGeneratorInternal(generatorType, true, generateStaticAccess);
         }
         
-        public static void RunGenerator<GeneratorType>()
+        public static void RunGenerator<GeneratorType>(bool generateStaticAccess = false)
             where GeneratorType : IScriptableObjectCollectionGeneratorBase
         {
-            RunGenerator(typeof(GeneratorType));
+            RunGenerator(typeof(GeneratorType), generateStaticAccess);
         }
         
-        public static void RunGenerator(IScriptableObjectCollectionGeneratorBase generator)
+        public static void RunGenerator(
+            IScriptableObjectCollectionGeneratorBase generator, bool generateStaticAccess = false)
         {
-            RunGeneratorInternal(generator, true);
+            RunGeneratorInternal(generator, true, generateStaticAccess);
         }
 
-        private static void RunGeneratorInternal(Type generatorType, bool refresh)
+        private static void RunGeneratorInternal(Type generatorType, bool refresh, bool generateStaticAccess = false)
         {
             IScriptableObjectCollectionGeneratorBase generator = GetGenerator(generatorType);
 
-            RunGeneratorInternal(generator, refresh);
+            RunGeneratorInternal(generator, refresh, generateStaticAccess);
         }
 
-        private static void RunGeneratorInternal(IScriptableObjectCollectionGeneratorBase generator, bool refresh)
+        private static void RunGeneratorInternal(
+            IScriptableObjectCollectionGeneratorBase generator, bool refresh, bool generateStaticAccess)
         {
             Type generatorType = generator.GetType();
             
@@ -166,6 +168,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
             }
+            
+            if (generateStaticAccess)
+                CodeGenerationUtility.GenerateStaticCollectionScript(collection);
         }
 
         private static void CopyFieldsFromTemplateToItem(ItemTemplate itemTemplate, ISOCItem itemInstance)

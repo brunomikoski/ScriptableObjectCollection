@@ -102,7 +102,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 case SerializedPropertyType.Hash128:
                     serializedProperty.hash128Value = (Hash128)value;
                 break;
-                case SerializedPropertyType.Generic:
                 default:
                     Debug.LogWarning(
                         $"Tried to copy value '{value}' from a template to an SOC item but apparently that's not supported.");

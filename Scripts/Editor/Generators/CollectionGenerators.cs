@@ -130,8 +130,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             getItemTemplatesMethod.Invoke(generator, new object[] {templates, collection});
             
             // Figure out the intended behaviour for finding existing items.
-            GeneratorExistingItemFindingBehaviours itemFindingBehaviour = 
-                (GeneratorExistingItemFindingBehaviours)generatorType
+            GeneratorItemToTemplateMatchingBehaviours itemToTemplateMatchingBehaviour = 
+                (GeneratorItemToTemplateMatchingBehaviours)generatorType
                 .GetProperty("ItemFindingBehaviour", BindingFlags.Public | BindingFlags.Instance)
                 .GetValue(generator);
             
@@ -145,9 +145,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     bool shouldRemoveItem = false;
 
-                    switch (itemFindingBehaviour)
+                    switch (itemToTemplateMatchingBehaviour)
                     {
-                        case GeneratorExistingItemFindingBehaviours.FindByName:
+                        case GeneratorItemToTemplateMatchingBehaviours.MatchByName:
                             // Remove any items for which there isn't a template by the same name.
                             for (int j = 0; j < templates.Count; j++)
                             {
@@ -159,7 +159,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                 }
                             }
                             break;
-                        case GeneratorExistingItemFindingBehaviours.FindByIndex:
+                        case GeneratorItemToTemplateMatchingBehaviours.MatchByIndex:
                             // Remove any items beyond the size of the list of templates that were returned.
                             shouldRemoveItem = i >= templates.Count;
                             break;
@@ -186,12 +186,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 ISOCItem itemInstance;
-                switch (itemFindingBehaviour)
+                switch (itemToTemplateMatchingBehaviour)
                 {
-                    case GeneratorExistingItemFindingBehaviours.FindByName:
+                    case GeneratorItemToTemplateMatchingBehaviours.MatchByName:
                         itemInstance = collection.GetOrAddNewBaseItem(itemTemplate.name);
                         break;
-                    case GeneratorExistingItemFindingBehaviours.FindByIndex:
+                    case GeneratorItemToTemplateMatchingBehaviours.MatchByIndex:
                         itemInstance = i < collection.Items.Count ?
                             (ISOCItem)collection.Items[i] : collection.AddNewBaseItem(itemTemplate.name);
                         break;

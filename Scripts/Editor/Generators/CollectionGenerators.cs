@@ -122,12 +122,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Make an empty list that will hold the generated item templates.
             Type genericListType = typeof(List<>);
             Type templateListType = genericListType.MakeGenericType(itemTemplateType);
-            IList list = (IList)Activator.CreateInstance(templateListType);
+            IList templates = (IList)Activator.CreateInstance(templateListType);
 
             // Make the generator generate item templates.
             MethodInfo getItemTemplatesMethod = generatorType.GetMethod(
                 "GetItemTemplates", BindingFlags.Public | BindingFlags.Instance);
-            getItemTemplatesMethod.Invoke(generator, new object[] {list, collection});
+            getItemTemplatesMethod.Invoke(generator, new object[] {templates, collection});
+            
+            // Figure out the intended behaviour for finding existing items.
+            GeneratorExistingItemFindingBehaviours itemFindingBehaviour = 
+                (GeneratorExistingItemFindingBehaviours)generatorType
+                .GetProperty("ItemFindingBehaviour", BindingFlags.Public | BindingFlags.Instance)
+                .GetValue(generator);
             
             // If necessary, first remove any items that weren't re-generated.
             bool shouldRemoveNonGeneratedItems = (bool)generatorType
@@ -137,18 +143,31 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 for (int i = collection.Items.Count - 1; i >= 0; i--)
                 {
-                    bool didHaveTemplateItemWithSameName = false;
-                    for (int j = 0; j < list.Count; j++)
+                    bool shouldRemoveItem = false;
+
+                    switch (itemFindingBehaviour)
                     {
-                        ItemTemplate itemTemplate = (ItemTemplate)list[j];
-                        if (collection.Items[i].name == itemTemplate.name)
-                        {
-                            didHaveTemplateItemWithSameName = true;
+                        case GeneratorExistingItemFindingBehaviours.FindByName:
+                            // Remove any items for which there isn't a template by the same name.
+                            for (int j = 0; j < templates.Count; j++)
+                            {
+                                ItemTemplate itemTemplate = (ItemTemplate)templates[j];
+                                if (collection.Items[i].name == itemTemplate.name)
+                                {
+                                    shouldRemoveItem = true;
+                                    break;
+                                }
+                            }
                             break;
-                        }
+                        case GeneratorExistingItemFindingBehaviours.FindByIndex:
+                            // Remove any items beyond the size of the list of templates that were returned.
+                            shouldRemoveItem = i >= templates.Count;
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
                     }
-                    
-                    if (!didHaveTemplateItemWithSameName)
+
+                    if (!shouldRemoveItem)
                     {
                         // No corresponding template existed, so remove this item.
                         ScriptableObject itemToRemove = collection.Items[i];
@@ -159,14 +178,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             // Now try to find or create corresponding items in the collection and copy the fields over.
-            for (int i = 0; i < list.Count; i++)
+            for (int i = 0; i < templates.Count; i++)
             {
-                ItemTemplate itemTemplate = (ItemTemplate)list[i];
+                ItemTemplate itemTemplate = (ItemTemplate)templates[i];
 
                 if (itemTemplate == null)
                     continue;
 
-                ISOCItem itemInstance = collection.GetOrAddNewBaseItem(itemTemplate.name);
+                ISOCItem itemInstance;
+                switch (itemFindingBehaviour)
+                {
+                    case GeneratorExistingItemFindingBehaviours.FindByName:
+                        itemInstance = collection.GetOrAddNewBaseItem(itemTemplate.name);
+                        break;
+                    case GeneratorExistingItemFindingBehaviours.FindByIndex:
+                        itemInstance = i < collection.Items.Count ?
+                            (ISOCItem)collection.Items[i] : collection.AddNewBaseItem(itemTemplate.name);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                
                 CopyFieldsFromTemplateToItem(itemTemplate, itemInstance);
             }
 

@@ -23,6 +23,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         /// </summary>
         bool ShouldRemoveNonGeneratedItems { get; }
 
+        GeneratorExistingItemFindingBehaviours ItemFindingBehaviour { get; }
+
         void GetItemTemplates(List<TemplateType> templates, CollectionType collection);
     }
 

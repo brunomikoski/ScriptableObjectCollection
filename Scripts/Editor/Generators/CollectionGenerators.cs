@@ -26,7 +26,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             generatorTypeToInstance.Clear();
         }
 
-        private static IScriptableObjectCollectionGeneratorBase GetGenerator(Type type)
+        public static IScriptableObjectCollectionGeneratorBase GetGenerator(Type type)
         {
             bool existed = generatorTypeToInstance.TryGetValue(
                 type, out IScriptableObjectCollectionGeneratorBase instance);

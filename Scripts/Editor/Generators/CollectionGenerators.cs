@@ -149,15 +149,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     {
                         case GeneratorItemToTemplateMatchingBehaviours.MatchByName:
                             // Remove any items for which there isn't a template by the same name.
+                            bool foundItemOfSameName = false;
                             for (int j = 0; j < templates.Count; j++)
                             {
                                 ItemTemplate itemTemplate = (ItemTemplate)templates[j];
                                 if (collection.Items[i].name == itemTemplate.name)
                                 {
-                                    shouldRemoveItem = true;
+                                    foundItemOfSameName = true;
                                     break;
                                 }
                             }
+                            if (!foundItemOfSameName)
+                                shouldRemoveItem = true;
                             break;
                         case GeneratorItemToTemplateMatchingBehaviours.MatchByIndex:
                             // Remove any items beyond the size of the list of templates that were returned.
@@ -167,7 +170,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             throw new ArgumentOutOfRangeException();
                     }
 
-                    if (!shouldRemoveItem)
+                    if (shouldRemoveItem)
                     {
                         // No corresponding template existed, so remove this item.
                         ScriptableObject itemToRemove = collection.Items[i];

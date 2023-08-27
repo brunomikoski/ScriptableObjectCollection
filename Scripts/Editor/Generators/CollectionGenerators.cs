@@ -132,7 +132,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Figure out the intended behaviour for finding existing items.
             GeneratorItemToTemplateMatchingBehaviours itemToTemplateMatchingBehaviour = 
                 (GeneratorItemToTemplateMatchingBehaviours)generatorType
-                .GetProperty("ItemFindingBehaviour", BindingFlags.Public | BindingFlags.Instance)
+                .GetProperty("ItemToTemplateMatchingBehaviour", BindingFlags.Public | BindingFlags.Instance)
                 .GetValue(generator);
             
             // If necessary, first remove any items that weren't re-generated.

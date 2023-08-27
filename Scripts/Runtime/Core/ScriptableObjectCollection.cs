@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -207,6 +208,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return (ISOCItem) AddNew(collectionType, targetName);
         }
 
+        public static void Rename(ISOCItem item, string newName)
+        {
+            string path = AssetDatabase.GetAssetPath(item as Object);
+
+            // If the new name includes the full directory path or the wrong extension, get rid of that.
+            newName = Path.GetFileNameWithoutExtension(newName);
+
+            // Make sure the correct extension is included.
+            const string extension = ".asset";
+            if (!newName.EndsWith(extension))
+                newName += extension;
+            
+            AssetDatabase.RenameAsset(path, newName);
+        }
 #endif
 
         public virtual Type GetItemType()

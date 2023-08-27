@@ -41,4 +41,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         public string name;
     }
+
+    public class ItemTemplate<T> : ItemTemplate where T: ISOCItem
+    {
+    }
+
 }

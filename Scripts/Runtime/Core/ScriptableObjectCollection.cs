@@ -197,6 +197,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return AddNewBaseItem(targetName);
         }
+        
+        public ISOCItem GetOrAddNew(Type collectionType, string targetName)
+        {
+            ISOCItem item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as ISOCItem;
+            if (item != null)
+                return item;
+
+            return (ISOCItem) AddNew(collectionType, targetName);
+        }
+
 #endif
 
         public virtual Type GetItemType()
@@ -478,14 +488,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return (T) AddNew(typeof(T), targetName);
         }
         
-        public TObjectType GetOrAddNew(Type collectionType, string targetName)
-        {
-            TObjectType item = Items.FirstOrDefault(o => o.name.Equals(targetName, StringComparison.Ordinal)) as TObjectType;
-            if (item != null)
-                return item;
-
-            return (TObjectType) AddNew(collectionType, targetName);
-        }
         
         public TObjectType GetOrAddNew(string targetName)
         {

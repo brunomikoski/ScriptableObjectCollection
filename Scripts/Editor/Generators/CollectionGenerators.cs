@@ -185,16 +185,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (itemTemplate == null)
                     continue;
 
+
+                if (!TryGetItemTemplateType(itemTemplate, out Type templateItemType))
+                    templateItemType = collection.GetItemType();
+                
                 ISOCItem itemInstance;
                 switch (itemToTemplateMatchingBehaviour)
                 {
                     case GeneratorItemToTemplateMatchingBehaviours.MatchByName:
-                        itemInstance = collection.GetOrAddNewBaseItem(itemTemplate.name);
+                    {
+                        itemInstance = collection.GetOrAddNew(templateItemType, itemTemplate.name);
                         break;
+                    }
                     case GeneratorItemToTemplateMatchingBehaviours.MatchByIndex:
+                    {
                         itemInstance = i < collection.Items.Count ?
-                            (ISOCItem)collection.Items[i] : collection.AddNewBaseItem(itemTemplate.name);
+                            (ISOCItem)collection.Items[i] : collection.AddNew(templateItemType, itemTemplate.name) as ISOCItem;
                         break;
+                    }
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
@@ -210,6 +218,42 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if (generateStaticAccess)
                 CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+        }
+
+        private static bool TryGetItemTemplateType(ItemTemplate itemTemplate, out Type resultType)
+        {
+            Type itemType = GetGenericItemType(itemTemplate);
+            if (itemType == null)
+            {
+                resultType = null;
+                return false;
+            }
+            
+            resultType = itemType.GetGenericArguments().First();
+            return resultType != null;
+        }
+
+        public static Type GetTemplateItemType(ItemTemplate itemTemplate)
+        {
+            Type itemType = GetGenericItemType(itemTemplate);
+            if (itemType == null)
+                return null;
+            
+            Type genericType = itemType.GetGenericArguments().First();
+            return genericType;
+        }
+
+        private static Type GetGenericItemType(ItemTemplate itemTemplate)
+        {
+            Type baseType = itemTemplate.GetType().BaseType;
+
+            while (baseType != null)
+            {
+                if (baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(ItemTemplate<>))
+                    return baseType;
+                baseType = baseType.BaseType;
+            }
+            return null;
         }
 
         private static void CopyFieldsFromTemplateToItem(ItemTemplate itemTemplate, ISOCItem itemInstance)

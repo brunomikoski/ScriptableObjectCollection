@@ -10,15 +10,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         /// Return false if you want to generate items but allow people to manually add items of their own.
         /// </summary>
         bool ShouldRemoveNonGeneratedItems { get; }
-        
-        /// <summary>
-        /// How to match existing items to templates. Matching them by name allows you to reorder the items and still
-        /// find the same item it belonged to, matching them by index doesn't handle reordering well but it lets you
-        /// rename them very easily. Matching by name makes more sense for items generated based on scenes, which tend
-        /// to come in at a different order every time, but when generating items for tags it makes more sense to do it
-        /// by index because you're not allowed to reorder tags in the first place and that way it handles renames well.
-        /// </summary>
-        GeneratorItemToTemplateMatchingBehaviours ItemToTemplateMatchingBehaviour { get; }
     }
 
     /// <summary>

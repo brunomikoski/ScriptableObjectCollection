@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 
+## [2.1.0]
+### Added
+- Introducing Generators (thanks @RoyTheunissen). The overall idea is to make it simple to generate Collection Items based on other rules, for instance Unity Scenes, Unity Tags, Layers and anything else you want,check the help wiki about how to use it:  https://github.com/brunomikoski/ScriptableObjectCollection/wiki/Generators
+
+### Changed
+- Ability to define if a class can be reordered/add/remove items by the collection
+- A few other helpers for creating SOCItems dynamically 
+
+
 ## [2.0.9]
 ### Changed
 - Editor serialization issues with new drawing methods.
@@ -476,6 +485,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.1.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.1.0
 [2.0.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.9
 [2.0.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.8
 [2.0.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.7

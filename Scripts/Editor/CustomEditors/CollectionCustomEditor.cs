@@ -124,7 +124,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ExcludeProperty("guid");
             ExcludeProperty("items");
             ExcludeProperty("automaticallyLoaded");
-            ExcludeProperty("generateAsPartialClass");
             ExcludeProperty("generateAsBaseClass");
             ExcludeProperty("generatedFileLocationPath");
             ExcludeProperty("generatedStaticClassFileName");
@@ -886,18 +885,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawPartialClassToggle()
         {
-            bool canBePartial= CodeGenerationUtility.CheckIfCanBePartial(collection);
+            bool canBePartial= SOCSettings.Instance.CanBePartial(collection);
             
             EditorGUI.BeginDisabledGroup(!canBePartial);
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
                 bool writeAsPartial = EditorGUILayout.Toggle("Write as Partial Class",
-                    serializedObject.FindProperty("generateAsPartialClass").boolValue);
+                    SOCSettings.Instance.ShouldGenerateAsPartialClass(collection));
                 
                 if (changeCheck.changed)
                 {
-                    serializedObject.FindProperty("generateAsPartialClass").boolValue = writeAsPartial;
-                    serializedObject.ApplyModifiedProperties();
+                    SOCSettings.Instance.SetGenerateAsPartialClass(collection, writeAsPartial);
                 }
             }
 
@@ -921,7 +919,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
 
             if (collection.name.Equals(collection.GetItemType().Name, StringComparison.Ordinal) 
-                && serializedObject.FindProperty("generateAsPartialClass").boolValue)
+                && SOCSettings.Instance.ShouldGenerateAsPartialClass(collection))
             {
                 serializedObject.FindProperty("generatedStaticClassFileName").stringValue =
                     $"{collection.GetItemType().Name}Static";

@@ -37,9 +37,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 #pragma warning disable CS0414
         [SerializeField]
-        private bool generateAsPartialClass = true;
-
-        [SerializeField]
         private bool generateAsBaseClass;
 
         [SerializeField]

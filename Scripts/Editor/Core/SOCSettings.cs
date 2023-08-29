@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
+using UnityEditor.Compilation;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -68,8 +69,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [SerializeField]
         private List<LongGuid> useCustomEditorDrawer = new List<LongGuid>();
-
-
+        
+        private SerializableDictionary<LongGuid,bool> collectionToGenerateAsPartialClass = new(); 
+        
+        
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
             "When using the Create New Collection wizard," +
@@ -190,6 +193,38 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     Save();
                 }
             }
+        }
+        
+        public bool ShouldGenerateAsPartialClass(ScriptableObjectCollection collection)
+        {
+            if (collectionToGenerateAsPartialClass.TryGetValue(collection.GUID, out bool value))
+                return value;
+            return false;
+        }
+        
+        public void SetGenerateAsPartialClass(ScriptableObjectCollection collection, bool generateAsPartialClass)
+        {
+            if (generateAsPartialClass && !CanBePartial(collection))
+                generateAsPartialClass = false;
+            
+            collectionToGenerateAsPartialClass[collection.GUID] = generateAsPartialClass;
+            Save();
+        }
+
+        public bool CanBePartial(ScriptableObjectCollection collection)
+        {
+            SerializedObject collectionSerializedObject = new SerializedObject(collection);
+
+            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
+            string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
+            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue);
+            
+            // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
+            // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
+            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
+                                string.IsNullOrEmpty(targetGeneratedCodePath);
+            
+            return canBePartial;
         }
     }
 }

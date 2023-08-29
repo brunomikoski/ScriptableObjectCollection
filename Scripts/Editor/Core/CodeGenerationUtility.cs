@@ -183,30 +183,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void DisablePartialClassGenerationIfDisallowed(ScriptableObjectCollection collection)
         {
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
-            bool canBePartial = CheckIfCanBePartial(collection);
-            SerializedProperty partialClassSP = collectionSerializedObject.FindProperty("generateAsPartialClass");
-            if (partialClassSP.boolValue && !canBePartial)
+            bool canBePartial = SOCSettings.Instance.CanBePartial(collection);
+            if (SOCSettings.Instance.ShouldGenerateAsPartialClass(collection) && !canBePartial)
             {
-                partialClassSP.boolValue = false;
-                collectionSerializedObject.ApplyModifiedProperties();
+                SOCSettings.Instance.SetGenerateAsPartialClass(collection,false);
             }
-        }
-        public static bool CheckIfCanBePartial(ScriptableObjectCollection collection)
-        {
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
-            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
-            string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
-            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue);
-            
-            // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
-            // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
-            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
-                                string.IsNullOrEmpty(targetGeneratedCodePath);
-            
-            return canBePartial;
         }
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
@@ -226,7 +207,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
             
-            bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
+            bool writeAsPartial = SOCSettings.Instance.CanBePartial(collection);
             bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
 
 

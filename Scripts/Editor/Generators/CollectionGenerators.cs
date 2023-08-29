@@ -127,18 +127,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Make the generator generate item templates.
             MethodInfo getItemTemplatesMethod = generatorType.GetMethod(
                 "GetItemTemplates", BindingFlags.Public | BindingFlags.Instance);
-            getItemTemplatesMethod.Invoke(generator, new object[] {templates, collection});
+            getItemTemplatesMethod!.Invoke(generator, new object[] {templates, collection});
 
             // If necessary, first remove any items that weren't re-generated.
             bool shouldRemoveNonGeneratedItems = (bool)generatorType
-                .GetProperty("ShouldRemoveNonGeneratedItems", BindingFlags.Public | BindingFlags.Instance)
+                .GetProperty("ShouldRemoveNonGeneratedItems", BindingFlags.Public | BindingFlags.Instance)!
                 .GetValue(generator);
             if (shouldRemoveNonGeneratedItems)
             {
                 for (int i = collection.Items.Count - 1; i >= 0; i--)
                 {
-                    bool shouldRemoveItem = false;
-
                     // Remove any items for which there isn't a template by the same name.
                     bool foundItemOfSameName = false;
                     for (int j = 0; j < templates.Count; j++)

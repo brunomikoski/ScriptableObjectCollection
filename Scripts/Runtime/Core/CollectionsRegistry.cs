@@ -170,13 +170,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
-        public bool TryGetCollectionsOfType<T>(out List<T> inputActionMapCollections) where T : ScriptableObjectCollection
+        public bool TryGetCollectionsOfType<T>(out List<T> inputActionMapCollections, bool allowSubclasses = true) where T : ScriptableObjectCollection
         {
             List<T> result = new List<T>();
+            Type targetType = typeof(T);
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (scriptableObjectCollection.GetType() == typeof(T) || scriptableObjectCollection.GetType().IsSubclassOf(typeof(T)))
+                Type collectionType = scriptableObjectCollection.GetType();
+                if (collectionType == targetType || (allowSubclasses && collectionType.IsSubclassOf(targetType)))
                     result.Add((T)scriptableObjectCollection);
             }
 

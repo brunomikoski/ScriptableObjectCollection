@@ -176,7 +176,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (scriptableObjectCollection.GetType() == typeof(T))
+                if (scriptableObjectCollection.GetType() == typeof(T) || scriptableObjectCollection.GetType().IsSubclassOf(typeof(T)))
                     result.Add((T)scriptableObjectCollection);
             }
 

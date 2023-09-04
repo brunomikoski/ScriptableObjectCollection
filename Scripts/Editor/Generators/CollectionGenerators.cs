@@ -147,8 +147,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 for (int i = collection.Items.Count - 1; i >= 0; i--)
                 {
-                    bool shouldRemoveItem = false;
-
                     // Remove any items for which there isn't a template by the same name.
                     bool foundItemOfSameName = false;
                     for (int j = 0; j < templates.Count; j++)

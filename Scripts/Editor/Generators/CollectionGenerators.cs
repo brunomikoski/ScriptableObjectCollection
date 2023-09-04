@@ -52,13 +52,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return InterfaceType.GetAllAssignableClasses();
         }
 
-        public static Type GetGeneratorTypeForCollection(Type collectionType)
+        public static Type GetGeneratorTypeForCollection(Type collectionType, bool allowSubclasses = true)
         {
             Type[] generatorTypes = GetGeneratorTypes();
             foreach (Type generatorType in generatorTypes)
             {
                 GetGeneratorTypes(generatorType, out Type generatorCollectionType, out Type generatorTemplateType);
-                if (generatorCollectionType == collectionType)
+                if (generatorCollectionType == collectionType || collectionType.IsSubclassOf(generatorCollectionType))
                     return generatorType;
             }
 
@@ -76,7 +76,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+        
+        public static void RunGenerator(Type generatorType, ScriptableObjectCollection targetCollection = null, bool generateStaticAccess = false)
+        {
+            IScriptableObjectCollectionGeneratorBase generator = GetGenerator(generatorType);
 
+            RunGeneratorInternal(generator, targetCollection, true, generateStaticAccess);        
+        }
+        
         public static void RunGenerator(Type generatorType, bool generateStaticAccess = false)
         {
             RunGeneratorInternal(generatorType, true, generateStaticAccess);
@@ -91,32 +98,35 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static void RunGenerator(
             IScriptableObjectCollectionGeneratorBase generator, bool generateStaticAccess = false)
         {
-            RunGeneratorInternal(generator, true, generateStaticAccess);
+            RunGeneratorInternal(generator, null, true, generateStaticAccess);
         }
 
         private static void RunGeneratorInternal(Type generatorType, bool refresh, bool generateStaticAccess = false)
         {
             IScriptableObjectCollectionGeneratorBase generator = GetGenerator(generatorType);
 
-            RunGeneratorInternal(generator, refresh, generateStaticAccess);
+            RunGeneratorInternal(generator, null, refresh, generateStaticAccess);
         }
 
         private static void RunGeneratorInternal(
-            IScriptableObjectCollectionGeneratorBase generator, bool refresh, bool generateStaticAccess)
+            IScriptableObjectCollectionGeneratorBase generator, ScriptableObjectCollection collection, bool refresh, bool generateStaticAccess)
         {
             Type generatorType = generator.GetType();
             
             GetGeneratorTypes(generatorType, out Type collectionType, out Type itemTemplateType);
 
-            // Check that the corresponding collection exists.
-            CollectionsRegistry.Instance.TryGetCollectionOfType(
-                collectionType, out ScriptableObjectCollection collection);
             if (collection == null)
             {
-                Debug.LogWarning(
-                    $"Tried to generate items for collection '{collectionType.Name}' but no such " +
-                    $"collection existed.");
-                return;
+                // Check that the corresponding collection exists.
+                CollectionsRegistry.Instance.TryGetCollectionOfType(
+                    collectionType, out collection);
+                if (collection == null)
+                {
+                    Debug.LogWarning(
+                        $"Tried to generate items for collection '{collectionType.Name}' but no such " +
+                        $"collection existed.");
+                    return;
+                }
             }
 
             // Make an empty list that will hold the generated item templates.
@@ -176,6 +186,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 CopyFieldsFromTemplateToItem(itemTemplate, itemInstance);
             }
+            
+            
+            // Optional Callback to be called when the generation completes
+            MethodInfo completionCallback = generatorType.GetMethod(
+                "OnItemsGenerationComplete", BindingFlags.Public | BindingFlags.Instance);
+            if (completionCallback != null)
+                completionCallback!.Invoke(generator, new object[] {collection });
+            
 
             if (refresh)
             {

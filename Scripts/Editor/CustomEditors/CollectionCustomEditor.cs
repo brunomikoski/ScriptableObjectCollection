@@ -606,7 +606,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     EditorApplication.delayCall += () =>
                     {
-                        CollectionGenerators.RunGenerator(generatorType);
+                        CollectionGenerators.RunGenerator(generatorType, collection);
                     };
                 }
             }

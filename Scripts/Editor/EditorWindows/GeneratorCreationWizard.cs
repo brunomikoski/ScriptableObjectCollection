@@ -113,6 +113,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
+            // Open the new generator script.
+            string generatorScriptPath = targetFolderPath + "/" + generatorName + ".cs";
+            MonoScript generatorScript = AssetDatabase.LoadAssetAtPath<MonoScript>(generatorScriptPath);
+            AssetDatabase.OpenAsset(generatorScript);
+
             Close();
         }
 

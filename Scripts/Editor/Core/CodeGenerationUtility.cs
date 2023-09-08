@@ -96,6 +96,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // If necessary, end the namespace.
             if (hasNameSpace)
                 writer.WriteLine("}");
+            
+            writer.Close();
 
             return true;
         }

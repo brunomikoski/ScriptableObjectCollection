@@ -963,7 +963,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return collectionItem;
         }
         
-        [MenuItem("CONTEXT/ScriptableObjectCollection/Edit Generator", false, int.MaxValue)]
+        [MenuItem("CONTEXT/ScriptableObjectCollection/Create Generator", false, 99999)]
+        private static void CreateGenerator(MenuCommand command)
+        {
+            Type collectionType = command.context.GetType();
+            
+            GeneratorCreationWizard.Show(collectionType);
+        }
+        
+        [MenuItem("CONTEXT/ScriptableObjectCollection/Create Generator", true)]
+        private static bool CreateGeneratorValidator(MenuCommand command)
+        {
+            Type collectionType = command.context.GetType();
+            return CollectionGenerators.GetGeneratorTypeForCollection(collectionType) == null;
+        }
+        
+        [MenuItem("CONTEXT/ScriptableObjectCollection/Edit Generator", false, 99999)]
         private static void EditGenerator(MenuCommand command)
         {
             Type collectionType = command.context.GetType();

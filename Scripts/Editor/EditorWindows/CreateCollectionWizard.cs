@@ -265,7 +265,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceString LastScriptsTargetFolder =
             new EditorPreferenceString(LAST_TARGET_SCRIPTS_FOLDER_KEY, null, true);
 
-        private static readonly EditorPreferenceString LastGeneratedCollectionScriptPath =
+        public static readonly EditorPreferenceString LastGeneratedCollectionScriptPath =
             new EditorPreferenceString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY, null, true);
 
         private static readonly EditorPreferenceBool CreateFolderForThisCollection =

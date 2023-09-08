@@ -1,0 +1,25 @@
+/// <summary>
+/// Template for SOC items to generate. Any values assigned here will be copied over to the corresponding SOC item.
+/// This syntax lets you specify which items should exist and with which fields, without having to create instances
+/// of your SOC items, which would have a lot of overhead and would force you to have public setters for everything.
+/// </summary>
+public sealed class ##TemplateType## : ItemTemplate
+{
+    // TODO: Define any fields here for the generated items. The fields of the SOC items will be updated accordingly.
+    // public string path;
+}
+
+/// <summary>
+/// Automatically generates SOC items.
+/// </summary>
+public sealed class ##GeneratorType##
+    : IScriptableObjectCollectionGenerator<##CollectionType##, ##TemplateType##>
+{
+    public bool ShouldRemoveNonGeneratedItems => true;
+
+    public void GetItemTemplates(List<##TemplateType##> templates, ##CollectionType## collection)
+    {
+        // TODO: Create instances of the template for every item that should exist in the collection
+        templates.Add(new ##TemplateType## { name = "Hello world" });
+    }
+}

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -14,8 +15,34 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static bool CreateNewScript(
             string fileName, string parentFolder, string nameSpace, string[] directives, params string[] lines)
         {
+            parentFolder = parentFolder.ToPathWithConsistentSeparators();
+            
             // Make sure the folder exists.
             AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolder);
+            
+            // Check if the created folder is an editor folder.
+            const string editorFolderName = "Editor";
+            bool isEditorFolder = parentFolder.Contains($"/{editorFolderName}/") ||
+                                  parentFolder.EndsWith($"/{editorFolderName}");
+            if (isEditorFolder)
+            {
+                // Figure out what the last editor folder is. This is because you can create an item with path
+                // 'Assets/ProjectName/Scripts/Editor/SomeSubFolder', in which case it should be making an asmref
+                // for 'Assets/ProjectName/Scripts/Editor' and not for the subfolder.
+                int lastOccurrenceOfEditorName = parentFolder.LastIndexOf($"/{editorFolderName}", 
+                    StringComparison.OrdinalIgnoreCase);
+                string editorFolderPath = parentFolder.Substring(
+                    0, lastOccurrenceOfEditorName + editorFolderName.Length + 1);
+                    
+                // Find out if there is an editor asmdef that we should be referencing.
+                AssemblyDefinitionAsset editorAsmDefToReference = AsmDefUtility
+                    .GetParentEditorAsmDef(editorFolderPath);
+                if (editorAsmDefToReference != null)
+                {
+                    // If so, add an asmref for it, otherwise it might not be able to reference editor code correctly.
+                    AsmDefUtility.AddAsmRefToTopLevelEditorFolder(editorFolderPath);
+                }
+            }
             
             // Check that the file doesn't exist yet.
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");

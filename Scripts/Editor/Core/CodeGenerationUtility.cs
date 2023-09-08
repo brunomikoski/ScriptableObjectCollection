@@ -11,28 +11,35 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
-        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace,
-            string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
+        public static bool CreateNewScript(
+            string fileName, string parentFolder, string nameSpace, string[] directives, params string[] lines)
         {
+            // Make sure the folder exists.
             AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolder);
+            
+            // Check that the file doesn't exist yet.
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
-
             if (File.Exists(Path.GetFullPath(finalFilePath)))
                 return false;
 
             using StreamWriter writer = new StreamWriter(finalFilePath);
-            bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
             int indentation = 0;
 
-            foreach (string directive in directives)
+            // First write the directives.
+            if (directives != null && directives.Length > 0)
             {
-                if (string.IsNullOrWhiteSpace(directive))
-                    continue;
-                    
-                writer.WriteLine($"using {directive};");
+                foreach (string directive in directives)
+                {
+                    if (string.IsNullOrWhiteSpace(directive))
+                        continue;
+
+                    writer.WriteLine($"using {directive};");
+                }
+                writer.WriteLine();
             }
-                
-            writer.WriteLine();
+            
+            // Then write the namespace.
+            bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
             if (hasNameSpace)
             {
                 writer.WriteLine($"namespace {nameSpace}");
@@ -40,28 +47,63 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation++;
             }
 
-            if (!string.IsNullOrEmpty(classAttributes))
-                writer.WriteLine($"{GetIndentation(indentation)}{classAttributes}");
-                
-            writer.WriteLine($"{GetIndentation(indentation)}{classDeclarationString}");
-            writer.WriteLine(GetIndentation(indentation)+"{");
-            indentation++;
-            if(innerContent != null)
+            // Add the contents of the file.
+            if (lines != null)
             {
-                foreach (string content in innerContent)
+                foreach (string line in lines)
                 {
-                    if (content == "}") indentation--;
-                    writer.WriteLine(GetIndentation(indentation)+content);
-                    if (content == "{") indentation++;
+                    if (line == "}")
+                        indentation--;
+                    
+                    writer.WriteLine(GetIndentation(indentation) + line);
+                    
+                    if (line == "{")
+                        indentation++;
                 }
             }
-            indentation--;
-            writer.WriteLine(GetIndentation(indentation)+"}");
-                
+
+            // If necessary, end the namespace.
             if (hasNameSpace)
                 writer.WriteLine("}");
 
             return true;
+        }
+
+        public static bool CreateNewScript(string fileName, string parentFolder, string nameSpace,
+            string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
+        {
+            List<string> lines = new List<string>();
+            int indentation = 0;
+            
+            // Add class definition
+            if (!string.IsNullOrEmpty(classAttributes))
+                lines.Add($"{GetIndentation(indentation)}{classAttributes}");
+            lines.Add($"{GetIndentation(indentation)}{classDeclarationString}");
+            
+            // Start class braces
+            lines.Add(GetIndentation(indentation)+"{");
+            indentation++;
+            
+            // Add class inner content
+            if (innerContent != null)
+            {
+                foreach (string content in innerContent)
+                {
+                    if (content == "}")
+                        indentation--;
+                    
+                    lines.Add(GetIndentation(indentation)+content);
+                    
+                    if (content == "{")
+                        indentation++;
+                }
+            }
+            
+            // End class braces
+            indentation--;
+            lines.Add(GetIndentation(indentation)+"}");
+
+            return CreateNewScript(fileName, parentFolder, nameSpace, directives, lines.ToArray());
         }
         
         private static string GetIndentation(int indentation)

@@ -640,7 +640,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string folder = ScriptsFolderPath;
             LastScriptsTargetFolder.Value = ScriptsFolderPathWithoutParentFolder;
 
-            return CodeGenerationUtility.CreateNewEmptyScript(collectionItemName, 
+            return CodeGenerationUtility.CreateNewScript(collectionItemName, 
                 folder,
                 Namespace, 
                 string.Empty,
@@ -652,7 +652,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string folder = ScriptsFolderPath;
 
-            bool result = CodeGenerationUtility.CreateNewEmptyScript(CollectionName,
+            bool result = CodeGenerationUtility.CreateNewScript(CollectionName,
                 folder,
                 Namespace,
                 $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {CollectionName}\", fileName = \"{CollectionName}\", order = 0)]",

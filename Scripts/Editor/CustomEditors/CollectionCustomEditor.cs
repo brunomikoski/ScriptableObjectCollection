@@ -962,5 +962,31 @@ namespace BrunoMikoski.ScriptableObjectCollections
             LAST_ADDED_COLLECTION_ITEM = collectionItem;
             return collectionItem;
         }
+        
+        [MenuItem("CONTEXT/ScriptableObjectCollection/Edit Generator", false, int.MaxValue)]
+        private static void EditGenerator(MenuCommand command)
+        {
+            Type collectionType = command.context.GetType();
+            Type generatorType = CollectionGenerators.GetGeneratorTypeForCollection(collectionType);
+            string[] scriptGuids = AssetDatabase.FindAssets($"t:script {generatorType.Name}");
+            if (scriptGuids.Length == 0)
+            {
+                Debug.LogWarning($"Could not find corresponding script for generator '{generatorType}'. " +
+                                 $"Check that the generator's script is called '{generatorType.Name}'.");
+                return;
+            }
+
+            string scriptPath = AssetDatabase.GUIDToAssetPath(scriptGuids[0]);
+            MonoScript script = AssetDatabase.LoadAssetAtPath<MonoScript>(scriptPath);
+            AssetDatabase.OpenAsset(script);
+        }
+        
+        [MenuItem("CONTEXT/ScriptableObjectCollection/Edit Generator", true)]
+        private static bool EditGeneratorValidator(MenuCommand command)
+        {
+            Type collectionType = command.context.GetType();
+            Type generatorType = CollectionGenerators.GetGeneratorTypeForCollection(collectionType);
+            return generatorType != null;
+        }
     }
 }

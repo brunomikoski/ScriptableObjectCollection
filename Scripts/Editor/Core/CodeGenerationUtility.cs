@@ -77,13 +77,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Add the contents of the file.
             if (lines != null)
             {
-                foreach (string line in lines)
+                for (int i = 0; i < lines.Length; i++)
                 {
+                    string line = lines[i];
+                    
+                    line = line.TrimStart();
+
                     if (line == "}")
                         indentation--;
-                    
+
                     writer.WriteLine(GetIndentation(indentation) + line);
-                    
+
                     if (line == "{")
                         indentation++;
                 }

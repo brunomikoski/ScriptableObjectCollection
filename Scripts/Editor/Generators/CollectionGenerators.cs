@@ -47,14 +47,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             templateType = genericArguments[1];
         }
         
-        private static Type[] GetGeneratorTypes()
+        private static Type[] GetAllGeneratorTypes()
         {
             return InterfaceType.GetAllAssignableClasses();
         }
 
         public static Type GetGeneratorTypeForCollection(Type collectionType, bool allowSubclasses = true)
         {
-            Type[] generatorTypes = GetGeneratorTypes();
+            Type[] generatorTypes = GetAllGeneratorTypes();
             foreach (Type generatorType in generatorTypes)
             {
                 GetGeneratorTypes(generatorType, out Type generatorCollectionType, out Type generatorTemplateType);
@@ -67,7 +67,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public static void RunAllGenerators()
         {
-            Type[] generatorTypes = GetGeneratorTypes();
+            Type[] generatorTypes = GetAllGeneratorTypes();
             foreach (Type generatorType in generatorTypes)
             {
                 RunGeneratorInternal(generatorType, false);

@@ -68,6 +68,40 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return true;
         }
+        
+        public static bool CreateNewScript(
+            string fileName, string parentFolder, string nameSpace, string[] directives, 
+            string codeTemplateFileName, Dictionary<string, string> replacements)
+        {
+            // Try to find the specified code template.
+            string[] codeTemplateCandidates = AssetDatabase.FindAssets($"t:TextAsset {codeTemplateFileName}.cs");
+            TextAsset codeTemplate = null;
+            if (codeTemplateCandidates.Length > 0)
+            {
+                string codeTemplatePath = AssetDatabase.GUIDToAssetPath(codeTemplateCandidates[0]);
+                codeTemplate = AssetDatabase.LoadAssetAtPath<TextAsset>(codeTemplatePath);
+            }
+            
+            // Make sure the template exists.
+            if (codeTemplateCandidates.Length == 0 || codeTemplate == null)
+            {
+                Debug.LogError($"Tried to create new script '{parentFolder}/{fileName}' but code template " +
+                               $"'{codeTemplateFileName}.cs.txt' could not be found. Make sure this template exists.");
+                return false;
+            }
+            
+            string codeTemplateText = codeTemplate.text;
+            
+            // Apply any specified replacements.
+            foreach (KeyValuePair<string,string> tagToReplacement in replacements)
+            {
+                codeTemplateText = codeTemplateText.Replace($"##{tagToReplacement.Key}##", tagToReplacement.Value);
+            }
+            
+            // Now create the script.
+            string[] lines = codeTemplateText.Split("\r\n");
+            return CreateNewScript(fileName, parentFolder, nameSpace, directives, lines);
+        }
 
         public static bool CreateNewScript(string fileName, string parentFolder, string nameSpace,
             string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)

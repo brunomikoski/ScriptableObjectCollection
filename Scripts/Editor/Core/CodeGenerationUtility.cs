@@ -5,34 +5,68 @@ using System.Linq;
 using System.Text;
 using UnityEditor;
 using UnityEditor.Compilation;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
-        public static bool CreateNewEmptyScript(string fileName, string parentFolder, string nameSpace,
-            string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
+        public static bool CreateNewScript(
+            string fileName, string parentFolder, string nameSpace, string[] directives, params string[] lines)
         {
+            parentFolder = parentFolder.ToPathWithConsistentSeparators();
+            
+            // Make sure the folder exists.
             AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolder);
+            
+            // Check if the created folder is an editor folder.
+            const string editorFolderName = "Editor";
+            bool isEditorFolder = parentFolder.Contains($"/{editorFolderName}/") ||
+                                  parentFolder.EndsWith($"/{editorFolderName}");
+            if (isEditorFolder)
+            {
+                // Figure out what the last editor folder is. This is because you can create an item with path
+                // 'Assets/ProjectName/Scripts/Editor/SomeSubFolder', in which case it should be making an asmref
+                // for 'Assets/ProjectName/Scripts/Editor' and not for the subfolder.
+                int lastOccurrenceOfEditorName = parentFolder.LastIndexOf($"/{editorFolderName}", 
+                    StringComparison.OrdinalIgnoreCase);
+                string editorFolderPath = parentFolder.Substring(
+                    0, lastOccurrenceOfEditorName + editorFolderName.Length + 1);
+                    
+                // Find out if there is an editor asmdef that we should be referencing.
+                AssemblyDefinitionAsset editorAsmDefToReference = AsmDefUtility
+                    .GetParentEditorAsmDef(editorFolderPath);
+                if (editorAsmDefToReference != null)
+                {
+                    // If so, add an asmref for it, otherwise it might not be able to reference editor code correctly.
+                    AsmDefUtility.AddAsmRefToTopLevelEditorFolder(editorFolderPath);
+                }
+            }
+            
+            // Check that the file doesn't exist yet.
             string finalFilePath = Path.Combine(parentFolder, $"{fileName}.cs");
-
             if (File.Exists(Path.GetFullPath(finalFilePath)))
                 return false;
 
             using StreamWriter writer = new StreamWriter(finalFilePath);
-            bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
             int indentation = 0;
 
-            foreach (string directive in directives)
+            // First write the directives.
+            if (directives != null && directives.Length > 0)
             {
-                if (string.IsNullOrWhiteSpace(directive))
-                    continue;
-                    
-                writer.WriteLine($"using {directive};");
+                foreach (string directive in directives)
+                {
+                    if (string.IsNullOrWhiteSpace(directive))
+                        continue;
+
+                    writer.WriteLine($"using {directive};");
+                }
+                writer.WriteLine();
             }
-                
-            writer.WriteLine();
+            
+            // Then write the namespace.
+            bool hasNameSpace = !string.IsNullOrEmpty(nameSpace);
             if (hasNameSpace)
             {
                 writer.WriteLine($"namespace {nameSpace}");
@@ -40,28 +74,103 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation++;
             }
 
+            // Add the contents of the file.
+            if (lines != null)
+            {
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i];
+                    
+                    line = line.TrimStart();
+
+                    if (line == "}")
+                        indentation--;
+
+                    writer.WriteLine(GetIndentation(indentation) + line);
+
+                    if (line == "{")
+                        indentation++;
+                }
+            }
+
+            // If necessary, end the namespace.
+            if (hasNameSpace)
+                writer.WriteLine("}");
+            
+            writer.Close();
+
+            return true;
+        }
+        
+        public static bool CreateNewScript(
+            string fileName, string parentFolder, string nameSpace, string[] directives, 
+            string codeTemplateFileName, Dictionary<string, string> replacements)
+        {
+            // Try to find the specified code template.
+            string[] codeTemplateCandidates = AssetDatabase.FindAssets($"t:TextAsset {codeTemplateFileName}.cs");
+            TextAsset codeTemplate = null;
+            if (codeTemplateCandidates.Length > 0)
+            {
+                string codeTemplatePath = AssetDatabase.GUIDToAssetPath(codeTemplateCandidates[0]);
+                codeTemplate = AssetDatabase.LoadAssetAtPath<TextAsset>(codeTemplatePath);
+            }
+            
+            // Make sure the template exists.
+            if (codeTemplateCandidates.Length == 0 || codeTemplate == null)
+            {
+                Debug.LogError($"Tried to create new script '{parentFolder}/{fileName}' but code template " +
+                               $"'{codeTemplateFileName}.cs.txt' could not be found. Make sure this template exists.");
+                return false;
+            }
+            
+            string codeTemplateText = codeTemplate.text;
+            
+            // Apply any specified replacements.
+            foreach (KeyValuePair<string,string> tagToReplacement in replacements)
+            {
+                codeTemplateText = codeTemplateText.Replace($"##{tagToReplacement.Key}##", tagToReplacement.Value);
+            }
+            
+            // Now create the script.
+            string[] lines = codeTemplateText.Split("\r\n");
+            return CreateNewScript(fileName, parentFolder, nameSpace, directives, lines);
+        }
+
+        public static bool CreateNewScript(string fileName, string parentFolder, string nameSpace,
+            string classAttributes, string classDeclarationString, string[] innerContent, params string[] directives)
+        {
+            List<string> lines = new List<string>();
+            int indentation = 0;
+            
+            // Add class definition
             if (!string.IsNullOrEmpty(classAttributes))
-                writer.WriteLine($"{GetIndentation(indentation)}{classAttributes}");
-                
-            writer.WriteLine($"{GetIndentation(indentation)}{classDeclarationString}");
-            writer.WriteLine(GetIndentation(indentation)+"{");
+                lines.Add($"{GetIndentation(indentation)}{classAttributes}");
+            lines.Add($"{GetIndentation(indentation)}{classDeclarationString}");
+            
+            // Start class braces
+            lines.Add(GetIndentation(indentation)+"{");
             indentation++;
-            if(innerContent != null)
+            
+            // Add class inner content
+            if (innerContent != null)
             {
                 foreach (string content in innerContent)
                 {
-                    if (content == "}") indentation--;
-                    writer.WriteLine(GetIndentation(indentation)+content);
-                    if (content == "{") indentation++;
+                    if (content == "}")
+                        indentation--;
+                    
+                    lines.Add(GetIndentation(indentation)+content);
+                    
+                    if (content == "{")
+                        indentation++;
                 }
             }
+            
+            // End class braces
             indentation--;
-            writer.WriteLine(GetIndentation(indentation)+"}");
-                
-            if (hasNameSpace)
-                writer.WriteLine("}");
+            lines.Add(GetIndentation(indentation)+"}");
 
-            return true;
+            return CreateNewScript(fileName, parentFolder, nameSpace, directives, lines.ToArray());
         }
         
         private static string GetIndentation(int indentation)

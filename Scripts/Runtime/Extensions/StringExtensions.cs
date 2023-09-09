@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -19,6 +20,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string HUNGARIAN_PREFIX = "m_";
         private const char UNDERSCORE = '_';
         private const char DEFAULT_SEPARATOR = ' ';
+        
+        private static readonly char[] DIRECTORY_SEPARATORS = { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
+        private const string ASSETS_FOLDER = "Assets";
         
         private static readonly string[] RESERVED_KEYWORDS = {
             "abstract", "as", "base", " bool", " break", "byte", "case", "catch", "char", "checked", "class", "const",
@@ -250,6 +254,84 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static string ToPathWithConsistentSeparators(this string path)
         {
             return path.Replace(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        }
+        
+        public static bool HasParentDirectory(this string path)
+        {
+            return path.LastIndexOfAny(DIRECTORY_SEPARATORS) != -1;
+        }
+    
+        public static string GetParentDirectory(this string path)
+        {
+            int lastDirectorySeparator = path.LastIndexOfAny(DIRECTORY_SEPARATORS);
+            if (lastDirectorySeparator == -1)
+                return path;
+
+            return path.Substring(0, lastDirectorySeparator);
+        }
+        
+        public static bool StartsWithAny(this string path, params string[] prefixes)
+        {
+            foreach (string prefix in prefixes)
+            {
+                if (path.StartsWith(prefix))
+                    return true;
+            }
+
+            return false;
+        }
+        
+        public static string RemovePrefix(this string name, string prefix)
+        {
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(prefix))
+                return name;
+
+            if (!name.StartsWith(prefix))
+                return name;
+
+            return name.Substring(prefix.Length);
+        }
+    
+        public static string RemovePrefix(this string name, char prefix)
+        {
+            return RemovePrefix(name, prefix.ToString());
+        }
+        
+        public static string RemoveSuffix(this string name, string suffix)
+        {
+            if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(suffix))
+                return name;
+
+            if (!name.EndsWith(suffix))
+                return name;
+
+            return name.Substring(0, name.Length - suffix.Length);
+        }
+    
+        public static string RemoveSuffix(this string name, char suffix)
+        {
+            return RemoveSuffix(name, suffix.ToString());
+        }
+        
+        private static string RemoveAssetsPrefix(this string path)
+        {
+            return RemovePrefix(path.ToPathWithConsistentSeparators(), ASSETS_FOLDER + Path.AltDirectorySeparatorChar);
+        }
+        
+        public static string GetAbsolutePath(this string projectPath)
+        {
+            string absolutePath = RemoveAssetsPrefix(projectPath);
+            return Application.dataPath + Path.AltDirectorySeparatorChar + absolutePath;
+        }
+    
+        public static string GetProjectPath(this string absolutePath)
+        {
+            absolutePath = absolutePath.ToPathWithConsistentSeparators();
+            string projectPath = RemoveSuffix(Application.dataPath, ASSETS_FOLDER);
+            projectPath = RemoveSuffix(projectPath, Path.AltDirectorySeparatorChar);
+            
+            string relativePath = ToPathWithConsistentSeparators(Path.GetRelativePath(projectPath, absolutePath));
+            return relativePath;
         }
     }
 }

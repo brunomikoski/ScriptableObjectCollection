@@ -265,7 +265,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static readonly EditorPreferenceString LastScriptsTargetFolder =
             new EditorPreferenceString(LAST_TARGET_SCRIPTS_FOLDER_KEY, null, true);
 
-        private static readonly EditorPreferenceString LastGeneratedCollectionScriptPath =
+        public static readonly EditorPreferenceString LastGeneratedCollectionScriptPath =
             new EditorPreferenceString(LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY, null, true);
 
         private static readonly EditorPreferenceBool CreateFolderForThisCollection =
@@ -640,7 +640,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string folder = ScriptsFolderPath;
             LastScriptsTargetFolder.Value = ScriptsFolderPathWithoutParentFolder;
 
-            return CodeGenerationUtility.CreateNewEmptyScript(collectionItemName, 
+            return CodeGenerationUtility.CreateNewScript(collectionItemName, 
                 folder,
                 Namespace, 
                 string.Empty,
@@ -652,7 +652,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string folder = ScriptsFolderPath;
 
-            bool result = CodeGenerationUtility.CreateNewEmptyScript(CollectionName,
+            bool result = CodeGenerationUtility.CreateNewScript(CollectionName,
                 folder,
                 Namespace,
                 $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {CollectionName}\", fileName = \"{CollectionName}\", order = 0)]",

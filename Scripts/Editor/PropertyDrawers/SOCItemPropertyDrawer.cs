@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -38,6 +40,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return overrideFieldInfo;
             }
         }
+        
+        private Type currentItemType;
+
 
         private SOCItemEditorOptionsAttribute GetOptionsAttribute()
         {
@@ -88,9 +93,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     currentObject = collectionItem;
 
                 DrawEditFoldoutButton(ref prefixPosition, collectionItem);
-                DrawGotoButton(ref prefixPosition, collectionItem);
             }
-
+            
+            DrawGotoButton(ref prefixPosition, collectionItem);
             DrawCollectionItemDropDown(ref prefixPosition, collectionItem, callback);
             DrawEditorPreview(ref position, collectionItem);
             EditorGUI.indentLevel = indent;
@@ -188,7 +193,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 OptionsAttribute,
                 obj
             );
-
+            currentItemType = collectionItemType;
             currentObject = obj;
             initialized = true;
             
@@ -213,9 +218,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (!OptionsAttribute.ShouldDrawGotoButton) 
                 return;
 
-            if (collectionItem is not ISOCItem socItem)
-                return;
-            
             Rect buttonRect = popupRect;
             buttonRect.width = BUTTON_WIDTH;
             buttonRect.height = 18;
@@ -223,8 +225,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
-                Selection.activeObject = socItem.Collection;
-                CollectionUtility.SetOnlyCollectionItemExpanded(socItem, socItem.Collection);
+
+                if (collectionItem == null)
+                {
+                    if (CollectionsRegistry.Instance.TryGetCollectionsOfItemType(currentItemType, out List<ScriptableObjectCollection> possibleCollections))
+                    {
+                        Selection.activeObject = possibleCollections.First();
+                    }
+                }
+                else
+                {
+                    if (collectionItem is not ISOCItem socItem)
+                        return;
+                        
+                    Selection.activeObject = socItem.Collection;
+                    CollectionUtility.SetOnlyCollectionItemExpanded(socItem, socItem.Collection);
+                }
             }
         }
 

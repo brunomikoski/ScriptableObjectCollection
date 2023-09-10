@@ -630,8 +630,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 Type itemSubClass = itemsSubclasses[i];
                 if (itemSubClass.IsAbstract)
                     continue;
-                
-                AddMenuOption(optionsMenu, itemSubClass.Name, () =>
+
+                optionsMenu.AddItem(new GUIContent(itemSubClass.Name), false, () =>
                 {
                     EditorApplication.delayCall += () => { AddNewItemOfType(itemSubClass); };
                 });
@@ -648,9 +648,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (itemSubClass.IsSealed)
                         continue;
                 
-                    AddMenuOption(optionsMenu, $"Create New/class $NEW : {itemSubClass.Name}", () =>
+                    optionsMenu.AddItem(new GUIContent($"Create New/class $NEW : {itemSubClass.Name}"), false, () =>
                     {
-                        EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(itemSubClass); };
+                        EditorApplication.delayCall += () => { AddNewItemOfType(itemSubClass); };
                     });
                 }
             }
@@ -711,11 +711,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             SerializedProperty arrayElementAtIndex = itemsSerializedProperty.GetArrayElementAtIndex(itemsSerializedProperty.arraySize - 1);
             arrayElementAtIndex.objectReferenceValue = LAST_ADDED_COLLECTION_ITEM;
             arrayElementAtIndex.isExpanded = true;
-        }
-
-        private void AddMenuOption(GenericMenu optionsMenu, string displayName, Action action)
-        {
-            optionsMenu.AddItem(new GUIContent(displayName), false, action.Invoke);
         }
 
         private void DrawSearchField()

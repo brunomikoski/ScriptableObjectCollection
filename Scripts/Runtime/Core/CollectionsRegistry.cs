@@ -230,6 +230,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (scriptableObjectCollection == null)
+                {
+                    ValidateCollections();
+                    resultCollection = null;
+                    return false;
+                }
                 if (scriptableObjectCollection.GetType() == type)
                 {
                     resultCollection = scriptableObjectCollection;

@@ -66,12 +66,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item = property.objectReferenceValue as ScriptableObject;
 
+            EditorGUI.BeginProperty(position, label, property);
             DrawCollectionItemDrawer(ref position, item, label,
                 newItem =>
                 {
                     property.objectReferenceValue = newItem;
                     property.serializedObject.ApplyModifiedProperties();
                 });
+            EditorGUI.EndProperty();
         }
 
         internal void DrawCollectionItemDrawer(ref Rect position, ScriptableObject collectionItem, GUIContent label, 

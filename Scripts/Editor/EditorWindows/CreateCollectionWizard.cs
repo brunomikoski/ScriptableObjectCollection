@@ -196,7 +196,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (!string.IsNullOrEmpty(@namespace))
                     @namespace += NamespaceUtility.Separator;
                 @namespace += NamespaceSuffix;
-                return @namespace;
+                return @namespace.TrimEnd('.');
             }
         }
         

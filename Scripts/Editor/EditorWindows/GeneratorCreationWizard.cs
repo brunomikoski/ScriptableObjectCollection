@@ -99,6 +99,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (!string.IsNullOrEmpty(collectionType.Namespace))
                 targetNamespace = collectionType.Namespace;
 
+            targetNamespace = targetNamespace.TrimEnd('.');
+
             Dictionary<string, string> replacements = new Dictionary<string, string>
             {
                 {"TemplateType", templateName},

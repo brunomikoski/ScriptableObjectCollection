@@ -105,6 +105,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             get
             {
+                if (ScriptFolderMirrorsScriptableObjectFolder.Value)
+                    return ScriptableObjectFolderBase;
+                
                 if (cachedScriptsFolderBase != null) 
                     return cachedScriptsFolderBase;
                 

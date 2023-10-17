@@ -106,6 +106,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                             if (!string.IsNullOrEmpty(targetType.Namespace))
                                 targetNamespace = targetType.Namespace;
+
+                            targetNamespace = targetNamespace.TrimEnd('.');
                             
                             string parentFolder = AssetDatabase.GetAssetPath(targetFolder);
                             CodeGenerationUtility.CreateNewScript(newClassName,

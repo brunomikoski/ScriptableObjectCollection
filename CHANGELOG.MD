@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.4]
+### Fixed
+- Fixed scripts folder validation warning showing incorrectly when mirroring folder
+
 ## [2.1.3]
 ### Fixed
 - Fixed namespaces ending with dot

@@ -1,0 +1,20 @@
+{
+    "name": "BrunoMikoski.ScriptableObjectCollection.Editor.Browser",
+    "rootNamespace": "",
+    "references": [
+        "BrunoMikoski.ScriptableObjectCollection",
+        "BrunoMikoski.ScriptableObjectCollection.Editor",
+        "UnityDropdown.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

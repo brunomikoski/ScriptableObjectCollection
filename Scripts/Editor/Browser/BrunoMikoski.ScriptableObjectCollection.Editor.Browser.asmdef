@@ -3,8 +3,7 @@
     "rootNamespace": "",
     "references": [
         "BrunoMikoski.ScriptableObjectCollection",
-        "BrunoMikoski.ScriptableObjectCollection.Editor",
-        "UnityDropdown.Editor"
+        "BrunoMikoski.ScriptableObjectCollection.Editor"
     ],
     "includePlatforms": [
         "Editor"

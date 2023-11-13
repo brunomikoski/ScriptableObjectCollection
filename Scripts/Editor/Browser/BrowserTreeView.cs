@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 
@@ -30,7 +31,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
         private void Initialize()
         {
             showAlternatingRowBackgrounds = true;
-            // showBorder = true;
             Reload();
         }
 
@@ -69,6 +69,19 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
         protected override bool CanMultiSelect(TreeViewItem item)
         {
             return false;
+        }
+
+        protected override void SelectionChanged(IList<int> selectedIds)
+        {
+            if (selectedIds.Count != 1)
+                return;
+
+            TreeViewItem item = FindItem(selectedIds[0], rootItem);
+
+            if (item is BrowserTreeViewItem treeViewItem)
+            {
+                ItemClicked?.Invoke(treeViewItem);
+            }
         }
 
         protected override void SingleClickedItem(int id)

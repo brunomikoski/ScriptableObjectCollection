@@ -52,8 +52,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        private bool didCacheIndex;
-        private int cachedIndex;
+        [NonSerialized] private bool didCacheIndex;
+        [NonSerialized] private int cachedIndex;
         public int Index
         {
             get

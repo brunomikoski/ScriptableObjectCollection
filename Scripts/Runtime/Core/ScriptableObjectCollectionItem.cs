@@ -51,6 +51,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return cachedCollection;
             }
         }
+        
+        [NonSerialized] private bool didCacheIndex;
+        [NonSerialized] private int cachedIndex;
+        public int Index
+        {
+            get
+            {
+                if (!didCacheIndex)
+                {
+                    didCacheIndex = true;
+                    cachedIndex = Collection.Items.IndexOf(this);
+                }
+                return cachedIndex;
+            }
+        }
 
         public void SetCollection(ScriptableObjectCollection collection)
         {

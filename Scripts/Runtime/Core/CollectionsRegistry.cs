@@ -55,7 +55,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (!collections.Contains(targetCollection))
                 return;
 
-            collections.Remove(targetCollection);
+            if (!collections.Remove(targetCollection))
+                return;
             
             ObjectUtility.SetDirty(this);
         }
@@ -230,6 +231,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (scriptableObjectCollection == null)
+                {
+                    ValidateCollections();
+                    resultCollection = null;
+                    return false;
+                }
                 if (scriptableObjectCollection.GetType() == type)
                 {
                     resultCollection = scriptableObjectCollection;
@@ -366,6 +373,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void RemoveNonAutomaticallyInitializedCollections()
         {
 #if UNITY_EDITOR
+            bool dirty = false;
             for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
@@ -374,8 +382,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 collections.Remove(collection);
+                dirty = true;
             }
-            ObjectUtility.SetDirty(this);
+
+            if (dirty)
+            {
+                ObjectUtility.SetDirty(this);
+            }
 #endif
         }
 
@@ -436,11 +449,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void SetAutoSearchForCollections(bool isOn)
         {
+            if (isOn == autoSearchForCollections)
+                return;
+            
             autoSearchForCollections = isOn;
             ObjectUtility.SetDirty(this);
         }
-
-        
     }
 }
 

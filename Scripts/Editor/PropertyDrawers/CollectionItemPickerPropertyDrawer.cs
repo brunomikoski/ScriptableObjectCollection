@@ -256,7 +256,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             if (!CollectionsRegistry.Instance.TryGetCollectionsOfItemType(itemType, out possibleCollections))
                 throw new Exception($"No collection found for item type {itemType}");
-            
 
             popupList.Clear();
             availableItems.Clear();
@@ -267,7 +266,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     ScriptableObject scriptableObject = possibleCollections[i][j];
                     Type scriptableObjectType = scriptableObject.GetType();
 
-                    if (scriptableObjectType != itemType || scriptableObjectType.IsSubclassOf(itemType))
+                    if (scriptableObjectType != itemType && !scriptableObjectType.IsSubclassOf(itemType))
                         continue;
                     
                     availableItems.Add(scriptableObject);

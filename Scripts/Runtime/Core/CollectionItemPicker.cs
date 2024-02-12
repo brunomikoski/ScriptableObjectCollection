@@ -28,22 +28,23 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 //Backwards compability with old system
                 if (itemsGuids.Count > 0)
                 {
-                    CollectionsRegistry.Instance.TryGetCollectionsOfItemType(out List<ScriptableObjectCollection<TItemType>> results);
-
-                    for (int i = 0; i < itemsGuids.Count; i++)
+                    if (CollectionsRegistry.Instance.TryGetCollectionsOfItemType(out List<ScriptableObjectCollection<TItemType>> results))
                     {
-                        LongGuid itemGuid = itemsGuids[i];
-                        for (int j = 0; j < results.Count; j++)
+                        for (int i = 0; i < itemsGuids.Count; i++)
                         {
-                            ScriptableObjectCollection<TItemType> collection = results[j];
-                            if (!collection.TryGetItemByGUID(itemGuid, out TItemType result))
-                                continue;
+                            LongGuid itemGuid = itemsGuids[i];
+                            for (int j = 0; j < results.Count; j++)
+                            {
+                                ScriptableObjectCollection<TItemType> collection = results[j];
+                                if (!collection.TryGetItemByGUID(itemGuid, out TItemType result))
+                                    continue;
 
-                            cachedIndirectReferences.Add(new CollectionItemIndirectReference<TItemType>(result));
-                            break;
+                                cachedIndirectReferences.Add(new CollectionItemIndirectReference<TItemType>(result));
+                                break;
+                            }
                         }
+                        itemsGuids.Clear();
                     }
-                    itemsGuids.Clear();
                 }
                 
                 return cachedIndirectReferences;

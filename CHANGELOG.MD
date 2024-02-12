@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [2.2.2]
+### Fixes
+- Fixed Collection Picker wrong intiialization on a cold registry
+- Fixing Collection Picker not respecting children rules
+- Fix drawing go to button on null items.
+
 ## [2.2.1]
 ### Fixed
 - Update active editor when selecting a new item with the keyboard
@@ -500,6 +507,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.2.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.2
 [2.1.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.1.0
 [2.0.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.9
 [2.0.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.8

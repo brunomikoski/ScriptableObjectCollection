@@ -127,6 +127,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObjectCollection collection = Collections[i];
 
+                if (collection == null)
+                    continue;
+                
                 if (collection.GetItemType() == targetType || collection.GetItemType().IsAssignableFrom(targetType))
                 {
                     availables.Add(collection);

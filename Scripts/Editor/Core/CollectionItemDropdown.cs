@@ -19,6 +19,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private readonly SOCItemEditorOptionsAttribute options;
         private readonly SerializedProperty serializedProperty;
         private readonly MethodInfo validationMethod;
+        
+        private readonly MethodInfo onSelectCallbackMethod;
 
         public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType,
             SOCItemEditorOptionsAttribute options, SerializedProperty serializedProperty) : base(state)
@@ -29,12 +31,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
             this.options = options;
             this.serializedProperty = serializedProperty;
 
-
             if (options != null)
             {
                 Object owner = serializedProperty.serializedObject.targetObject;
                 if (!string.IsNullOrEmpty(options.ValidateMethod))
                     validationMethod = owner.GetType().GetMethod(options.ValidateMethod, new[] {itemType});
+                
+                if (!string.IsNullOrEmpty(options.OnSelectCallbackMethod))
+                {
+                    onSelectCallbackMethod = owner.GetType().GetMethod(options.OnSelectCallbackMethod,
+                        BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
+                        null, new[] {itemType, itemType}, null);
+                }
             }
         }
 
@@ -115,22 +123,44 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return root;
         }
 
+        private void InvokeOnSelectCallback(ScriptableObject from, ScriptableObject to)
+        {
+            if (onSelectCallbackMethod == null)
+                return;
+
+            object target = onSelectCallbackMethod.IsStatic ? null : serializedProperty.serializedObject.targetObject;
+            onSelectCallbackMethod.Invoke(target, new object[] {from, to});
+        }
+
         protected override void ItemSelected(AdvancedDropdownItem item)
         {
             base.ItemSelected(item);
+
+            ScriptableObject previousValue = null;
+            if (onSelectCallbackMethod != null)
+                previousValue = serializedProperty.objectReferenceValue as ScriptableObject;
 
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
                 ScriptableObjectCollection collection = collections.First();
                 ScriptableObject newItem = CollectionCustomEditor.AddNewItem(collection, itemType);
                 callback.Invoke(newItem);
+                
+                InvokeOnSelectCallback(previousValue, newItem);
+                
                 return;
             }
             
             if (item is CollectionItemDropdownItem dropdownItem)
+            {
                 callback.Invoke(dropdownItem.CollectionItem);
+                InvokeOnSelectCallback(previousValue, dropdownItem.CollectionItem);
+            }
             else
+            {
                 callback.Invoke(null);
+                InvokeOnSelectCallback(previousValue, null);
+            }
         }
 
         public void Show(Rect rect, Action<ScriptableObject> onSelectedCallback)

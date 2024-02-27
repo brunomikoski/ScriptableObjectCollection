@@ -34,6 +34,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         /// If specified, only show collection items that belong to the collection assigned to the specified field.
         /// </summary>
         public string ConstrainToCollectionField { get; set; }
+        
+        /// <summary>
+        /// If specified, will perform this method whenever the value changes.
+        /// Parameters of the method should be: ItemType from, ItemType to
+        /// </summary>
+        public string OnSelectCallbackMethod { get; set; }
     }
 
     //Temporary 

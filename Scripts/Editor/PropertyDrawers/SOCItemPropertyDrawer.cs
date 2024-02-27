@@ -72,7 +72,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             item = property.objectReferenceValue as ScriptableObject;
 
             EditorGUI.BeginProperty(position, label, property);
-            DrawCollectionItemDrawer(ref position, item, label,
+            DrawCollectionItemDrawer(ref position, property, item, label,
                 newItem =>
                 {
                     property.objectReferenceValue = newItem;
@@ -81,7 +81,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             EditorGUI.EndProperty();
         }
 
-        internal void DrawCollectionItemDrawer(ref Rect position, ScriptableObject collectionItem, GUIContent label, 
+        internal void DrawCollectionItemDrawer(
+            ref Rect position, SerializedProperty property, ScriptableObject collectionItem, GUIContent label,
             Action<ScriptableObject> callback)
         {
             float originY = position.y;
@@ -98,7 +99,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             DrawGotoButton(ref prefixPosition, collectionItem);
-            DrawCollectionItemDropDown(ref prefixPosition, collectionItem, callback);
+            DrawCollectionItemDropDown(ref prefixPosition, property, collectionItem, callback);
             DrawEditorPreview(ref position, collectionItem);
             EditorGUI.indentLevel = indent;
             totalHeight = position.y - originY;
@@ -171,7 +172,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 itemType = arrayOrListType ?? TargetFieldInfo.FieldType;
             }
             
-            Initialize(itemType, property.serializedObject.targetObject, GetOptionsAttribute());
+            Initialize(itemType, property, GetOptionsAttribute());
         }
 
         internal void Initialize(Type collectionItemType, SOCItemEditorOptionsAttribute optionsAttribute)
@@ -179,7 +180,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Initialize(collectionItemType, null, optionsAttribute ?? GetOptionsAttribute());
         }
 
-        internal void Initialize(Type collectionItemType, Object obj, SOCItemEditorOptionsAttribute optionsAttribute)
+        internal void Initialize(
+            Type collectionItemType, SerializedProperty serializedProperty, SOCItemEditorOptionsAttribute optionsAttribute)
         {
             if (initialized)
                 return;
@@ -193,15 +195,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 new AdvancedDropdownState(),
                 collectionItemType,
                 OptionsAttribute,
-                obj
+                serializedProperty
             );
+            
             currentItemType = collectionItemType;
-            currentObject = obj;
+            currentObject = serializedProperty.serializedObject.targetObject;
             initialized = true;
             
         }
 
-        private void DrawCollectionItemDropDown(ref Rect position, ScriptableObject collectionItem,
+        private void DrawCollectionItemDropDown(
+            ref Rect position, SerializedProperty property, ScriptableObject collectionItem,
             Action<ScriptableObject> callback)
         {
             GUIContent displayValue = new GUIContent("None");
@@ -209,10 +213,47 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItem != null)
                 displayValue = new GUIContent(collectionItem.name);
 
+            bool canUseDropDown = true;
+            bool isDropdownError = false;
+
+            // If the options are meant to be constrained to a specific collection, check if the collection specified
+            // is valid. If not, draw some useful messages so you're aware what's wrong and know how to fix it.
+            if (!string.IsNullOrEmpty(OptionsAttribute.ConstrainToCollectionField))
+            {
+                SerializedProperty collectionField = property.serializedObject.FindProperty(
+                    OptionsAttribute.ConstrainToCollectionField);
+                if (collectionField == null)
+                {
+                    displayValue.text = $"Invalid collection constraint '{OptionsAttribute.ConstrainToCollectionField}'";
+                    canUseDropDown = false;
+                    isDropdownError = true;
+                }
+                else
+                {
+                    ScriptableObjectCollection collectionToConstrainTo = collectionField
+                        .objectReferenceValue as ScriptableObjectCollection;
+                    if (collectionToConstrainTo == null)
+                    {
+                        displayValue.text = $"No collection specified.";
+                        canUseDropDown = false;
+                    }
+                }
+            }
+
+            bool wasGuiEnabled = GUI.enabled;
+            GUI.enabled = canUseDropDown;
+            
+            Color originalContentColor = GUI.contentColor;
+            if (isDropdownError)
+                GUI.contentColor = Color.red;
+            
             if (GUI.Button(position, displayValue, EditorStyles.popup))
             {
                 collectionItemDropdown.Show(position, callback.Invoke);
             }
+
+            GUI.contentColor = originalContentColor;
+            GUI.enabled = wasGuiEnabled;
         }
 
         private void DrawGotoButton(ref Rect popupRect, ScriptableObject collectionItem)

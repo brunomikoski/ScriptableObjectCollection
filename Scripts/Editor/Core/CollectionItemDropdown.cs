@@ -37,6 +37,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (!string.IsNullOrEmpty(options.ValidateMethod))
                     validationMethod = owner.GetType().GetMethod(options.ValidateMethod, new[] {itemType});
                 
+                // If it's specified that a callback should be fired when an item is selected, cache that callback.
                 if (!string.IsNullOrEmpty(options.OnSelectCallbackMethod))
                 {
                     onSelectCallbackMethod = owner.GetType().GetMethod(options.OnSelectCallbackMethod,

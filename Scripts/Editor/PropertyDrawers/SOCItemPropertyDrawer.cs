@@ -216,6 +216,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             bool canUseDropDown = true;
             bool isDropdownError = false;
 
+            // If the options are meant to be constrained to a specific collection, check if the collection specified
+            // is valid. If not, draw some useful messages so you're aware what's wrong and know how to fix it.
             if (!string.IsNullOrEmpty(OptionsAttribute.ConstrainToCollectionField))
             {
                 SerializedProperty collectionField = property.serializedObject.FindProperty(

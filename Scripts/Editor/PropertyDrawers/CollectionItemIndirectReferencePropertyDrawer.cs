@@ -41,7 +41,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 SetCollectionItemType();
             
             if (socItemPropertyDrawer == null) 
-                CreateCollectionItemPropertyDrawer(property.serializedObject);
+                CreateCollectionItemPropertyDrawer(property);
 
             drawingProperty = property;
             itemGUIDValueASerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A_PROPERTY_PATH);
@@ -133,10 +133,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return true;
         }
 
-        private void CreateCollectionItemPropertyDrawer(SerializedObject serializedObject)
+        private void CreateCollectionItemPropertyDrawer(SerializedProperty serializedProperty)
         {
             socItemPropertyDrawer = new SOCItemPropertyDrawer();
-            socItemPropertyDrawer.Initialize(collectionItemType, serializedObject, GetOptionsAttribute());
+            socItemPropertyDrawer.Initialize(collectionItemType, serializedProperty, GetOptionsAttribute());
         }
 
         private void SetCollectionItemType()

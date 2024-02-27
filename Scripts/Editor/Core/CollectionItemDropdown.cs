@@ -17,22 +17,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private readonly Type itemType;
         private readonly SOCItemEditorOptionsAttribute options;
-        private readonly SerializedObject serializedObject;
+        private readonly SerializedProperty serializedProperty;
         private readonly MethodInfo validationMethod;
 
         public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType,
-            SOCItemEditorOptionsAttribute options, SerializedObject serializedObject) : base(state)
+            SOCItemEditorOptionsAttribute options, SerializedProperty serializedProperty) : base(state)
         {
             itemType = targetItemType;
             collections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType);
             minimumSize = new Vector2(200, 300);
             this.options = options;
-            this.serializedObject = serializedObject;
+            this.serializedProperty = serializedProperty;
 
 
             if (options != null)
             {
-                Object owner = serializedObject.targetObject;
+                Object owner = serializedProperty.serializedObject.targetObject;
                 if (!string.IsNullOrEmpty(options.ValidateMethod))
                     validationMethod = owner.GetType().GetMethod(options.ValidateMethod, new[] {itemType});
             }
@@ -49,13 +49,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObjectCollection collectionToConstrainTo = null;
             if (!string.IsNullOrEmpty(options.ConstrainToCollectionField))
             {
-                SerializedProperty collectionField = serializedObject.FindProperty(
+                SerializedProperty collectionField = serializedProperty.serializedObject.FindProperty(
                     options.ConstrainToCollectionField);
                 if (collectionField == null)
                 {
                     Debug.LogWarning($"Tried to constrain dropdown to collection specified in field " +
                                      $"'{options.ConstrainToCollectionField}' but no such field existed in " +
-                                     $"'{serializedObject.targetObject}'");
+                                     $"'{serializedProperty.serializedObject.targetObject}'");
                     return root;
                 }
 
@@ -98,7 +98,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (validationMethod != null)
                     {
                         bool result = (bool) validationMethod.Invoke(
-                            serializedObject.targetObject, new object[] {collectionItem});
+                            serializedProperty.serializedObject.targetObject, new object[] {collectionItem});
                         if (!result)
                             continue;
                     }

@@ -171,7 +171,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 itemType = arrayOrListType ?? TargetFieldInfo.FieldType;
             }
             
-            Initialize(itemType, property.serializedObject.targetObject, GetOptionsAttribute());
+            Initialize(itemType, property.serializedObject, GetOptionsAttribute());
         }
 
         internal void Initialize(Type collectionItemType, SOCItemEditorOptionsAttribute optionsAttribute)
@@ -179,7 +179,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Initialize(collectionItemType, null, optionsAttribute ?? GetOptionsAttribute());
         }
 
-        internal void Initialize(Type collectionItemType, Object obj, SOCItemEditorOptionsAttribute optionsAttribute)
+        internal void Initialize(
+            Type collectionItemType, SerializedObject serializedObject, SOCItemEditorOptionsAttribute optionsAttribute)
         {
             if (initialized)
                 return;
@@ -193,10 +194,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 new AdvancedDropdownState(),
                 collectionItemType,
                 OptionsAttribute,
-                obj
+                serializedObject
             );
+            
             currentItemType = collectionItemType;
-            currentObject = obj;
+            currentObject = serializedObject.targetObject;
             initialized = true;
             
         }

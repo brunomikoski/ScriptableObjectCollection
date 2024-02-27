@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -16,22 +17,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private readonly Type itemType;
         private readonly SOCItemEditorOptionsAttribute options;
-        private readonly Object owner;
+        private readonly SerializedObject serializedObject;
         private readonly MethodInfo validationMethod;
 
         public CollectionItemDropdown(AdvancedDropdownState state, Type targetItemType,
-            SOCItemEditorOptionsAttribute options, Object owner) : base(state)
+            SOCItemEditorOptionsAttribute options, SerializedObject serializedObject) : base(state)
         {
             itemType = targetItemType;
             collections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType);
             minimumSize = new Vector2(200, 300);
             this.options = options;
-            this.owner = owner;
+            this.serializedObject = serializedObject;
 
 
-            if (options != null && !string.IsNullOrEmpty(options.ValidateMethod))
+            if (options != null)
             {
-                validationMethod = owner.GetType().GetMethod(options.ValidateMethod, new[] {itemType});
+                Object owner = serializedObject.targetObject;
+                if (!string.IsNullOrEmpty(options.ValidateMethod))
+                    validationMethod = owner.GetType().GetMethod(options.ValidateMethod, new[] {itemType});
             }
         }
 
@@ -64,7 +67,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     
                     if (validationMethod != null)
                     {
-                        bool result = (bool) validationMethod.Invoke(owner, new object[] {collectionItem});
+                        bool result = (bool) validationMethod.Invoke(
+                            serializedObject.targetObject, new object[] {collectionItem});
                         if (!result)
                             continue;
                     }

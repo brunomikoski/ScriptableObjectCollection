@@ -133,8 +133,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (onSelectCallbackMethod == null)
                 return;
 
-            object target = onSelectCallbackMethod.IsStatic ? null : serializedProperty.serializedObject.targetObject;
-            onSelectCallbackMethod.Invoke(target, new object[] {from, to});
+            object[] arguments = { from, to };
+            
+            // The method may be static, in which case there is no target.
+            if (onSelectCallbackMethod.IsStatic)
+            {
+                onSelectCallbackMethod.Invoke(null, arguments);
+                return;
+            }
+
+            // Otherwise, fire the callback on every target.
+            for (int i = 0; i < serializedProperty.serializedObject.targetObjects.Length; i++)
+            {
+                object target = serializedProperty.serializedObject.targetObjects[i];
+                onSelectCallbackMethod.Invoke(target, arguments);
+            }
         }
 
         protected override void ItemSelected(AdvancedDropdownItem item)

@@ -29,6 +29,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool ShouldDrawPreviewButton { get; set; } = true;
 
         public string ValidateMethod { get; set; }
+        
+        /// <summary>
+        /// If specified, only show collection items that belong to the collection assigned to the specified field.
+        /// </summary>
+        public string ConstrainToCollectionField { get; set; }
     }
 
     //Temporary 

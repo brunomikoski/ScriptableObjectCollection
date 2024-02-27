@@ -45,19 +45,49 @@ namespace BrunoMikoski.ScriptableObjectCollections
             root.AddChild(new AdvancedDropdownItem("None"));
             root.AddSeparator();
 
+            // If specified, limit the displayed items to those of a collection specified in a certain field.
+            ScriptableObjectCollection collectionToConstrainTo = null;
+            if (!string.IsNullOrEmpty(options.ConstrainToCollectionField))
+            {
+                SerializedProperty collectionField = serializedObject.FindProperty(
+                    options.ConstrainToCollectionField);
+                if (collectionField == null)
+                {
+                    Debug.LogWarning($"Tried to constrain dropdown to collection specified in field " +
+                                     $"'{options.ConstrainToCollectionField}' but no such field existed in " +
+                                     $"'{serializedObject.targetObject}'");
+                    return root;
+                }
+
+                collectionToConstrainTo = collectionField.objectReferenceValue as ScriptableObjectCollection;
+                if (collectionToConstrainTo == null)
+                {
+                    Debug.LogWarning($"Tried to constrain dropdown to collection specified in field " +
+                                     $"'{options.ConstrainToCollectionField}' but no collection was specified.");
+                    return root;
+                }
+            }
+            bool shouldConstrainToCollection = collectionToConstrainTo != null;
+
             AdvancedDropdownItem targetParent = root;
             bool multipleCollections = collections.Count > 1;
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection collection = collections[i];
+                
+                // If we're meant to constrain the selection to a specific collection, enforce that now.
+                if (shouldConstrainToCollection && collectionToConstrainTo != collection)
+                    continue;
 
-                if (multipleCollections)
+                // If there are multiple collections, group them together.
+                if (multipleCollections && !shouldConstrainToCollection)
                 {
                     AdvancedDropdownItem collectionParent = new AdvancedDropdownItem(collection.name);
                     root.AddChild(collectionParent);
                     targetParent = collectionParent;
                 }
 
+                // Add every individual item in the collection.
                 for (int j = 0; j < collection.Count; j++)
                 {
                     ScriptableObject collectionItem = collection[j];
@@ -72,7 +102,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         if (!result)
                             continue;
                     }
-                    
+
                     targetParent.AddChild(new CollectionItemDropdownItem(collectionItem));
                 }
             }

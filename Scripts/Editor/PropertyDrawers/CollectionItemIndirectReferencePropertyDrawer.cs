@@ -64,17 +64,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (socItemPropertyDrawer.OptionsAttribute.DrawType == DrawType.Dropdown)
             {
-                DrawItemDrawer(position, label, collectionItem);
+                DrawItemDrawer(position, property, label, collectionItem);
                 return;
             }
 
             EditorGUI.PropertyField(position, property, label, true);
         }
 
-        private void DrawItemDrawer(Rect position, GUIContent label, ScriptableObject collectionItem
-        )
+        private void DrawItemDrawer(Rect position, SerializedProperty property, GUIContent label, ScriptableObject collectionItem)
         {
-            socItemPropertyDrawer.DrawCollectionItemDrawer(ref position, collectionItem, label, item =>
+            socItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, item =>
             {
                 SetSerializedPropertyGUIDs(item);
                 drawingProperty.serializedObject.ApplyModifiedProperties();

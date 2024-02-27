@@ -42,6 +42,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     onSelectCallbackMethod = owner.GetType().GetMethod(options.OnSelectCallbackMethod,
                         BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic,
                         null, new[] {itemType, itemType}, null);
+                    if (onSelectCallbackMethod == null)
+                    {
+                        Debug.LogWarning($"Component '{owner.name}' wants selection callback " +
+                                         $"'{options.OnSelectCallbackMethod}' which is not a valid method.");
+                    }
                 }
             }
         }

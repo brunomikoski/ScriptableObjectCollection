@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.3]
+### Fixes
+- `[SOCItemEditorOptions]` now has the option to limit the displayed items to the collection selected in a given field using the ConstrainToCollectionField parameter.
+- `[SOCItemEditorOptions]` now has the option to fire a callback when a value is selected using the OnSelectCallbackMethod parameter.
+- Replaced the implementation of the `[DidReloadScripts]` by the `AssetPostprocessor` to deal with importing errors on newer unity version
+- Fixed issue where trying to add new custom items to a collection was not showing the create custom type properly
 
 ## [2.2.2]
 ### Fixes
@@ -507,6 +513,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.2.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.3
 [2.2.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.2
 [2.1.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.1.0
 [2.0.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.0.9

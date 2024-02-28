@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Compilation;
@@ -604,7 +605,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabase.Refresh();
 
             if (!scriptsGenerated)
-                OnAfterScriptsReloading();
+                AfterScriptsAreReady();
         }
 
         private void CreateIndirectAccess()
@@ -710,8 +711,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return isValid;
         }
 
-        [DidReloadScripts]
-        static void OnAfterScriptsReloading()
+        private static void AfterScriptsAreReady()
         {
             if (!WaitingRecompileForContinue.Value)
                 return;
@@ -734,6 +734,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
             openWindowInstance.Close();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+        }
+        
+        
+        class CollectionCustomEditorAssetPostProcessor : AssetPostprocessor
+        {
+            [UsedImplicitly]
+            private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths,
+                bool didDomainReload)
+            {
+                if (!didDomainReload)
+                    return;
+                
+                AfterScriptsAreReady();
+            }
         }
     }
 }

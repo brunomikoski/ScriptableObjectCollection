@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using JetBrains.Annotations;
 using UnityEditor;
 using UnityEditor.Callbacks;
 using UnityEditor.Compilation;
@@ -151,10 +152,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             SerializedProperty selectedProperty = reorderableList.serializedProperty.GetArrayElementAtIndex(selectedIndex);
             Object asset = selectedProperty.objectReferenceValue;
-            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(asset));
-            AssetDatabase.SaveAssets();
             reorderableList.serializedProperty.DeleteArrayElementAtIndex(selectedIndex);
             reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
+            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(asset));
+            AssetDatabase.SaveAssets();
         }
 
         private void OnClickToAddNewItem(Rect buttonRect, ReorderableList list)
@@ -239,6 +240,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         AssetDatabaseUtils.RenameAsset(collectionItemSerializedProperty.objectReferenceValue, newName);
                         AssetDatabase.SaveAssets();
                     }
+                    return;
                 }
             }
 
@@ -468,7 +470,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 DrawSearchField();
                 DrawSynchronizeButton();
+                
                 reorderableList.DoLayoutList();
+
                 if (Event.current.type == EventType.Repaint)
                 {
                     reorderableListYPosition = GUILayoutUtility.GetLastRect().y;
@@ -507,15 +511,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CheckForKeyboardShortcuts()
         {
+            if (Event.current.type != EventType.KeyDown)
+                return;
+            
             if (reorderableList.index == -1)
                 return;
 
             if (!reorderableList.HasKeyboardControl())
                 return;
             
-            if (Event.current.type == EventType.Layout || Event.current.type == EventType.Repaint)
-                return;
-
             if (reorderableList.index > reorderableList.serializedProperty.arraySize - 1)
                 return;
             
@@ -650,7 +654,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 
                     optionsMenu.AddItem(new GUIContent($"Create New/class $NEW : {itemSubClass.Name}"), false, () =>
                     {
-                        EditorApplication.delayCall += () => { AddNewItemOfType(itemSubClass); };
+                        EditorApplication.delayCall += () => { CreateAndAddNewItemOfType(itemSubClass); };
                     });
                 }
             }
@@ -667,41 +671,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     IsWaitingForNewTypeBeCreated = true;
                 }
             });
-        }
-
-        [DidReloadScripts]
-        public static void AfterStaticAssemblyReload()
-        {
-            if (!IsWaitingForNewTypeBeCreated)
-                return;
-
-            IsWaitingForNewTypeBeCreated = false;
-
-            string lastGeneratedCollectionScriptPath =
-                CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath.Value;
-            string lastCollectionFullName = CreateNewCollectionItemFromBaseWizard.LastCollectionFullName.Value;
-
-            if (string.IsNullOrEmpty(lastGeneratedCollectionScriptPath))
-                return;
-            
-            CreateNewCollectionItemFromBaseWizard.LastCollectionFullName.Value = string.Empty;
-            CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath.Value = string.Empty;
-
-            string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(lastGeneratedCollectionScriptPath);
-
-            Type targetType = Type.GetType($"{lastCollectionFullName}, {assemblyName}");
-
-            if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(targetType,
-                out ScriptableObjectCollection collection))
-            {
-                Selection.activeObject = null;
-                LAST_ADDED_COLLECTION_ITEM =  collection.AddNew(targetType);
-                
-                EditorApplication.delayCall += () =>
-                {
-                    Selection.activeObject = collection;
-                };
-            }
         }
  
         private void AddNewItemOfType(Type targetType)
@@ -988,6 +957,48 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Type collectionType = command.context.GetType();
             return CollectionGenerators.GetGeneratorTypeForCollection(collectionType) != null;
+        }
+
+
+        class CollectionCustomEditorAssetPostProcessor : AssetPostprocessor
+        {
+            [UsedImplicitly]
+            private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths, bool didDomainReload)
+            {
+                if (!didDomainReload) 
+                    return;
+                
+                if (!IsWaitingForNewTypeBeCreated)
+                    return;
+
+                IsWaitingForNewTypeBeCreated = false;
+
+                string lastGeneratedCollectionScriptPath =
+                    CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath.Value;
+                string lastCollectionFullName = CreateNewCollectionItemFromBaseWizard.LastCollectionFullName.Value;
+
+                if (string.IsNullOrEmpty(lastGeneratedCollectionScriptPath))
+                    return;
+            
+                CreateNewCollectionItemFromBaseWizard.LastCollectionFullName.Value = string.Empty;
+                CreateNewCollectionItemFromBaseWizard.LastGeneratedCollectionScriptPath.Value = string.Empty;
+
+                string assemblyName = CompilationPipeline.GetAssemblyNameFromScriptPath(lastGeneratedCollectionScriptPath);
+
+                Type targetType = Type.GetType($"{lastCollectionFullName}, {assemblyName}");
+
+                if (CollectionsRegistry.Instance.TryGetCollectionFromItemType(targetType,
+                        out ScriptableObjectCollection collection))
+                {
+                    Selection.activeObject = null;
+                    LAST_ADDED_COLLECTION_ITEM =  collection.AddNew(targetType);
+                
+                    EditorApplication.delayCall += () =>
+                    {
+                        Selection.activeObject = collection;
+                    };
+                }
+            }
         }
     }
 }

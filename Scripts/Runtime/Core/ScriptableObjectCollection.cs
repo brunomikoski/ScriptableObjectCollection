@@ -103,6 +103,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool IsFixedSize => false;
         public bool IsReadOnly => false;
 
+        public virtual bool ShouldProtectItemOrder => false;
+
         
         public int Add(object value)
         {

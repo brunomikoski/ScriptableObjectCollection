@@ -6,15 +6,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.4]
+### Added
+* Added Item Order Protection. Override the `ShouldProtectItemOrder` property in your Collection to disallow items being dragged or deleted.
+
+### Fixed
+* Fixed SOC Item property drawers not working in certain Unity versions by @RoyTheunissen in https://github.com/brunomikoski/ScriptableObjectCollection/pull/141
+
 ## [2.2.3]
-### Fixes
+### Fixed
 - `[SOCItemEditorOptions]` now has the option to limit the displayed items to the collection selected in a given field using the ConstrainToCollectionField parameter.
 - `[SOCItemEditorOptions]` now has the option to fire a callback when a value is selected using the OnSelectCallbackMethod parameter.
 - Replaced the implementation of the `[DidReloadScripts]` by the `AssetPostprocessor` to deal with importing errors on newer unity version
 - Fixed issue where trying to add new custom items to a collection was not showing the create custom type properly
 
 ## [2.2.2]
-### Fixes
+### Fixed
 - Fixed Collection Picker wrong intiialization on a cold registry
 - Fixing Collection Picker not respecting children rules
 - Fix drawing go to button on null items.

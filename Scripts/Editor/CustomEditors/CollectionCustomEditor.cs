@@ -12,7 +12,7 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    [CustomEditor(typeof(ScriptableObjectCollection), true)]
+    // [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class CollectionCustomEditor : BaseEditor<CollectionCustomEditor>
     {
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";

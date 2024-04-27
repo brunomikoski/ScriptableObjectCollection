@@ -1,0 +1,16 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
+    <Style src="project://database/Assets/_Project/NEW%20TEST%20UI%20ELEMENTS%20SHIT/CSS/Style.uss?fileID=7433441132597879392&amp;guid=f6040fd5efe6a1e43a9e95760a53fcba&amp;type=3#Style" />
+    <ui:VisualElement style="flex-grow: 1; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
+        <ui:Foldout name="header-foldout" text="Title" value="false">
+            <ui:IMGUIContainer name="imgui-container" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />
+            <uie:Toolbar style="margin-top: 10px; display: none;">
+                <uie:ToolbarButton text="Rename" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" />
+                <uie:ToolbarButton text="Select" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" />
+                <uie:ToolbarButton text="Duplicate" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" />
+                <uie:ToolbarButton text="Copy" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" />
+                <uie:ToolbarButton text="Paste" parse-escape-sequences="true" display-tooltip-when-elided="true" enable-rich-text="false" />
+            </uie:Toolbar>
+        </ui:Foldout>
+        <ui:TextField picking-mode="Ignore" value="Default Endless" name="rename-text-field" is-delayed="true" style="display: none; position: absolute; flex-grow: 1; top: 0; width: 100%; background-color: rgba(0, 0, 0, 0); -unity-font-style: bold; margin-left: 0; left: 2px; overflow: visible; visibility: visible;" />
+    </ui:VisualElement>
+</ui:UXML>

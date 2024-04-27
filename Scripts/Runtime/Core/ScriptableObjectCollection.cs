@@ -13,7 +13,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public abstract class ScriptableObjectCollection : ScriptableObject, IList
     {
-        [SerializeField]
+        [SerializeField, HideInInspector]
         private LongGuid guid;
         public LongGuid GUID
         {
@@ -27,31 +27,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        [SerializeField]
+        [SerializeField, HideInInspector]
         protected List<ScriptableObject> items = new List<ScriptableObject>();
         public List<ScriptableObject> Items => items;
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         private bool automaticallyLoaded = true;
         internal bool AutomaticallyLoaded => automaticallyLoaded;
 
-#pragma warning disable CS0414
-        [SerializeField]
-        private bool generateAsPartialClass = true;
-
-        [SerializeField]
-        private bool generateAsBaseClass;
-
-        [SerializeField]
-        private string generatedFileLocationPath;
-
-        [SerializeField]
-        private string generatedStaticClassFileName;
-
-        [SerializeField]
-        private string generateStaticFileNamespace;
-#pragma warning restore CS0414
-   
         public ScriptableObject this[int index]
         {
             get => items[index];

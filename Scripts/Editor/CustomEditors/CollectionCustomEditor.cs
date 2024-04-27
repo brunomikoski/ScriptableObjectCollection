@@ -112,6 +112,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         
             collectionItemListView.makeItem = MakeCollectionItemListItem;
             collectionItemListView.bindItem = BindCollectionItemListItem;
+            collectionItemListView.itemIndexChanged += OnCollectionItemOrderChanged;
 
             collectionItemListView.reorderable = CanBeReorderable;
             
@@ -188,6 +189,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return root;
         }
 
+        private void OnCollectionItemOrderChanged(int arg1, int arg2)
+        {
+            ScriptableObject sourceItem = filteredItems[arg1];
+            ScriptableObject targetItem = filteredItems[arg2];
+            
+            int sourceIndex = collection.Items.IndexOf(sourceItem);
+            int targetIndex = collection.Items.IndexOf(targetItem);
+            
+            Undo.RecordObject(collection, "Reorder Item");
+            collection.Items.RemoveAt(sourceIndex);
+            collection.Items.Insert(targetIndex, sourceItem);
+            EditorUtility.SetDirty(collection);
+            
+            ReloadFilteredItems();
+        }
+
         private void OnToggleExpand(MouseUpEvent evt)
         {
             bool? isOn = null;
@@ -240,7 +257,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             SOCSettings.Instance.SetStaticFilenameForCollection(collection, evt.newValue);
         }
-
         
         private void OnUseBaseClassForItemsToggleChanged(ChangeEvent<bool> evt)
         {

@@ -292,14 +292,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void DisablePartialClassGenerationIfDisallowed(ScriptableObjectCollection collection)
         {
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
             bool canBePartial = CheckIfCanBePartial(collection);
-            SerializedProperty partialClassSP = collectionSerializedObject.FindProperty("generateAsPartialClass");
-            if (partialClassSP.boolValue && !canBePartial)
+            if (SOCSettings.Instance.GetWriteAsPartialClass(collection) && !canBePartial)
             {
-                partialClassSP.boolValue = false;
-                collectionSerializedObject.ApplyModifiedProperties();
+                SOCSettings.Instance.SetWriteAsPartialClass(collection, false);
             }
         }
         public static bool CheckIfCanBePartial(ScriptableObjectCollection collection)

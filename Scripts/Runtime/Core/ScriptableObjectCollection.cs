@@ -350,8 +350,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (item is not ISOCItem socItem)
                     continue;
 
-                
-
                 if (socItem.Collection != null)
                 {
                     if (socItem.Collection != this)
@@ -372,7 +370,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     RemoveAt(i);
                     Debug.Log($"Removing item at index {i} as it is null");
                     changed = true;
-
                 }
                 
                 ScriptableObject scriptableObject = items[i];

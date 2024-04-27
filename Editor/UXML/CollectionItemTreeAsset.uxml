@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <Style src="project://database/Assets/_Project/NEW%20TEST%20UI%20ELEMENTS%20SHIT/CSS/Style.uss?fileID=7433441132597879392&amp;guid=f6040fd5efe6a1e43a9e95760a53fcba&amp;type=3#Style" />
+    <Style src="project://../USS/Style.uss?fileID=7433441132597879392&amp;guid=f6040fd5efe6a1e43a9e95760a53fcba&amp;type=3#Style" />
     <ui:VisualElement style="flex-grow: 1; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
         <ui:Foldout name="header-foldout" text="Title" value="false">
             <ui:IMGUIContainer name="imgui-container" style="margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;" />

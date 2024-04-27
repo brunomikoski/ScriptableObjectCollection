@@ -23,7 +23,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private LongGuid collectionGUID;
 
 
+        [NonSerialized]
         private bool hasCachedCollection;
+        [NonSerialized]
         private ScriptableObjectCollection cachedCollection;
         public ScriptableObjectCollection Collection
         {

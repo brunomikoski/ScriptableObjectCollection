@@ -30,13 +30,13 @@
                 <ui:Label tabindex="-1" text="Advanced" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="-unity-font-style: bold; font-size: 12px;" />
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 1; border-left-color: rgba(0, 0, 0, 0.8); border-right-color: rgba(0, 0, 0, 0.8); border-top-color: rgba(0, 0, 0, 0.8); border-bottom-color: rgba(0, 0, 0, 0.8); border-top-width: 0; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; margin-top: 0; padding-top: 10px; padding-right: 10px; padding-left: 10px; padding-bottom: 10px; flex-wrap: nowrap; align-items: stretch;">
-                <ui:Toggle label="Automaticaly Loaded" name="automatic-loaded-toggle" binding-path="automaticallyLoaded" style="flex-grow: 0; -unity-font-style: normal;" />
-                <ui:Toggle label="Write as Partial Class" name="write-partial-class-toggle" />
-                <ui:Toggle label="Use Base Class for Items" name="base-class-for-items-toggle" />
-                <ui:Toggle label="Enforce Indirect Access" name="enforce-indirect-access" tooltip="Useful if this collections is not auto loaded, or loaded through addressables, or you just want to have better memory management" />
-                <uie:ObjectField label="Generated Scripts Folde" type="UnityEditor.DefaultAsset, UnityEditor.CoreModule" allow-scene-objects="false" name="generated-scripts-parent-folder" />
-                <ui:TextField picking-mode="Ignore" label="Static Filename" value="filler text" name="static-filename-textfield" is-delayed="true" />
-                <ui:TextField picking-mode="Ignore" label="Namespace" value="filler text" name="namespace-textfield" is-delayed="true" />
+                <ui:Toggle label="Automaticaly Loaded" name="automatic-loaded-toggle" binding-path="automaticallyLoaded" class="unity-base-field__aligned" style="flex-grow: 0; -unity-font-style: normal;" />
+                <ui:Toggle label="Write as Partial Class" name="write-partial-class-toggle" class="unity-base-field__aligned" />
+                <ui:Toggle label="Use Base Class for Items" name="base-class-for-items-toggle" class="unity-base-field__aligned" />
+                <ui:Toggle label="Enforce Indirect Access" name="enforce-indirect-access" tooltip="Useful if this collections is not auto loaded, or loaded through addressables, or you just want to have better memory management" class="unity-base-field__aligned" />
+                <uie:ObjectField label="Generated Scripts Folde" type="UnityEditor.DefaultAsset, UnityEditor.CoreModule" allow-scene-objects="false" name="generated-scripts-parent-folder" class="unity-base-field__aligned" />
+                <ui:TextField picking-mode="Ignore" label="Static Filename" value="filler text" name="static-filename-textfield" is-delayed="true" class="unity-base-field__aligned" />
+                <ui:TextField picking-mode="Ignore" label="Namespace" value="filler text" name="namespace-textfield" is-delayed="true" class="unity-base-field__aligned" />
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="extra-properties-visual-element" style="flex-grow: 1; margin-top: 20px;">

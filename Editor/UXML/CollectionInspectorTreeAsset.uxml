@@ -1,5 +1,5 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
-    <Style src="project://../USS/Style.uss?fileID=7433441132597879392&amp;guid=f6040fd5efe6a1e43a9e95760a53fcba&amp;type=3#Style" />
+    <Style src="project://database/Packages/com.brunomikoski.scriptableobjectcollection/Editor/USS/CollectionStyle.uss?fileID=7433441132597879392&amp;guid=f6040fd5efe6a1e43a9e95760a53fcba&amp;type=3#CollectionStyle" />
     <ui:VisualElement name="HeaderGroup" style="flex-grow: 0;">
         <uie:ToolbarSearchField style="width: auto;" />
     </ui:VisualElement>
@@ -11,7 +11,7 @@
                 <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="sort-button" style="width: 18px; height: 18px; display: none;" />
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:ListView virtualization-method="DynamicHeight" show-border="true" show-alternating-row-backgrounds="All" reorderable="true" show-foldout-header="false" header-title="Items" show-add-remove-footer="false" reorder-mode="Animated" show-bound-collection-size="false" name="items-list-view" horizontal-scrolling="false" selection-type="Multiple" view-data-key="collection-item-list-view" />
+        <ui:ListView virtualization-method="DynamicHeight" show-border="true" show-alternating-row-backgrounds="All" reorderable="true" show-foldout-header="false" header-title="Items" show-add-remove-footer="false" reorder-mode="Animated" show-bound-collection-size="false" name="items-list-view" horizontal-scrolling="false" selection-type="Single" view-data-key="collection-item-list-view" />
         <ui:VisualElement name="unity-list-view__footer" class="unity-list-view__footer">
             <ui:Button name="unity-list-view__remove-button" text="-" class="unity-text-element unity-button" />
             <ui:Button name="unity-list-view__add-button" text="+" class="unity-text-element unity-button" />
@@ -31,9 +31,10 @@
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 1; border-left-color: rgba(0, 0, 0, 0.8); border-right-color: rgba(0, 0, 0, 0.8); border-top-color: rgba(0, 0, 0, 0.8); border-bottom-color: rgba(0, 0, 0, 0.8); border-top-width: 0; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; margin-top: 0; padding-top: 10px; padding-right: 10px; padding-left: 10px; padding-bottom: 10px; flex-wrap: nowrap; align-items: stretch;">
                 <ui:Toggle label="Automaticaly Loaded" name="automatic-loaded-toggle" binding-path="automaticallyLoaded" style="flex-grow: 0; -unity-font-style: normal;" />
-                <uie:ObjectField label="Generated Scripts Folde" type="UnityEditor.DefaultAsset, UnityEditor.CoreModule" allow-scene-objects="false" name="generated-scripts-parent-folder" />
                 <ui:Toggle label="Write as Partial Class" name="write-partial-class-toggle" />
                 <ui:Toggle label="Use Base Class for Items" name="base-class-for-items-toggle" />
+                <ui:Toggle label="Enforce Indirect Access" name="enforce-indirect-access" tooltip="Useful if this collections is not auto loaded, or loaded through addressables, or you just want to have better memory management" />
+                <uie:ObjectField label="Generated Scripts Folde" type="UnityEditor.DefaultAsset, UnityEditor.CoreModule" allow-scene-objects="false" name="generated-scripts-parent-folder" />
                 <ui:TextField picking-mode="Ignore" label="Static Filename" value="filler text" name="static-filename-textfield" is-delayed="true" />
                 <ui:TextField picking-mode="Ignore" label="Namespace" value="filler text" name="namespace-textfield" is-delayed="true" />
             </ui:VisualElement>

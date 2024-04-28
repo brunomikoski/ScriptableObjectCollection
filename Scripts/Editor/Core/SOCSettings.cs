@@ -4,6 +4,7 @@ using System.IO;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -87,18 +88,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         [SerializeField]
         private string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
-        public string GeneratedScriptsDefaultFilePath => generatedScriptsDefaultFilePath;
-        
-        [SerializeField]
-        private List<LongGuid> useCustomEditorDrawer = new List<LongGuid>();
-
 
         [SerializeField]
         private List<GeneratedScriptsParentFolder> generatedScriptsParentFolders = new List<GeneratedScriptsParentFolder>();
 
         
         [SerializeField]
-        private List<LongGuid> writingGeneratedCodeAsPartialClass = new List<LongGuid>();
+        private List<LongGuid> dontWriteAsPartialClassCollections = new List<LongGuid>();
 
         [SerializeField]
         private List<LongGuid> usingBaseClassForItems = new List<LongGuid>();
@@ -106,10 +102,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private List<StaticFilenameSettings> staticFilenameSettings = new List<StaticFilenameSettings>();
 
-
         [SerializeField]
         private List<NamespaceSettings> namespaceSettings = new List<NamespaceSettings>();
 
+        [SerializeField]
+        private List<LongGuid> enforcingIndirectAccessCollections = new List<LongGuid>();
+        
         
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
@@ -207,32 +205,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             File.WriteAllText(STORAGE_PATH, json);
         }
 
-
-        public bool ShouldDrawUsingCustomEditor(ScriptableObjectCollection collection)
-        {
-            return useCustomEditorDrawer.Contains(collection.GUID);
-        }
-        
-        public void SetUseCustomEditor(ScriptableObjectCollection collection, bool useCustomEditor)
-        {
-            if (useCustomEditor)
-            {
-                if (!useCustomEditorDrawer.Contains(collection.GUID))
-                {
-                    useCustomEditorDrawer.Add(collection.GUID);
-                    Save();
-                }
-            }
-            else
-            {
-                if (useCustomEditorDrawer.Contains(collection.GUID))
-                {
-                    useCustomEditorDrawer.Remove(collection.GUID);
-                    Save();
-                }
-            }
-        }
-
         private GeneratedScriptsParentFolder GetOrCreatedGeneratedScriptsFolderSettings(
             ScriptableObjectCollection collection)
         {
@@ -269,7 +241,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
 
-            return AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsDefaultFilePath);
+            if (!string.IsNullOrEmpty(generatedScriptsDefaultFilePath))
+                return AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsDefaultFilePath);
+            
+            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
+            string parentFolder = Path.GetDirectoryName(baseClassPath);
+            GeneratedScriptsParentFolder settings = GetOrCreatedGeneratedScriptsFolderSettings(collection);
+            settings.ParentFolderAssetPath = parentFolder;
+            return AssetDatabase.LoadAssetAtPath<DefaultAsset>(settings.ParentFolderAssetPath);
         }
 
         public void SetGeneratedScriptsParentFolder(ScriptableObjectCollection collection, Object evtNewValue)
@@ -308,14 +287,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool GetWriteAsPartialClass(ScriptableObjectCollection collection)
         {
-            bool canBePartial= CodeGenerationUtility.CheckIfCanBePartial(collection);
+            bool canBePartial = CodeGenerationUtility.CheckIfCanBePartial(collection);
             if (!canBePartial)
             {
-                writingGeneratedCodeAsPartialClass.Remove(collection.GUID);
+                dontWriteAsPartialClassCollections.Add(collection.GUID);
                 return false;
             }
             
-            return writingGeneratedCodeAsPartialClass.Contains(collection.GUID);
+            return !dontWriteAsPartialClassCollections.Contains(collection.GUID);
         }
         
         public void SetWriteAsPartialClass(ScriptableObjectCollection collection, bool writeAsPartial)
@@ -325,12 +304,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if (writeAsPartial)
             {
-                if (!writingGeneratedCodeAsPartialClass.Contains(collection.GUID))
-                    writingGeneratedCodeAsPartialClass.Add(collection.GUID);
+                dontWriteAsPartialClassCollections.Remove(collection.GUID);
             }
             else
             {
-                writingGeneratedCodeAsPartialClass.Remove(collection.GUID);
+                if (!dontWriteAsPartialClassCollections.Contains(collection.GUID))
+                    dontWriteAsPartialClassCollections.Add(collection.GUID);
             }
             
             Save();
@@ -365,7 +344,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             string targetNamespace = collection.GetItemType().Namespace;
             if (!string.IsNullOrEmpty(namespacePrefix))
-                targetNamespace = $"{namespacePrefix}.{targetNamespace}";
+                targetNamespace = $"{namespacePrefix}";
             
             namespaceSetting.Namespace = targetNamespace;
             namespaceSettings.Add(namespaceSetting);
@@ -408,6 +387,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             StaticFilenameSettings staticFilenameSetting = GetOrCreateStaticFilenameForCollection(collection);
             staticFilenameSetting.StaticFilename = targetNewName;
+            Save();
+        }
+        
+        public bool GetEnforceIndirectAccess(ScriptableObjectCollection collection)
+        {
+            return enforcingIndirectAccessCollections.Contains(collection.GUID);
+        }
+        
+        public void SetEnforceIndirectAccess(ScriptableObjectCollection collection, bool enforceIndirectAccess)
+        {
+            if (enforceIndirectAccess)
+            {
+                if (!enforcingIndirectAccessCollections.Contains(collection.GUID))
+                    enforcingIndirectAccessCollections.Add(collection.GUID);
+            }
+            else
+            {
+                enforcingIndirectAccessCollections.Remove(collection.GUID);
+            }
+            
             Save();
         }
     }

@@ -15,11 +15,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `guid`, `items` and `automaticallyLoaded` are now `HideInInspector` on the Collection, to avoid confusion
 - Added new USS and UXML files to the Collection Editor
 - Generated static files now contains the default `.g.cs` postfix 
-
+- If you set your Default Folder for Generated Files to null on the settings, it will now use the same folder as the original collection .cs files.
+- If you now set your namespace to empty on the settings, it will now use the same namespace as the original collection .cs files.
+- Add new Context Menu on the Collection to generate the indirect file for the collection
+- Fixed GoTo button not working on the PropertyDrawer, now will probably select the collection and expand only the item you want.
 
 ### Added
 - Added new Default Inspector session to the Collection Editor, where you can see the default inspector of the collection and expose more items there.
-
+- Collections now can be enforced to use Indirect Reference, this will show an error message if the collection is not using Indirect Reference
 
 ### Know issues
 - Settings will not be automatically converted to the new SOCSettings file, settings like _(custom namespace, filename, or target folder)_ so you have to reconfigure those settings manually

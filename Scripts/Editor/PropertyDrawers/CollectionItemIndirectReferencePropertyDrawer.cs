@@ -16,7 +16,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH = "collectionLastKnowName";
         
         private Type collectionItemType;
-        private SOCItemPropertyDrawer socItemPropertyDrawer;
+        private CollectionItemPropertyDrawer collectionItemPropertyDrawer;
 
         private SerializedProperty drawingProperty;
         private SerializedProperty itemGUIDValueASerializedProperty;
@@ -29,10 +29,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (socItemPropertyDrawer == null)
+            if (collectionItemPropertyDrawer == null)
                 return base.GetPropertyHeight(property, label);
 
-            return socItemPropertyDrawer.GetPropertyHeight(property, label);
+            return collectionItemPropertyDrawer.GetPropertyHeight(property, label);
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -40,7 +40,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItemType == null)
                 SetCollectionItemType();
             
-            if (socItemPropertyDrawer == null) 
+            if (collectionItemPropertyDrawer == null) 
                 CreateCollectionItemPropertyDrawer(property);
 
             drawingProperty = property;
@@ -62,7 +62,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
 
-            if (socItemPropertyDrawer.OptionsAttribute.DrawType == DrawType.Dropdown)
+            if (collectionItemPropertyDrawer.OptionsAttribute.DrawType == DrawType.Dropdown)
             {
                 DrawItemDrawer(position, property, label, collectionItem);
                 return;
@@ -73,7 +73,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawItemDrawer(Rect position, SerializedProperty property, GUIContent label, ScriptableObject collectionItem)
         {
-            socItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, item =>
+            collectionItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, item =>
             {
                 SetSerializedPropertyGUIDs(item);
                 drawingProperty.serializedObject.ApplyModifiedProperties();
@@ -134,8 +134,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateCollectionItemPropertyDrawer(SerializedProperty serializedProperty)
         {
-            socItemPropertyDrawer = new SOCItemPropertyDrawer();
-            socItemPropertyDrawer.Initialize(collectionItemType, serializedProperty, GetOptionsAttribute());
+            collectionItemPropertyDrawer = new CollectionItemPropertyDrawer();
+            collectionItemPropertyDrawer.Initialize(collectionItemType, serializedProperty, GetOptionsAttribute());
         }
 
         private void SetCollectionItemType()

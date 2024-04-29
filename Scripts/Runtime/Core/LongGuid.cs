@@ -91,5 +91,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return new LongGuid(guidValue1, guidValue2);
         }
+        
+        public string ToBase64String()
+        {
+            return Convert.ToBase64String(ToByteArray());
+        }
+        
+        public static LongGuid FromBase64String(string base64String)
+        {
+            byte[] byteArray = Convert.FromBase64String(base64String);
+            return FromByteArray(byteArray);
+        }
     }
 }

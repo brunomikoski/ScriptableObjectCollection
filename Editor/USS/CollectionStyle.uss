@@ -1,5 +1,6 @@
 #header-foldout .unity-label {
     -unity-font-style: bold;
+    flex-grow: 1;
 }
 
 #header-foldout #unity-content {

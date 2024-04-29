@@ -8,7 +8,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomPropertyDrawer(typeof(DrawAsSOCItemAttribute))]
     public class DrawAsSOCItemAttributePropertyDrawer : PropertyDrawer
     {
-        private SOCItemPropertyDrawer socItemPropertyDrawer;
+        private CollectionItemPropertyDrawer socItemPropertyDrawer;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -17,7 +17,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if (socItemPropertyDrawer == null)
             {
-                socItemPropertyDrawer = new SOCItemPropertyDrawer();
+                socItemPropertyDrawer = new CollectionItemPropertyDrawer();
                 socItemPropertyDrawer.OverrideFieldInfo(fieldInfo);
             }
 

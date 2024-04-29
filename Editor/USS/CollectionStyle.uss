@@ -1,0 +1,25 @@
+#header-foldout .unity-label {
+    -unity-font-style: bold;
+    flex-grow: 1;
+}
+
+#header-foldout #unity-content {
+    margin-bottom: 10px;
+}
+
+#ContentGroup ScrollView {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
+#rename-text-field #unity-text-input {
+    border-left-color: rgba(0, 0, 0, 0);
+    border-right-color: rgba(0, 0, 0, 0);
+    border-top-color: rgba(0, 0, 0, 0);
+    border-bottom-color: rgba(0, 0, 0, 0);
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+    background-color: rgba(255, 255, 255, 0);
+}

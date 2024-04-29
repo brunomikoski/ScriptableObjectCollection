@@ -610,33 +610,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateIndirectAccess()
         {
-            string folderPath = ScriptsFolderPath;
-
-            string fileName = $"{collectionItemName}IndirectReference";
-
-            AssetDatabaseUtils.CreatePathIfDoesntExist(folderPath);
-            using (StreamWriter writer = new StreamWriter(Path.Combine(folderPath, $"{fileName}.cs")))
-            {
-                int indentation = 0;
-                List<string> directives = new List<string>();
-                directives.Add(typeof(ScriptableObjectCollection).Namespace);
-                directives.Add(Namespace);
-                directives.Add("System");
-                directives.Add("UnityEngine");
-
-                CodeGenerationUtility.AppendHeader(writer, ref indentation, Namespace, "[Serializable]",
-                    $"public sealed class {collectionItemName}IndirectReference : CollectionItemIndirectReference<{collectionItemName}>",
-                    directives.Distinct().ToArray());
-
-                CodeGenerationUtility.AppendLine(writer, indentation,
-                    $"public {collectionItemName}IndirectReference() {{}}");
-                
-                CodeGenerationUtility.AppendLine(writer, indentation,
-                    $"public {collectionItemName}IndirectReference({collectionItemName} collectionItemScriptableObject) : base(collectionItemScriptableObject) {{}}");
-
-                indentation--;
-                CodeGenerationUtility.AppendFooter(writer, ref indentation, Namespace);
-            }
+            CodeGenerationUtility.GenerateIndirectAccessForCollectionItemType(collectionItemName, Namespace, ScriptsFolderPath);
         }
 
         private bool CreateCollectionItemScript()

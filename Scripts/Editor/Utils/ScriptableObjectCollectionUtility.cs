@@ -7,6 +7,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class ScriptableObjectCollectionUtility
     {
+        private const string COLLECTION_CUSTOM_EDITOR_GO_TO_ITEM_INDEX_KEY = "COLLECTION_CUSTOM_EDITOR_GO_TO_ITEM_INDEX";
+
         public static T CreateScriptableObjectOfType<T>(DefaultAsset parentFolder, string name) where T : ScriptableObject
         {
             return CreateScriptableObjectOfType(typeof(T), AssetDatabase.GetAssetPath(parentFolder), name) as T;
@@ -64,6 +66,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return CreateScriptableObjectOfType(
                 targetType, AssetDatabase.GetAssetPath(parentFolder),
                 createFoldForThisCollection, collectionName);
+        }
+
+        public static void GoToItem(ISOCItem socItem)
+        {
+            SessionState.SetInt(COLLECTION_CUSTOM_EDITOR_GO_TO_ITEM_INDEX_KEY, socItem.Collection.IndexOf(socItem));
+            Selection.activeObject = socItem.Collection;
+        }
+
+        public static bool IsTryingToGoToItem(out int targetIndex)
+        {
+            targetIndex = SessionState.GetInt(COLLECTION_CUSTOM_EDITOR_GO_TO_ITEM_INDEX_KEY, -1);
+            return targetIndex != -1;
+        }
+
+        public static void ClearGoToItem()
+        {
+            SessionState.EraseInt(COLLECTION_CUSTOM_EDITOR_GO_TO_ITEM_INDEX_KEY);
         }
     }
 }

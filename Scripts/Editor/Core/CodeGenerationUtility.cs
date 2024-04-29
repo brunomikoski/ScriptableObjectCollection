@@ -292,23 +292,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void DisablePartialClassGenerationIfDisallowed(ScriptableObjectCollection collection)
         {
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
             bool canBePartial = CheckIfCanBePartial(collection);
-            SerializedProperty partialClassSP = collectionSerializedObject.FindProperty("generateAsPartialClass");
-            if (partialClassSP.boolValue && !canBePartial)
+            if (SOCSettings.Instance.GetWriteAsPartialClass(collection) && !canBePartial)
             {
-                partialClassSP.boolValue = false;
-                collectionSerializedObject.ApplyModifiedProperties();
+                SOCSettings.Instance.SetWriteAsPartialClass(collection, false);
             }
         }
         public static bool CheckIfCanBePartial(ScriptableObjectCollection collection)
         {
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-
             string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
             string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
-            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue);
+            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(
+                AssetDatabase.GetAssetPath(SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection)));
             
             // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
             // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
@@ -316,6 +311,46 @@ namespace BrunoMikoski.ScriptableObjectCollections
                                 string.IsNullOrEmpty(targetGeneratedCodePath);
             
             return canBePartial;
+        }
+
+        public static void GenerateIndirectAccessForCollectionItemType(Type collectionItemType)
+        {
+            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(ScriptableObject.CreateInstance(collectionItemType)));
+            string parentFolder = Path.GetDirectoryName(baseClassPath);
+            GenerateIndirectAccessForCollectionItemType(collectionItemType.Name, collectionItemType.Namespace, parentFolder);
+        }
+
+        public static void GenerateIndirectAccessForCollectionItemType(string collectionName, string collectionNamespace,
+            string targetFolder)
+        {
+            string fileName = $"{collectionName}IndirectReference";
+
+            AssetDatabaseUtils.CreatePathIfDoesntExist(targetFolder);
+            using (StreamWriter writer = new StreamWriter(Path.Combine(targetFolder, $"{fileName}.g.cs")))
+            {
+                int indentation = 0;
+                List<string> directives = new List<string>();
+                directives.Add(typeof(ScriptableObjectCollection).Namespace);
+                
+                directives.Add(collectionNamespace);
+                directives.Add("System");
+                directives.Add("UnityEngine");
+
+                AppendHeader(writer, ref indentation, collectionNamespace, "[Serializable]",
+                    $"public sealed class {collectionName}IndirectReference : CollectionItemIndirectReference<{collectionName}>",
+                    directives.Distinct().ToArray());
+
+                AppendLine(writer, indentation,
+                    $"public {collectionName}IndirectReference() {{}}");
+                
+                AppendLine(writer, indentation,
+                    $"public {collectionName}IndirectReference({collectionName} collectionItemScriptableObject) : base(collectionItemScriptableObject) {{}}");
+
+                indentation--;
+                AppendFooter(writer, ref indentation, collectionNamespace);
+            }
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
         }
 
         public static void GenerateStaticCollectionScript(ScriptableObjectCollection collection)
@@ -328,19 +363,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             DisablePartialClassGenerationIfDisallowed(collection);
 
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
+            string fileName = SOCSettings.Instance.GetStaticFilenameForCollection(collection);
+            string nameSpace = SOCSettings.Instance.GetNamespaceForCollection(collection);
+            string finalFolder = AssetDatabase.GetAssetPath(SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection));
             
-            string nameSpace = collectionSerializedObject.FindProperty("generateStaticFileNamespace").stringValue;
-            
-            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
-            
-            bool writeAsPartial = collectionSerializedObject.FindProperty("generateAsPartialClass").boolValue;
-            bool useBaseClass = collectionSerializedObject.FindProperty("generateAsBaseClass").boolValue;
+            bool writeAsPartial = SOCSettings.Instance.GetWriteAsPartialClass(collection);
+            bool useBaseClass = SOCSettings.Instance.GetUseBaseClassForITems(collection);
 
 
             AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
-            using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.cs")))
+            using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.g.cs")))
             {
                 int indentation = 0;
                 
@@ -387,11 +419,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 for (int i = 0; i < collectionsOfSameType.Count; i++)
                 {
                     ScriptableObjectCollection collectionA = collectionsOfSameType[i];
-                    SerializedObject collectionASO = new SerializedObject(collectionA);
-
-
-                    string targetNamespaceA = collectionASO.FindProperty("generateStaticFileNamespace").stringValue;
-                    string targetFileNameA = collectionASO.FindProperty("generatedStaticClassFileName").stringValue;
+                    
+                    string targetNamespaceA = SOCSettings.Instance.GetNamespaceForCollection(collectionA);
+                    string targetFileNameA = SOCSettings.Instance.GetStaticFilenameForCollection(collectionA);
 
                     for (int j = 0; j < collectionsOfSameType.Count; j++)
                     {
@@ -399,11 +429,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                             continue;
 
                         ScriptableObjectCollection collectionB = collectionsOfSameType[j];
-                        SerializedObject collectionBSO = new SerializedObject(collectionB);
-
                         
-                        string targetNamespaceB = collectionBSO.FindProperty("generateStaticFileNamespace").stringValue;
-                        string targetFileNameB = collectionBSO.FindProperty("generatedStaticClassFileName").stringValue;
+                        string targetNamespaceB = SOCSettings.Instance.GetNamespaceForCollection(collectionB);
+                        string targetFileNameB = SOCSettings.Instance.GetStaticFilenameForCollection(collectionB);
 
                         if (targetFileNameA.Equals(targetFileNameB, StringComparison.Ordinal)
                             && targetNamespaceA.Equals(targetNamespaceB, StringComparison.Ordinal))
@@ -514,10 +542,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static bool DoesStaticFileForCollectionExist(ScriptableObjectCollection collection)
         {
-            SerializedObject collectionSerializedObject = new SerializedObject(collection);
-            string fileName = collectionSerializedObject.FindProperty("generatedStaticClassFileName").stringValue;
-            string finalFolder = collectionSerializedObject.FindProperty("generatedFileLocationPath").stringValue;
-            return File.Exists(Path.Combine(finalFolder, $"{fileName}.cs"));
+            return File.Exists(Path.Combine(
+                AssetDatabase.GetAssetPath(SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection)),
+                $"{SOCSettings.Instance.GetStaticFilenameForCollection(collection)}.g.cs"));
         }
     }
 }

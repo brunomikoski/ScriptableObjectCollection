@@ -6,12 +6,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0]
+### Changed
+- Refactored CollectionCustomEditor to use UI Elements, getting rid of multiple hacks to make it work with the IMGUI and Reorderable list
+- Updated the visuals of the Collection Editor
+- Advanced Options are now exposed by default, giving more clarify of what is going on
+- Removed the editor only assets from the Collection (`generateAsPartialClass`, `generateAsBaseClass`, `generateAsStaticClass`), those are not stored on the SOCSettings file and versioned
+- The `guid`, `items` and `automaticallyLoaded` are now `HideInInspector` on the Collection, to avoid confusion
+- Added new USS and UXML files to the Collection Editor
+- Generated static files now contains the default `.g.cs` postfix 
+- If you set your Default Folder for Generated Files to null on the settings, it will now use the same folder as the original collection .cs files.
+- If you now set your namespace to empty on the settings, it will now use the same namespace as the original collection .cs files.
+- Add new Context Menu on the Collection to generate the indirect file for the collection
+- Fixed GoTo button not working on the PropertyDrawer, now will probably select the collection and expand only the item you want.
+
+### Added
+- Added new Default Inspector session to the Collection Editor, where you can see the default inspector of the collection and expose more items there.
+- Collections now can be enforced to use Indirect Reference, this will show an error message if the collection is not using Indirect Reference
+
+### Know issues
+- Settings will not be automatically converted to the new SOCSettings file, settings like _(custom namespace, filename, or target folder)_ so you have to reconfigure those settings manually
+
 ## [2.2.4]
 ### Added
-* Added Item Order Protection. Override the `ShouldProtectItemOrder` property in your Collection to disallow items being dragged or deleted.
+- Added Item Order Protection. Override the `ShouldProtectItemOrder` property in your Collection to disallow items being dragged or deleted.
 
 ### Fixed
-* Fixed SOC Item property drawers not working in certain Unity versions by @RoyTheunissen in https://github.com/brunomikoski/ScriptableObjectCollection/pull/141
+- Fixed SOC Item property drawers not working in certain Unity versions by @RoyTheunissen in https://github.com/brunomikoski/ScriptableObjectCollection/pull/141
 
 ## [2.2.3]
 ### Fixed
@@ -520,6 +541,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.3.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.0
 [2.2.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.4
 [2.2.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.3
 [2.2.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.2

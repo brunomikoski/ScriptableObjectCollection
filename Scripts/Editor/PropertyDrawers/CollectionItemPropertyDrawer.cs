@@ -13,10 +13,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomPropertyDrawer(typeof(ISOCItem), true)]
 #endif
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
-    public class SOCItemPropertyDrawer : PropertyDrawer
+    public class CollectionItemPropertyDrawer : PropertyDrawer
     {
         private const float BUTTON_WIDTH = 30;
-        
+
         private static readonly SOCItemEditorOptionsAttribute DefaultAttribute = new();
 
         internal SOCItemEditorOptionsAttribute OptionsAttribute { get; private set; }
@@ -29,7 +29,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private ScriptableObject item;
         private float totalHeight;
         
+        private bool showingItemPreview;
+
         private FieldInfo overrideFieldInfo;
+
         private FieldInfo TargetFieldInfo
         {
             get
@@ -39,8 +42,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return overrideFieldInfo;
             }
         }
-        
+
         private Type currentItemType;
+        private bool enforceIndirectReferenceUse;
 
 
         private SOCItemEditorOptionsAttribute GetOptionsAttribute()
@@ -55,7 +59,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return Mathf.Max(totalHeight, EditorGUIUtility.singleLineHeight);
+            if (!enforceIndirectReferenceUse)
+            {
+                return Mathf.Max(totalHeight, EditorGUIUtility.singleLineHeight);
+            }
+
+            return EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -70,13 +79,32 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item = property.objectReferenceValue as ScriptableObject;
 
-            EditorGUI.BeginProperty(position, label, property);
-            DrawCollectionItemDrawer(ref position, property, item, label,
-                newItem =>
+            if (item is ISOCItem socItem)
+            {
+                if (SOCSettings.Instance.GetEnforceIndirectAccess(socItem.Collection))
                 {
-                    property.objectReferenceValue = newItem;
-                    property.serializedObject.ApplyModifiedProperties();
-                });
+                    enforceIndirectReferenceUse = true;
+                }
+            }
+            EditorGUI.BeginProperty(position, label, property);
+
+            if (enforceIndirectReferenceUse)
+            {
+                EditorGUI.LabelField(position, label);
+
+                position.height = EditorGUIUtility.singleLineHeight * 2;
+                position.x += 150;
+                EditorGUI.HelpBox(position, $"This collection enforces IndirectAccess, use {currentItemType.Name}IndirectAccess", MessageType.Error);
+            }
+            else
+            {
+                DrawCollectionItemDrawer(ref position, property, item, label,
+                    newItem =>
+                    {
+                        property.objectReferenceValue = newItem;
+                        property.serializedObject.ApplyModifiedProperties();
+                    });
+            }
             EditorGUI.EndProperty();
         }
 
@@ -96,7 +124,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 DrawEditFoldoutButton(ref prefixPosition, collectionItem);
             }
-            
+
             DrawGotoButton(ref prefixPosition, collectionItem);
             DrawCollectionItemDropDown(ref prefixPosition, property, collectionItem, callback);
             DrawEditorPreview(ref position, collectionItem);
@@ -109,7 +137,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (scriptableObject == null)
                 return;
 
-            if (!CollectionUtility.IsCollectionItemExpanded(scriptableObject, this))
+            if (!showingItemPreview)
                 return;
 
             rect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -170,7 +198,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 Type arrayOrListType = TargetFieldInfo.FieldType.GetArrayOrListType();
                 itemType = arrayOrListType ?? TargetFieldInfo.FieldType;
             }
-            
+
             Initialize(itemType, property, GetOptionsAttribute());
         }
 
@@ -180,27 +208,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
 
         internal void Initialize(
-            Type collectionItemType, SerializedProperty serializedProperty, SOCItemEditorOptionsAttribute optionsAttribute)
+            Type collectionItemType, SerializedProperty serializedProperty,
+            SOCItemEditorOptionsAttribute optionsAttribute)
         {
             if (initialized)
                 return;
 
-            
             OptionsAttribute = optionsAttribute;
             if (OptionsAttribute == null)
                 OptionsAttribute = new SOCItemEditorOptionsAttribute();
-            
+
             collectionItemDropdown = new CollectionItemDropdown(
                 new AdvancedDropdownState(),
                 collectionItemType,
                 OptionsAttribute,
                 serializedProperty
             );
-            
+
             currentItemType = collectionItemType;
             currentObject = serializedProperty.serializedObject.targetObject;
             initialized = true;
-            
         }
 
         private void DrawCollectionItemDropDown(
@@ -223,7 +250,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     OptionsAttribute.ConstrainToCollectionField);
                 if (collectionField == null)
                 {
-                    displayValue.text = $"Invalid collection constraint '{OptionsAttribute.ConstrainToCollectionField}'";
+                    displayValue.text =
+                        $"Invalid collection constraint '{OptionsAttribute.ConstrainToCollectionField}'";
                     canUseDropDown = false;
                     isDropdownError = true;
                 }
@@ -241,11 +269,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             bool wasGuiEnabled = GUI.enabled;
             GUI.enabled = canUseDropDown;
-            
+
             Color originalContentColor = GUI.contentColor;
             if (isDropdownError)
                 GUI.contentColor = Color.red;
-            
+
             if (GUI.Button(position, displayValue, EditorStyles.popup))
             {
                 collectionItemDropdown.Show(position, callback.Invoke);
@@ -257,7 +285,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawGotoButton(ref Rect popupRect, ScriptableObject collectionItem)
         {
-            if (!OptionsAttribute.ShouldDrawGotoButton) 
+            if (!OptionsAttribute.ShouldDrawGotoButton)
                 return;
 
             Rect buttonRect = popupRect;
@@ -267,10 +295,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             buttonRect.x += popupRect.width;
             if (GUI.Button(buttonRect, CollectionEditorGUI.ARROW_RIGHT_CHAR))
             {
-
                 if (collectionItem == null)
                 {
-                    if (CollectionsRegistry.Instance.TryGetCollectionsOfItemType(currentItemType, out List<ScriptableObjectCollection> possibleCollections))
+                    if (CollectionsRegistry.Instance.TryGetCollectionsOfItemType(currentItemType,
+                            out List<ScriptableObjectCollection> possibleCollections))
                     {
                         Selection.activeObject = possibleCollections.First();
                     }
@@ -279,16 +307,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     if (collectionItem is not ISOCItem socItem)
                         return;
-                        
-                    Selection.activeObject = socItem.Collection;
-                    CollectionUtility.SetOnlyCollectionItemExpanded(socItem, socItem.Collection);
+
+                    ScriptableObjectCollectionUtility.GoToItem(socItem);
                 }
             }
         }
 
         private void DrawEditFoldoutButton(ref Rect popupRect, ScriptableObject targetItem)
         {
-            if (!OptionsAttribute.ShouldDrawPreviewButton) 
+            if (!OptionsAttribute.ShouldDrawPreviewButton)
                 return;
 
             Rect buttonRect = popupRect;
@@ -299,13 +326,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             GUIContent guiContent = CollectionEditorGUI.EditGUIContent;
 
-            if (CollectionUtility.IsCollectionItemExpanded(targetItem, this))
+            if (showingItemPreview)
                 guiContent = CollectionEditorGUI.CloseGUIContent;
 
             if (GUI.Button(buttonRect, guiContent))
             {
-                bool isCollectionItemExpanded = CollectionUtility.IsCollectionItemExpanded(targetItem, this);
-                CollectionUtility.SetCollectionItemExpanded(!isCollectionItemExpanded, targetItem, this);
+                showingItemPreview = !showingItemPreview;
             }
         }
 

@@ -208,11 +208,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 
             expandShrinkButton = root.Q<Button>("expand-button");
-            expandShrinkButton.Add(new Image()
-            {
-                image = EditorGUIUtility.IconContent("d_Grid.MoveTool").image,
-                scaleMode = ScaleMode.ScaleToFit
-            });
+            
             expandShrinkButton.clickable.activators.Clear();
             expandShrinkButton.RegisterCallback<MouseUpEvent>(OnToggleExpand);
 
@@ -240,6 +236,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Foldout foldout = targetElement.Q<Foldout>("header-foldout");
             foldout.viewDataKey = targetIndex.ToString();
             foldout.text = targetItem.name;
+            
             Editor editor = EditorCache.GetOrCreateEditorForObject(targetItem);
 
             Label titleLabel = targetElement.Q<Foldout>("header-foldout").Q<Label>();
@@ -329,6 +326,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 foldout.value = !isOn.Value;
             }
+
+            if (!isOn.HasValue)
+            {
+                isOn = false;
+            }
+
+            expandShrinkButton.text = isOn.Value ? "\u2192" : "\u2193";
         }
 
         private void OnEnable()
@@ -628,7 +632,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Undo.RecordObject(filteredItems[targetIndex], "Rename Item");
             VisualElement targetElement = collectionItemListView.GetRootElementForIndex(targetIndex);
 
-            currentRenamingLabel = targetElement.Q<Foldout>().Q<Toggle>().Q<Label>();
+            currentRenamingLabel = targetElement.Q<Label>("", "unity-toggle__text");
 
             currentRenamingLabel.style.display = DisplayStyle.None;
 

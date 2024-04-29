@@ -21,7 +21,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 
         [SerializeField]
-        public VisualTreeAsset visualTreeAsset;
+        private VisualTreeAsset visualTreeAsset;
         [SerializeField] 
         private VisualTreeAsset collectionItemVisualTreeAsset;
 
@@ -39,7 +39,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private TextField currentRenamingTextField;
         private Label currentRenamingLabel;
-        private ToolbarSearchField toolbarSearchField;
         private TextField namespaceTextField;
         private Button expandShrinkButton;
 
@@ -156,7 +155,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Button generateItemsButton = root.Q<Button>("generate-auto-items");
             generateItemsButton.clickable.activators.Clear();
             generateItemsButton.RegisterCallback<MouseUpEvent>(OnClickGenerateItems);
-            generateItemsButton.parent.style.display = generatorType != null ? DisplayStyle.Flex : DisplayStyle.None;
+            generateItemsButton.style.display = generatorType != null ? DisplayStyle.Flex : DisplayStyle.None;
 
 
             ObjectField generatedScriptsParentFolderObjectField =
@@ -196,6 +195,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 SOCSettings.Instance.SetEnforceIndirectAccess(collection, evt.newValue);
             });
+            
 
             namespaceTextField = root.Q<TextField>("namespace-textfield");
             namespaceTextField.value = SOCSettings.Instance.GetNamespaceForCollection(collection);
@@ -212,7 +212,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             expandShrinkButton.clickable.activators.Clear();
             expandShrinkButton.RegisterCallback<MouseUpEvent>(OnToggleExpand);
 
-            toolbarSearchField = root.Q<ToolbarSearchField>();
+            ToolbarSearchField toolbarSearchField = root.Q<ToolbarSearchField>();
             toolbarSearchField.RegisterValueChangedCallback(OnSearchInputChanged);
 
             return root;
@@ -240,7 +240,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Editor editor = EditorCache.GetOrCreateEditorForObject(targetItem);
 
             Label titleLabel = targetElement.Q<Foldout>("header-foldout").Q<Label>();
-            titleLabel.RegisterCallback<MouseDownEvent, int>(RenameItemAtIndex, targetIndex);
+            titleLabel.RegisterCallback<MouseUpEvent, int>(RenameItemAtIndex, targetIndex);
 
             targetElement.RegisterCallback<MouseUpEvent, int>(ShowOptionsForIndex, targetIndex);
 
@@ -332,7 +332,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 isOn = false;
             }
 
-            expandShrinkButton.text = isOn.Value ? "\u2192" : "\u2193";
+            expandShrinkButton.text = isOn.Value ? "▸◂" : "◂▸";
         }
 
         private void OnEnable()
@@ -620,7 +620,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             RenameItemAtIndex(targetIndex);
         }
 
-        private void RenameItemAtIndex(MouseDownEvent evt, int targetIndex)
+        private void RenameItemAtIndex(MouseUpEvent evt, int targetIndex)
         {
             RenameItemAtIndex(targetIndex);
         }

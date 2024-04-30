@@ -1,8 +1,8 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="True">
     <ui:Template name="GroupBoxVisualElement" src="project://database/Packages/com.brunomikoski.scriptableobjectcollection/Editor/UXML/GroupBoxVisualElement.uxml?fileID=9197481963319205126&amp;guid=83f2f2f1ea7e26e45b87253e97a81186&amp;type=3#GroupBoxVisualElement" />
     <Style src="project://database/Packages/com.brunomikoski.scriptableobjectcollection/Editor/USS/CollectionStyle.uss?fileID=7433441132597879392&amp;guid=f6040fd5efe6a1e43a9e95760a53fcba&amp;type=3#CollectionStyle" />
-    <ui:VisualElement name="ContentGroup" style="flex-grow: 1; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
-        <ui:Instance template="GroupBoxVisualElement" name="GroupBoxVisualElement">
+    <ui:VisualElement name="ContentGroup" view-data-key="content-group" style="flex-grow: 1; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0;">
+        <ui:Instance template="GroupBoxVisualElement" name="GroupBoxVisualElement" view-data-key="group-box">
             <AttributeOverrides element-name="Label" text="Items" />
             <uie:ToolbarSearchField name="ToolbarSearchField" style="width: auto; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; padding-bottom: 0; top: -18px; left: 200px; right: 30px; position: absolute;" />
             <ui:Button parse-escape-sequences="true" display-tooltip-when-elided="true" name="expand-button" tooltip="Expand / Collapse Items" text="▸◂" enable-rich-text="false" style="width: 18px; height: 18px; position: absolute; right: 0; top: -20px;" />

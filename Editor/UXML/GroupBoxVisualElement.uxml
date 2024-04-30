@@ -1,7 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
-    <ui:VisualElement style="flex-grow: 1; margin-top: 20px;">
+    <ui:VisualElement name="VisualElement" style="flex-grow: 1; margin-top: 20px;">
         <ui:VisualElement name="advanced-header-visual-element" style="flex-grow: 1; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; border-top-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-left-color: rgb(32, 32, 32); border-right-color: rgb(32, 32, 32); border-top-color: rgb(32, 32, 32); border-bottom-color: rgb(32, 32, 32); padding-top: 2px; padding-right: 2px; padding-bottom: 2px; padding-left: 4px; font-size: 12px; border-top-left-radius: 4px; border-top-right-radius: 4px; border-bottom-right-radius: 0; border-bottom-left-radius: 0; background-color: rgb(48, 48, 48);">
-            <ui:Label tabindex="-1" text="Advanced" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" style="-unity-font-style: bold; font-size: 12px;" />
+            <ui:Label tabindex="-1" text="Advanced" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" enable-rich-text="false" style="-unity-font-style: bold; font-size: 12px;" />
         </ui:VisualElement>
         <ui:VisualElement name="content-visual-element" content-container="true" style="flex-grow: 1; border-left-color: rgb(32, 32, 32); border-right-color: rgb(32, 32, 32); border-top-color: rgb(32, 32, 32); border-bottom-color: rgb(32, 32, 32); border-top-width: 0; border-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 4px; border-bottom-left-radius: 4px; margin-top: 0; padding-top: 0; padding-right: 0; padding-left: 0; padding-bottom: 0; flex-wrap: nowrap; align-items: stretch;" />
     </ui:VisualElement>

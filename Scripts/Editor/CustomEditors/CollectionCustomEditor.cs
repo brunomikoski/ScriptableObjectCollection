@@ -113,9 +113,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectionItemListView.makeItem = MakeCollectionItemListItem;
             collectionItemListView.bindItem = BindCollectionItemListItem;
             collectionItemListView.itemIndexChanged += OnCollectionItemOrderChanged;
-            collectionItemListView.schedule.Execute(() =>
+            
+            if (ScriptableObjectCollectionUtility.IsTryingToGoToItem(out int targetIndex))
             {
-                if (ScriptableObjectCollectionUtility.IsTryingToGoToItem(out int targetIndex))
+                collectionItemListView.schedule.Execute(() =>
                 {
                     ScriptableObjectCollectionUtility.ClearGoToItem();
                     ScriptableObject targetItem = collection.Items[targetIndex];
@@ -123,8 +124,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     SetAllToExpandState(false);
                     SetExpandedStateForIndex(filteredItemIndex, true);
                     collectionItemListView.ScrollToItem(filteredItemIndex);
-                }
-            }).ExecuteLater(100);
+                }).ExecuteLater(100);
+            }
 
             collectionItemListView.reorderable = CanBeReorderable;
             collectionItemListView.RegisterCallback<KeyUpEvent>(OnKeyUpOnCollectionListView, TrickleDown.TrickleDown);
@@ -239,8 +240,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             Editor editor = EditorCache.GetOrCreateEditorForObject(targetItem);
 
-            Label titleLabel = targetElement.Q<Foldout>("header-foldout").Q<Label>();
-            titleLabel.RegisterCallback<MouseUpEvent, int>(RenameItemAtIndex, targetIndex);
+            Label titleLabel = foldout.Q<Label>();
+            titleLabel.RegisterCallback<MouseDownEvent, int>(RenameItemAtIndex, targetIndex);
 
             targetElement.RegisterCallback<MouseUpEvent, int>(ShowOptionsForIndex, targetIndex);
 
@@ -620,7 +621,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             RenameItemAtIndex(targetIndex);
         }
 
-        private void RenameItemAtIndex(MouseUpEvent evt, int targetIndex)
+        private void RenameItemAtIndex(MouseDownEvent evt, int targetIndex)
         {
             RenameItemAtIndex(targetIndex);
         }

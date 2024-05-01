@@ -7,11 +7,20 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditorInternal;
 using UnityEngine;
+#if ADDRESSABLES_ENABLED
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
+#endif
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class CodeGenerationUtility
     {
+        private const string PrivateValuesName = "cachedValues";
+        private const string PublicValuesName = "Values";
+        private const string HasCachedValuesName = "hasCachedValues";
+        
+
         public static bool CreateNewScript(
             string fileName, string parentFolder, string nameSpace, string[] directives, params string[] lines)
         {
@@ -401,6 +410,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 WriteDirectAccessCollectionStatic(collection, writer, ref indentation, useBaseClass);
 
+                if (!collection.AutomaticallyLoaded)
+                {
+                    WriteNonAutomaticallyLoadedCollectionItems(collection, writer, ref indentation, useBaseClass);
+                }
+
+                
                 indentation--;
                 AppendFooter(writer, ref indentation, nameSpace);
             }
@@ -408,6 +423,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
+
+
 
         private static bool CanGenerateStaticFile(ScriptableObjectCollection collection, out string errorMessage)
         {
@@ -454,16 +471,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collection.Count; i++)
                 directives.Add(collection[i].GetType().Namespace);
 
+            if (!collection.AutomaticallyLoaded)
+            {
+#if ADDRESSABLES_ENABLED
+                directives.Add("UnityEngine.AddressableAssets");
+                directives.Add("UnityEngine.ResourceManagement.AsyncOperations");
+#endif
+            }
+
             return directives.ToArray();
         }
         
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation, bool useBaseClass)
         {
-            string cachedValuesName = "values";
-            string hasCachedValuesNames = "hasCachedValues";
-            AppendLine(writer, indentation, $"private static bool {hasCachedValuesNames};");
-            AppendLine(writer, indentation, $"private static {collection.GetType().Name} {cachedValuesName};");
+            AppendLine(writer, indentation, $"private static bool {HasCachedValuesName};");
+            AppendLine(writer, indentation, $"private static {collection.GetType().Name} {PrivateValuesName};");
 
             AppendLine(writer, indentation);
 
@@ -479,23 +502,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AppendLine(writer, indentation);
 
-            string valuesName = $"Values";
 
             AppendLine(writer, indentation,
-                $"public static {collection.GetType().FullName} {valuesName}");
+                $"public static {collection.GetType().FullName} {PublicValuesName}");
             
             AppendLine(writer, indentation, "{");
             indentation++;
             AppendLine(writer, indentation, "get");
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, $"if (!{hasCachedValuesNames})");
+            AppendLine(writer, indentation, $"if (!{HasCachedValuesName})");
             indentation++;
             (long, long) collectionGUIDValues = collection.GUID.GetRawValues();
             AppendLine(writer, indentation,
-                $"{hasCachedValuesNames} = CollectionsRegistry.Instance.TryGetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}), out {cachedValuesName});");
+                $"{HasCachedValuesName} = CollectionsRegistry.Instance.TryGetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}), out {PrivateValuesName});");
             indentation--;
-            AppendLine(writer, indentation, $"return {cachedValuesName};");
+            AppendLine(writer, indentation, $"return {PrivateValuesName};");
             indentation--;
             AppendLine(writer, indentation, "}");
             indentation--;
@@ -527,7 +549,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation++;
                 (long, long) collectionItemGUIDValues = socItem.GUID.GetRawValues();
                 AppendLine(writer, indentation,
-                    $"{privateHasCachedName} = Values.TryGetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}), out {privateStaticCachedName});");
+                    $"{privateHasCachedName} = {PublicValuesName}.TryGetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}), out {privateStaticCachedName});");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticCachedName};");
                 indentation--;
@@ -539,6 +561,53 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             AppendLine(writer, indentation);
         }
+        
+        private static void WriteNonAutomaticallyLoadedCollectionItems(ScriptableObjectCollection collection, StreamWriter writer, ref int indentation, bool useBaseClass)
+        {
+            AppendLine(writer, indentation,
+                $"public static bool IsCollectionLoaded()");
+            
+            AppendLine(writer, indentation, "{");
+            indentation++;
+            AppendLine(writer, indentation, $"return {PublicValuesName} != null;");
+            indentation--;
+            AppendLine(writer, indentation, "}");
+
+            AppendLine(writer, indentation);
+            
+            
+#if ADDRESSABLES_ENABLED
+            string assetPath = AssetDatabase.GetAssetPath(collection);
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetEntry entry = settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(assetPath));
+            
+            if (entry != null)
+            {
+                AppendLine(writer, indentation, $"private static AsyncOperationHandle<{collection.GetType().FullName}> collectionHandle;");
+                AppendLine(writer, indentation, $"public static AsyncOperationHandle<{collection.GetType().FullName}> LoadCollectionAsync()");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, $"collectionHandle = Addressables.LoadAssetAsync<{collection.GetType().FullName}>(\"{entry.guid}\");");
+                AppendLine(writer, indentation, "return collectionHandle;");
+                indentation--;
+                AppendLine(writer, indentation, "}");
+                AppendLine(writer, indentation);
+                
+                AppendLine(writer, indentation, "public static void UnloadCollection()");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, $"CollectionsRegistry.Instance.UnregisterCollection({PublicValuesName});");
+                AppendLine(writer, indentation, $"{HasCachedValuesName} = false;");
+                AppendLine(writer, indentation, $"{PrivateValuesName} = null;");
+
+                AppendLine(writer, indentation, "Addressables.Release(collectionHandle);");
+                indentation--;
+                AppendLine(writer, indentation, "}");
+                
+            }
+#endif
+        }
+
 
         public static bool DoesStaticFileForCollectionExist(ScriptableObjectCollection collection)
         {

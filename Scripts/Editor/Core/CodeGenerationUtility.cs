@@ -588,6 +588,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, $"collectionHandle = Addressables.LoadAssetAsync<{collection.GetType().FullName}>(\"{entry.guid}\");");
+                AppendLine(writer, indentation, "collectionHandle.Completed += operation =>");
+                AppendLine(writer, indentation, "{");
+                indentation++;
+                AppendLine(writer, indentation, "CollectionsRegistry.Instance.RegisterCollection(operation.Result);");
+                AppendLine(writer, indentation, $"{HasCachedValuesName} = true;");
+                AppendLine(writer, indentation, $"{PrivateValuesName} = operation.Result;");
+                indentation--;
+                AppendLine(writer, indentation, "};");
                 AppendLine(writer, indentation, "return collectionHandle;");
                 indentation--;
                 AppendLine(writer, indentation, "}");

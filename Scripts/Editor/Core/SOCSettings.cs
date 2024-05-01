@@ -232,12 +232,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (generatedScriptsParentFolder.CollectionGuid == collection.GUID)
                 {
+                    if (!AssetDatabase.IsValidFolder(generatedScriptsParentFolder.ParentFolderAssetPath))
+                    {
+                        generatedScriptsParentFolder.ParentFolderAssetPath = "";
+                        Save();
+                    }
+                    
                     if (!string.IsNullOrEmpty(generatedScriptsParentFolder.ParentFolderAssetPath))
                     {
                         return AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsParentFolder.ParentFolderAssetPath);
                     }
-
-                    return null;
                 }
             }
 

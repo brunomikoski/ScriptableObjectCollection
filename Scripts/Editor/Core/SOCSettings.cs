@@ -9,30 +9,11 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    
     [Serializable]
     public class SOCSettings
     {
-        [Serializable]
-        public class NamespaceSettings
-        {
-            public LongGuid CollectionGuid;
-            public string Namespace;
-        }
-        
-        [Serializable]
-        public class GeneratedScriptsParentFolder
-        {
-            public LongGuid CollectionGuid;
-            public string ParentFolderAssetPath;
-        }
-        
-        [Serializable]
-        public class StaticFilenameSettings
-        {
-            public LongGuid CollectionGuid;
-            public string StaticFilename;
-        }
+        [SerializeField]
+        public List<CollectionSettings> collectionSettings = new();
         
         private const string STORAGE_PATH = "ProjectSettings/ScriptableObjectCollection.json";
         private const int MINIMUM_NAMESPACE_DEPTH = 1;
@@ -87,28 +68,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public int MaximumNamespaceDepth => maximumNamespaceDepth;
         
         [SerializeField]
-        private string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
+        internal string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
 
-        [SerializeField]
-        private List<GeneratedScriptsParentFolder> generatedScriptsParentFolders = new List<GeneratedScriptsParentFolder>();
-
-        
-        [SerializeField]
-        private List<LongGuid> dontWriteAsPartialClassCollections = new List<LongGuid>();
-
-        [SerializeField]
-        private List<LongGuid> usingBaseClassForItems = new List<LongGuid>();
-
-        [SerializeField]
-        private List<StaticFilenameSettings> staticFilenameSettings = new List<StaticFilenameSettings>();
-
-        [SerializeField]
-        private List<NamespaceSettings> namespaceSettings = new List<NamespaceSettings>();
-
-        [SerializeField]
-        private List<LongGuid> enforcingIndirectAccessCollections = new List<LongGuid>();
-        
-        
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
             "When using the Create New Collection wizard," +
@@ -205,213 +166,142 @@ namespace BrunoMikoski.ScriptableObjectCollections
             File.WriteAllText(STORAGE_PATH, json);
         }
 
-        private GeneratedScriptsParentFolder GetOrCreatedGeneratedScriptsFolderSettings(
-            ScriptableObjectCollection collection)
+
+        public string GetParentFolderPathForCollection(ScriptableObjectCollection collection)
         {
-            for (int i = 0; i < generatedScriptsParentFolders.Count; i++)
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            if (!string.IsNullOrEmpty(settings.ParentFolderPath) && AssetDatabase.IsValidFolder(settings.ParentFolderPath))
             {
-                GeneratedScriptsParentFolder generatedScriptsParentFolder = generatedScriptsParentFolders[i];
-                if (generatedScriptsParentFolder.CollectionGuid == collection.GUID)
-                {
-                    return generatedScriptsParentFolder;
-                }
+                return settings.ParentFolderPath;
+            }
+
+            return string.Empty;
+        }
+        public DefaultAsset GetParentDefaultAssetScriptsFolderForCollection(ScriptableObjectCollection collection)
+        {
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            if (!string.IsNullOrEmpty(settings.ParentFolderPath) &&
+                AssetDatabase.IsValidFolder(settings.ParentFolderPath))
+            {
+                return AssetDatabase.LoadAssetAtPath<DefaultAsset>(settings.ParentFolderPath);
             }
             
-            GeneratedScriptsParentFolder newGeneratedScriptsParentFolder = new GeneratedScriptsParentFolder()
-            {
-                CollectionGuid = collection.GUID,
-                ParentFolderAssetPath = generatedScriptsDefaultFilePath
-            };
-            generatedScriptsParentFolders.Add(newGeneratedScriptsParentFolder);
-            return newGeneratedScriptsParentFolder;
+            return null;
         }
         
-        public DefaultAsset GetGeneratedScriptsParentFolder(ScriptableObjectCollection collection)
-        {
-            foreach (GeneratedScriptsParentFolder generatedScriptsParentFolder in generatedScriptsParentFolders)
-            {
-                if (generatedScriptsParentFolder.CollectionGuid == collection.GUID)
-                {
-                    if (!AssetDatabase.IsValidFolder(generatedScriptsParentFolder.ParentFolderAssetPath))
-                    {
-                        generatedScriptsParentFolder.ParentFolderAssetPath = "";
-                        Save();
-                    }
-                    
-                    if (!string.IsNullOrEmpty(generatedScriptsParentFolder.ParentFolderAssetPath))
-                    {
-                        return AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsParentFolder.ParentFolderAssetPath);
-                    }
-                }
-            }
-
-            if (!string.IsNullOrEmpty(generatedScriptsDefaultFilePath))
-                return AssetDatabase.LoadAssetAtPath<DefaultAsset>(generatedScriptsDefaultFilePath);
-            
-            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
-            string parentFolder = Path.GetDirectoryName(baseClassPath);
-            GeneratedScriptsParentFolder settings = GetOrCreatedGeneratedScriptsFolderSettings(collection);
-            settings.ParentFolderAssetPath = parentFolder;
-            return AssetDatabase.LoadAssetAtPath<DefaultAsset>(settings.ParentFolderAssetPath);
-        }
-
         public void SetGeneratedScriptsParentFolder(ScriptableObjectCollection collection, Object evtNewValue)
         {
             string assetPath = string.Empty;
             if (evtNewValue != null)
                 assetPath = AssetDatabase.GetAssetPath(evtNewValue);
 
-            GeneratedScriptsParentFolder settings = GetOrCreatedGeneratedScriptsFolderSettings(collection);
-            settings.ParentFolderAssetPath = assetPath;
+
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            settings.ParentFolderPath = assetPath;
             
             Save();
         }
         
-        
-        public bool GetUseBaseClassForITems(ScriptableObjectCollection collection)
+        public bool GetUseBaseClassForItem(ScriptableObjectCollection collection)
         {
-            return usingBaseClassForItems.Contains(collection.GUID);
+            return GetOrCreateCollectionSettings(collection).UseBaseClassForItems;
         }
         
         public void SetUsingBaseClassForItems(ScriptableObjectCollection collection, bool useBaseClass)
         {
-            if (useBaseClass)
-            {
-                if (!usingBaseClassForItems.Contains(collection.GUID))
-                    usingBaseClassForItems.Add(collection.GUID);
-            }
-            else
-            {
-                usingBaseClassForItems.Remove(collection.GUID);
-            }
-            
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            settings.UseBaseClassForItems = useBaseClass;
             Save();
         }
         
 
         public bool GetWriteAsPartialClass(ScriptableObjectCollection collection)
         {
-            bool canBePartial = CodeGenerationUtility.CheckIfCanBePartial(collection);
-            if (!canBePartial)
-            {
-                dontWriteAsPartialClassCollections.Add(collection.GUID);
-                return false;
-            }
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            if (settings.WriteAsPartialClass && CodeGenerationUtility.CheckIfCanBePartial(collection))
+                return true;
+
+            SetWriteAsPartialClass(collection, false);
             
-            return !dontWriteAsPartialClassCollections.Contains(collection.GUID);
+            return false;
         }
         
         public void SetWriteAsPartialClass(ScriptableObjectCollection collection, bool writeAsPartial)
         {
-            if (!CodeGenerationUtility.CheckIfCanBePartial(collection))
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            if (settings.WriteAsPartialClass == writeAsPartial)
                 return;
             
-            if (writeAsPartial)
-            {
-                dontWriteAsPartialClassCollections.Remove(collection.GUID);
-            }
-            else
-            {
-                if (!dontWriteAsPartialClassCollections.Contains(collection.GUID))
-                    dontWriteAsPartialClassCollections.Add(collection.GUID);
-            }
-            
+            settings.WriteAsPartialClass = writeAsPartial;
             Save();
         }
         
         public string GetNamespaceForCollection(ScriptableObjectCollection collection)
         {
-            return GetOrCreateNamespaceForCollection(collection).Namespace;
+            return GetOrCreateCollectionSettings(collection).Namespace;
         }
 
         public void SetNamespaceForCollection(ScriptableObjectCollection collection, string targetNamespace)
         {
-            NamespaceSettings settings = GetOrCreateNamespaceForCollection(collection);
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
             settings.Namespace = targetNamespace;
             Save();
         }
 
-        private NamespaceSettings GetOrCreateNamespaceForCollection(ScriptableObjectCollection collection)
-        {
-            NamespaceSettings namespaceSetting = null;
-            for (int i = 0; i < namespaceSettings.Count; i++)
-            {
-                namespaceSetting = namespaceSettings[i];
-                if (namespaceSetting.CollectionGuid == collection.GUID)
-                {
-                    return namespaceSetting;
-                }
-            }
-
-            namespaceSetting = new NamespaceSettings();
-            namespaceSetting.CollectionGuid = collection.GUID;
-
-            string targetNamespace = collection.GetItemType().Namespace;
-            if (!string.IsNullOrEmpty(namespacePrefix))
-                targetNamespace = $"{namespacePrefix}";
-            
-            namespaceSetting.Namespace = targetNamespace;
-            namespaceSettings.Add(namespaceSetting);
-            Save();
-            return namespaceSetting;
-        }
-
-
         public string GetStaticFilenameForCollection(ScriptableObjectCollection collection)
         {
-            return GetOrCreateStaticFilenameForCollection(collection).StaticFilename;
-        }
-
-        private StaticFilenameSettings GetOrCreateStaticFilenameForCollection(ScriptableObjectCollection collection)
-        {
-            StaticFilenameSettings staticFilenameSetting = null;
-            for (int i = 0; i < staticFilenameSettings.Count; i++)
-            {
-                staticFilenameSetting = staticFilenameSettings[i];
-                if (staticFilenameSetting.CollectionGuid == collection.GUID)
-                {
-                    return staticFilenameSetting;
-                }
-            }
-
-            staticFilenameSetting = new StaticFilenameSettings();
-            staticFilenameSetting.CollectionGuid = collection.GUID;
-
-            if (!CodeGenerationUtility.CheckIfCanBePartial(collection))
-                staticFilenameSetting.StaticFilename = $"{collection.name}Static".FirstToUpper().Sanitize();
-            else 
-                staticFilenameSetting.StaticFilename = $"{collection.name}".FirstToUpper().Sanitize();
-            
-            staticFilenameSettings.Add(staticFilenameSetting);
-            Save();
-            return staticFilenameSetting;
+            return GetOrCreateCollectionSettings(collection).StaticFilename;
         }
 
         public void SetStaticFilenameForCollection(ScriptableObjectCollection collection, string targetNewName)
         {
-            StaticFilenameSettings staticFilenameSetting = GetOrCreateStaticFilenameForCollection(collection);
-            staticFilenameSetting.StaticFilename = targetNewName;
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            settings.StaticFilename = targetNewName;
             Save();
         }
         
         public bool GetEnforceIndirectAccess(ScriptableObjectCollection collection)
         {
-            return enforcingIndirectAccessCollections.Contains(collection.GUID);
+            return GetOrCreateCollectionSettings(collection).EnforceIndirectAccess;
         }
         
         public void SetEnforceIndirectAccess(ScriptableObjectCollection collection, bool enforceIndirectAccess)
         {
-            if (enforceIndirectAccess)
-            {
-                if (!enforcingIndirectAccessCollections.Contains(collection.GUID))
-                    enforcingIndirectAccessCollections.Add(collection.GUID);
-            }
-            else
-            {
-                enforcingIndirectAccessCollections.Remove(collection.GUID);
-            }
-            
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            settings.EnforceIndirectAccess = enforceIndirectAccess;
             Save();
+        }
+        
+        public CollectionSettings GetOrCreateCollectionSettings(ScriptableObjectCollection collection)
+        {
+            CollectionSettings collectionSetting = null;
+            for (int i = 0; i < collectionSettings.Count; i++)
+            {
+                collectionSetting = collectionSettings[i];
+                if (collectionSetting.Guid == collection.GUID)
+                {
+                    return collectionSetting;
+                }
+            }
+
+            collectionSetting = new CollectionSettings(collection);
+            collectionSettings.Add(collectionSetting);
+            Save();
+            return collectionSetting;
+        }
+
+        public void ResetSettings(ScriptableObjectCollection collection)
+        {
+            for (int i = 0; i < collectionSettings.Count; i++)
+            {
+                CollectionSettings collectionSetting = collectionSettings[i];
+                if (collectionSetting.Guid != collection.GUID) 
+                    continue;
+                
+                collectionSettings.RemoveAt(i);
+                Save();
+                return;
+            }
         }
     }
 }

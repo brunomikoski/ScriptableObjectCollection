@@ -159,15 +159,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             generateItemsButton.style.display = generatorType != null ? DisplayStyle.Flex : DisplayStyle.None;
 
 
-            ObjectField generatedScriptsParentFolderObjectField =
-                root.Q<ObjectField>("generated-scripts-parent-folder");
-            generatedScriptsParentFolderObjectField.value = SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection);
-            
-            generatedScriptsParentFolderObjectField.RegisterValueChangedCallback(evt =>
-            {
-                SOCSettings.Instance.SetGeneratedScriptsParentFolder(collection, evt.newValue);
-            });
-
             Toggle writeAsPartialClass = root.Q<Toggle>("write-partial-class-toggle");
             writeAsPartialClass.value = SOCSettings.Instance.GetWriteAsPartialClass(collection);
             writeAsPartialClass.SetEnabled(CodeGenerationUtility.CheckIfCanBePartial(collection));
@@ -176,8 +167,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 SOCSettings.Instance.SetWriteAsPartialClass(collection, evt.newValue);
             });
 
+            
+            ObjectField generatedScriptsParentFolderObjectField =
+                root.Q<ObjectField>("generated-scripts-parent-folder");
+            generatedScriptsParentFolderObjectField.value = SOCSettings.Instance.GetParentDefaultAssetScriptsFolderForCollection(collection);
+            
+            generatedScriptsParentFolderObjectField.RegisterValueChangedCallback(evt =>
+            {
+                SOCSettings.Instance.SetGeneratedScriptsParentFolder(collection, evt.newValue);
+                writeAsPartialClass.SetEnabled(CodeGenerationUtility.CheckIfCanBePartial(collection));
+            });
+
+
             Toggle useBaseClassForItems = root.Q<Toggle>("base-class-for-items-toggle");
-            useBaseClassForItems.value = SOCSettings.Instance.GetUseBaseClassForITems(collection);
+            useBaseClassForItems.value = SOCSettings.Instance.GetUseBaseClassForItem(collection);
             useBaseClassForItems.RegisterValueChangedCallback(evt =>
             {
                 SOCSettings.Instance.SetUsingBaseClassForItems(collection, evt.newValue);

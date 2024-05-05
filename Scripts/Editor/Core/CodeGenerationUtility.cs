@@ -307,17 +307,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 SOCSettings.Instance.SetWriteAsPartialClass(collection, false);
             }
         }
-        public static bool CheckIfCanBePartial(ScriptableObjectCollection collection)
+        public static bool CheckIfCanBePartial(ScriptableObjectCollection collection, string destinationFolder = "")
         {
             string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
             string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
-            string targetGeneratedCodePath = CompilationPipeline.GetAssemblyNameFromScriptPath(
-                AssetDatabase.GetAssetPath(SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection)));
+            if(string.IsNullOrEmpty(destinationFolder))
+                destinationFolder = CompilationPipeline.GetAssemblyNameFromScriptPath(SOCSettings.Instance.GetParentFolderPathForCollection(collection));
             
             // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
             // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
-            bool canBePartial = baseAssembly.Equals(targetGeneratedCodePath, StringComparison.Ordinal) ||
-                                string.IsNullOrEmpty(targetGeneratedCodePath);
+            bool canBePartial = baseAssembly.Equals(destinationFolder, StringComparison.Ordinal) ||
+                                string.IsNullOrEmpty(destinationFolder);
             
             return canBePartial;
         }
@@ -374,10 +374,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             string fileName = SOCSettings.Instance.GetStaticFilenameForCollection(collection);
             string nameSpace = SOCSettings.Instance.GetNamespaceForCollection(collection);
-            string finalFolder = AssetDatabase.GetAssetPath(SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection));
+            string finalFolder = AssetDatabase.GetAssetPath(SOCSettings.Instance.GetParentDefaultAssetScriptsFolderForCollection(collection));
             
             bool writeAsPartial = SOCSettings.Instance.GetWriteAsPartialClass(collection);
-            bool useBaseClass = SOCSettings.Instance.GetUseBaseClassForITems(collection);
+            bool useBaseClass = SOCSettings.Instance.GetUseBaseClassForItem(collection);
 
 
             AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
@@ -620,7 +620,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static bool DoesStaticFileForCollectionExist(ScriptableObjectCollection collection)
         {
             return File.Exists(Path.Combine(
-                AssetDatabase.GetAssetPath(SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection)),
+                AssetDatabase.GetAssetPath(SOCSettings.Instance.GetParentDefaultAssetScriptsFolderForCollection(collection)),
                 $"{SOCSettings.Instance.GetStaticFilenameForCollection(collection)}.g.cs"));
         }
     }

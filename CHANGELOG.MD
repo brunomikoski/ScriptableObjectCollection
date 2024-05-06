@@ -15,8 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Updated the visuals of the CollectionEditor again, make it a bit tighter and more readable
-- Refactored the settings again (sorry, some settings will be lost again) to make the system more extensible and easier to maintain
-
+- Refactored the settings again _(sorry, some settings will be lost again)_ to make the system more extensible and easier to maintain, settings are now stored inside the .meta files, so it can be versioned but also keep changes between projects
 
 ## [2.3.0]
 ### Changed

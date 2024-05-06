@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Addressables support again, now you if addressables is available on your project and the collection is set to non auto loaded, and the collection is set to use addressables, will write some helper code on the static file to load the collectiom from the addressables.
 - Added a Addressables Sample project as well
 - Added Reset Settings context menu option
-- Added the Write Addressable Loading Methods toggle for the collection~~~~
+- Added the Write Addressable Loading Methods toggle for the collection
 
 ### Changed
 - Updated the visuals of the CollectionEditor again, make it a bit tighter and more readable

@@ -11,4 +11,3 @@ This sample demonstrate how you can define one of your collections as Addressabl
 3. Make sure you set the `Assets/Samples/Scriptable Object Collection/2.3.1/Addressables Loaded Collection/Database` as Addressable
 4. Generate the static file using the `Generate Static File` button
 5. This should give you access to the static methods to load and unload the collection like the example file `Assets/Samples/Scriptable Object Collection/2.3.1/Addressables Loaded Collection/Scripts/AddressablesExample.cs`
-~~~~

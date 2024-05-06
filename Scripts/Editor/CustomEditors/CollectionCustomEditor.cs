@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using UnityEditor;
+#if ADDRESSABLES_ENABLED
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
+#endif
 using UnityEditor.Compilation;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -43,6 +48,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private Button expandShrinkButton;
 
         private List<ScriptableObject> filteredItems = new();
+        
+        private HelpBox helpbox;
+        private Toggle writeAddressablesToggle;
 
         protected virtual bool CanBeReorderable
         {
@@ -158,7 +166,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             generateItemsButton.RegisterCallback<MouseUpEvent>(OnClickGenerateItems);
             generateItemsButton.style.display = generatorType != null ? DisplayStyle.Flex : DisplayStyle.None;
 
-
+            Toggle automaticLoadToggle = root.Q<Toggle>("automatic-loaded-toggle");
+            automaticLoadToggle.RegisterValueChangedCallback(evt =>
+            {
+                UpdateHelpBox();
+            });
+            
             Toggle writeAsPartialClass = root.Q<Toggle>("write-partial-class-toggle");
             writeAsPartialClass.value = SOCSettings.Instance.GetWriteAsPartialClass(collection);
             writeAsPartialClass.SetEnabled(CodeGenerationUtility.CheckIfCanBePartial(collection));
@@ -198,6 +211,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             enforceIndirectAccessToggle.RegisterValueChangedCallback(evt =>
             {
                 SOCSettings.Instance.SetEnforceIndirectAccess(collection, evt.newValue);
+                UpdateHelpBox();
             });
             
 
@@ -210,7 +224,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
             InspectorElement.FillDefaultInspector(imguiContainer, serializedObject, this);
             
 
+            VisualElement advancedOptionsVisualElement = root.Q<VisualElement>("advanced-options-visual-element");
+            helpbox = new HelpBox
+            {
+                style =
+                {
+                    display = DisplayStyle.None
+                }
+            };
 
+            advancedOptionsVisualElement.Add(helpbox);
+
+            writeAddressablesToggle = root.Q<Toggle>("write-addressables-load-toggle");
+            writeAddressablesToggle.style.display = IsAddressableAsset(collection) && !automaticLoadToggle.value ? DisplayStyle.Flex : DisplayStyle.None;
+            writeAddressablesToggle.SetValueWithoutNotify(SOCSettings.Instance.GetWriteAddressableLoadingMethods(collection));
+            writeAddressablesToggle.RegisterValueChangedCallback(evt =>
+            {
+                SOCSettings.Instance.SetWriteAddressableLoadingMethods(collection, evt.newValue);
+                UpdateHelpBox();
+            });
+            
+            
             expandShrinkButton = root.Q<Button>("expand-button");
             
             expandShrinkButton.clickable.activators.Clear();
@@ -218,6 +252,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             ToolbarSearchField toolbarSearchField = root.Q<ToolbarSearchField>();
             toolbarSearchField.RegisterValueChangedCallback(OnSearchInputChanged);
+
+            UpdateHelpBox();
 
             return root;
         }
@@ -468,6 +504,60 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             collectionItemListView.RefreshItems();
+        }
+        
+        
+        private void UpdateHelpBox()
+        {
+            bool isAddressableAsset = IsAddressableAsset(collection);
+
+            HelpBoxMessageType helpBoxMessageType = HelpBoxMessageType.Warning;
+
+            StringBuilder finalMessage = new StringBuilder();
+            
+            if (isAddressableAsset && !collection.AutomaticallyLoaded && !SOCSettings.Instance.GetWriteAddressableLoadingMethods(collection))
+            {
+                finalMessage.AppendLine("You can use the Write Addressable Loading Methods to generate the loading methods for this collection.");
+                helpBoxMessageType = HelpBoxMessageType.Info;
+            }
+
+            if (isAddressableAsset && collection.AutomaticallyLoaded)
+            {
+                finalMessage.AppendLine(
+                    "This collection is set to be automatically loaded but it's also an Addressables asset, Maybe this should be set to be load manually ");
+                
+                helpBoxMessageType = HelpBoxMessageType.Warning;
+            }
+
+            if (isAddressableAsset && !collection.AutomaticallyLoaded && !SOCSettings.Instance.GetEnforceIndirectAccess(collection))
+            {
+                finalMessage.AppendLine("This collection is an not automatically loaded Addressables asset, you should consider enforcing indirect access to avoid loading all the items at once.");
+                
+                helpBoxMessageType = HelpBoxMessageType.Warning;
+            }
+
+            if (finalMessage.Length > 0)
+            {
+                helpbox.style.display = DisplayStyle.Flex;
+                helpbox.messageType = helpBoxMessageType;
+                helpbox.text = finalMessage.ToString();
+            }
+            else
+            {
+                helpbox.style.display = DisplayStyle.None;
+            }
+        }
+
+        private bool IsAddressableAsset(ScriptableObject target)
+        {
+#if ADDRESSABLES_ENABLED
+            string assetPath = AssetDatabase.GetAssetPath(target);
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetEntry entry = settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(assetPath));
+            return entry != null;
+#else
+            return false;
+#endif
         }
 
         private ScriptableObject AddNewItemOfType(Type targetType, bool autoFocusForRename = true)

@@ -303,5 +303,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
         }
+
+        public void SetWriteAddressableLoadingMethods(ScriptableObjectCollection collection, bool evtNewValue)
+        {
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            settings.SetWriteAddressableLoadingMethods(evtNewValue);
+            Save();
+        }
+
+        public bool GetWriteAddressableLoadingMethods(ScriptableObjectCollection collection)
+        {
+            return GetOrCreateCollectionSettings(collection).WriteAddressableLoadingMethods;
+        }
     }
 }

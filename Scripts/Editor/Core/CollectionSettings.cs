@@ -15,6 +15,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool UseBaseClassForItems;
         public bool EnforceIndirectAccess;
 
+        private bool writeAddressableLoadingMethods;
+        public bool WriteAddressableLoadingMethods => !CollectionsRegistry.Instance.GetCollectionByGUID(Guid).AutomaticallyLoaded && writeAddressableLoadingMethods;
+
+
         public CollectionSettings(ScriptableObjectCollection targetCollection)
         {
             Guid = targetCollection.GUID;
@@ -45,6 +49,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             WriteAsPartialClass = canBePartial;
             UseBaseClassForItems = false;
             EnforceIndirectAccess = false;
+        }
+
+        public void SetWriteAddressableLoadingMethods(bool evtNewValue)
+        {
+            writeAddressableLoadingMethods = evtNewValue;
         }
     }
 }

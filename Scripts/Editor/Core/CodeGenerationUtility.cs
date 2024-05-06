@@ -574,8 +574,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AppendLine(writer, indentation, "}");
 
             AppendLine(writer, indentation);
-            
-            
+
+
+            if (!SOCSettings.Instance.GetWriteAddressableLoadingMethods(collection))
+            {
+                return;
+            }
 #if ADDRESSABLES_ENABLED
             string assetPath = AssetDatabase.GetAssetPath(collection);
             AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;

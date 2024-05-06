@@ -12,9 +12,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [Serializable]
     public class SOCSettings
     {
-        [SerializeField]
-        public List<CollectionSettings> collectionSettings = new();
-        
         private const string STORAGE_PATH = "ProjectSettings/ScriptableObjectCollection.json";
         private const int MINIMUM_NAMESPACE_DEPTH = 1;
 
@@ -162,7 +159,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void Save()
         {
-            string json = EditorJsonUtility.ToJson(this, prettyPrint: true);
+            string json = EditorJsonUtility.ToJson(this);
             File.WriteAllText(STORAGE_PATH, json);
         }
 
@@ -195,11 +192,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (evtNewValue != null)
                 assetPath = AssetDatabase.GetAssetPath(evtNewValue);
 
-
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
-            settings.ParentFolderPath = assetPath;
-            
-            Save();
+            settings.SetParentFolderPath(assetPath);
         }
         
         public bool GetUseBaseClassForItem(ScriptableObjectCollection collection)
@@ -210,10 +204,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SetUsingBaseClassForItems(ScriptableObjectCollection collection, bool useBaseClass)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
-            settings.UseBaseClassForItems = useBaseClass;
-            Save();
+            settings.SetUseBaseClassForItems(useBaseClass);
         }
-        
 
         public bool GetWriteAsPartialClass(ScriptableObjectCollection collection)
         {
@@ -229,11 +221,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SetWriteAsPartialClass(ScriptableObjectCollection collection, bool writeAsPartial)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
-            if (settings.WriteAsPartialClass == writeAsPartial)
-                return;
-            
-            settings.WriteAsPartialClass = writeAsPartial;
-            Save();
+            settings.SetWriteAsPartialClass(writeAsPartial);
         }
         
         public string GetNamespaceForCollection(ScriptableObjectCollection collection)
@@ -244,8 +232,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SetNamespaceForCollection(ScriptableObjectCollection collection, string targetNamespace)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
-            settings.Namespace = targetNamespace;
-            Save();
+            settings.SetNamespace(targetNamespace);
         }
 
         public string GetStaticFilenameForCollection(ScriptableObjectCollection collection)
@@ -256,8 +243,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SetStaticFilenameForCollection(ScriptableObjectCollection collection, string targetNewName)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
-            settings.StaticFilename = targetNewName;
-            Save();
+            settings.SetStaticFilename(targetNewName);
         }
         
         public bool GetEnforceIndirectAccess(ScriptableObjectCollection collection)
@@ -268,52 +254,52 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SetEnforceIndirectAccess(ScriptableObjectCollection collection, bool enforceIndirectAccess)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
-            settings.EnforceIndirectAccess = enforceIndirectAccess;
-            Save();
+            settings.SetEnforceIndirectAccess(enforceIndirectAccess);
         }
         
         public CollectionSettings GetOrCreateCollectionSettings(ScriptableObjectCollection collection)
         {
-            CollectionSettings collectionSetting = null;
-            for (int i = 0; i < collectionSettings.Count; i++)
+            string path = AssetDatabase.GetAssetPath(collection);
+            AssetImporter importer = AssetImporter.GetAtPath(path);
+
+            string collectionSettingsData = importer.userData;
+
+            CollectionSettings collectionSetting;
+            if (string.IsNullOrEmpty(collectionSettingsData))
             {
-                collectionSetting = collectionSettings[i];
-                if (collectionSetting.Guid == collection.GUID)
-                {
-                    return collectionSetting;
-                }
+                collectionSetting = new CollectionSettings(collection);
+            }
+            else
+            {
+                collectionSetting = new CollectionSettings();
+                EditorJsonUtility.FromJsonOverwrite(importer.userData, collectionSetting);
             }
 
-            collectionSetting = new CollectionSettings(collection);
-            collectionSettings.Add(collectionSetting);
-            Save();
+            collectionSetting.SetImporter(importer);
             return collectionSetting;
         }
 
         public void ResetSettings(ScriptableObjectCollection collection)
         {
-            for (int i = 0; i < collectionSettings.Count; i++)
-            {
-                CollectionSettings collectionSetting = collectionSettings[i];
-                if (collectionSetting.Guid != collection.GUID) 
-                    continue;
-                
-                collectionSettings.RemoveAt(i);
-                Save();
-                return;
-            }
+            CollectionSettings settings = new CollectionSettings(collection);
+            settings.Save();
         }
 
         public void SetWriteAddressableLoadingMethods(ScriptableObjectCollection collection, bool evtNewValue)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
             settings.SetWriteAddressableLoadingMethods(evtNewValue);
-            Save();
         }
 
         public bool GetWriteAddressableLoadingMethods(ScriptableObjectCollection collection)
         {
             return GetOrCreateCollectionSettings(collection).WriteAddressableLoadingMethods;
+        }
+
+        public void SaveCollectionSettings(ScriptableObjectCollection collection, bool forceSave = false)
+        {
+            CollectionSettings settings = GetOrCreateCollectionSettings(collection);
+            settings.Save(forceSave);
         }
     }
 }

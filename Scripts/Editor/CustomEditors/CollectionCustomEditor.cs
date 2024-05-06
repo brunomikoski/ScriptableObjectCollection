@@ -51,6 +51,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private HelpBox helpbox;
         private Toggle writeAddressablesToggle;
+        private Button generateStaticFileButton;
 
         protected virtual bool CanBeReorderable
         {
@@ -156,9 +157,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             synchronizeAssetsButton.clickable.activators.Clear();
             synchronizeAssetsButton.RegisterCallback<MouseUpEvent>(OnClickToSynchronizeAssets);
 
-            Button generateStaticFileButton = root.Q<Button>("generate-static-file-button");
+            generateStaticFileButton = root.Q<Button>("generate-static-file-button");
             generateStaticFileButton.clickable.activators.Clear();
             generateStaticFileButton.RegisterCallback<MouseUpEvent>(OnClickGenerateStaticFile);
+            UpdateGenerateStaticFileButtonState();
 
 
             Button generateItemsButton = root.Q<Button>("generate-auto-items");
@@ -189,6 +191,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 SOCSettings.Instance.SetGeneratedScriptsParentFolder(collection, evt.newValue);
                 writeAsPartialClass.SetEnabled(CodeGenerationUtility.CheckIfCanBePartial(collection));
+                UpdateGenerateStaticFileButtonState();
             });
 
 
@@ -236,8 +239,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             advancedOptionsVisualElement.Add(helpbox);
 
             writeAddressablesToggle = root.Q<Toggle>("write-addressables-load-toggle");
-            writeAddressablesToggle.style.display = IsAddressableAsset(collection) && !automaticLoadToggle.value ? DisplayStyle.Flex : DisplayStyle.None;
             writeAddressablesToggle.SetValueWithoutNotify(SOCSettings.Instance.GetWriteAddressableLoadingMethods(collection));
+            writeAddressablesToggle.style.display = DisplayStyle.None;
             writeAddressablesToggle.RegisterValueChangedCallback(evt =>
             {
                 SOCSettings.Instance.SetWriteAddressableLoadingMethods(collection, evt.newValue);
@@ -253,7 +256,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ToolbarSearchField toolbarSearchField = root.Q<ToolbarSearchField>();
             toolbarSearchField.RegisterValueChangedCallback(OnSearchInputChanged);
 
-            UpdateHelpBox();
+            
+            root.schedule.Execute(OnVisualTreeCreated).ExecuteLater(100);
 
             return root;
         }
@@ -394,6 +398,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        private void OnDisable()
+        {
+            SOCSettings.Instance.SaveCollectionSettings(collection, true);
+        }
+
         private void OnNamespaceTextFieldChanged(ChangeEvent<string> evt)
         {
             string validCharsOnly = Regex.Replace(evt.newValue, @"[^A-Za-z0-9_\.]+", "_");
@@ -437,6 +446,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             ReloadFilteredItems();
+        }
+
+        private void OnVisualTreeCreated()
+        {
+            UpdateHelpBox();
+            UpdateGenerateStaticFileButtonState();
+            UpdateWriteAddressablesMethodsState();
+        }
+
+        private void UpdateWriteAddressablesMethodsState()
+        {
+            writeAddressablesToggle.style.display = IsAddressableAsset(collection) && !collection.AutomaticallyLoaded ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        private void UpdateGenerateStaticFileButtonState()
+        {
+            generateStaticFileButton.SetEnabled(
+                AssetDatabase.IsValidFolder(SOCSettings.Instance.GetParentFolderPathForCollection(collection)));
         }
 
         private void OnClickAddNewItem(MouseDownEvent evt)

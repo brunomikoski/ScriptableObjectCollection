@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using UnityEditor;
+#if ADDRESSABLES_ENABLED
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
+#endif
 using UnityEditor.Compilation;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -21,7 +26,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 
         [SerializeField]
-        public VisualTreeAsset visualTreeAsset;
+        private VisualTreeAsset visualTreeAsset;
         [SerializeField] 
         private VisualTreeAsset collectionItemVisualTreeAsset;
 
@@ -39,11 +44,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private TextField currentRenamingTextField;
         private Label currentRenamingLabel;
-        private ToolbarSearchField toolbarSearchField;
         private TextField namespaceTextField;
         private Button expandShrinkButton;
 
         private List<ScriptableObject> filteredItems = new();
+        
+        private HelpBox helpbox;
+        private Toggle writeAddressablesToggle;
+        private Button generateStaticFileButton;
 
         protected virtual bool CanBeReorderable
         {
@@ -114,9 +122,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectionItemListView.makeItem = MakeCollectionItemListItem;
             collectionItemListView.bindItem = BindCollectionItemListItem;
             collectionItemListView.itemIndexChanged += OnCollectionItemOrderChanged;
-            collectionItemListView.schedule.Execute(() =>
+            
+            if (ScriptableObjectCollectionUtility.IsTryingToGoToItem(out int targetIndex))
             {
-                if (ScriptableObjectCollectionUtility.IsTryingToGoToItem(out int targetIndex))
+                collectionItemListView.schedule.Execute(() =>
                 {
                     ScriptableObjectCollectionUtility.ClearGoToItem();
                     ScriptableObject targetItem = collection.Items[targetIndex];
@@ -124,8 +133,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     SetAllToExpandState(false);
                     SetExpandedStateForIndex(filteredItemIndex, true);
                     collectionItemListView.ScrollToItem(filteredItemIndex);
-                }
-            }).ExecuteLater(100);
+                }).ExecuteLater(100);
+            }
 
             collectionItemListView.reorderable = CanBeReorderable;
             collectionItemListView.RegisterCallback<KeyUpEvent>(OnKeyUpOnCollectionListView, TrickleDown.TrickleDown);
@@ -148,26 +157,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
             synchronizeAssetsButton.clickable.activators.Clear();
             synchronizeAssetsButton.RegisterCallback<MouseUpEvent>(OnClickToSynchronizeAssets);
 
-            Button generateStaticFileButton = root.Q<Button>("generate-static-file-button");
+            generateStaticFileButton = root.Q<Button>("generate-static-file-button");
             generateStaticFileButton.clickable.activators.Clear();
             generateStaticFileButton.RegisterCallback<MouseUpEvent>(OnClickGenerateStaticFile);
+            UpdateGenerateStaticFileButtonState();
 
 
             Button generateItemsButton = root.Q<Button>("generate-auto-items");
             generateItemsButton.clickable.activators.Clear();
             generateItemsButton.RegisterCallback<MouseUpEvent>(OnClickGenerateItems);
-            generateItemsButton.parent.style.display = generatorType != null ? DisplayStyle.Flex : DisplayStyle.None;
+            generateItemsButton.style.display = generatorType != null ? DisplayStyle.Flex : DisplayStyle.None;
 
-
-            ObjectField generatedScriptsParentFolderObjectField =
-                root.Q<ObjectField>("generated-scripts-parent-folder");
-            generatedScriptsParentFolderObjectField.value = SOCSettings.Instance.GetGeneratedScriptsParentFolder(collection);
-            
-            generatedScriptsParentFolderObjectField.RegisterValueChangedCallback(evt =>
+            Toggle automaticLoadToggle = root.Q<Toggle>("automatic-loaded-toggle");
+            automaticLoadToggle.RegisterValueChangedCallback(evt =>
             {
-                SOCSettings.Instance.SetGeneratedScriptsParentFolder(collection, evt.newValue);
+                UpdateHelpBox();
             });
-
+            
             Toggle writeAsPartialClass = root.Q<Toggle>("write-partial-class-toggle");
             writeAsPartialClass.value = SOCSettings.Instance.GetWriteAsPartialClass(collection);
             writeAsPartialClass.SetEnabled(CodeGenerationUtility.CheckIfCanBePartial(collection));
@@ -176,8 +182,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 SOCSettings.Instance.SetWriteAsPartialClass(collection, evt.newValue);
             });
 
+            
+            ObjectField generatedScriptsParentFolderObjectField =
+                root.Q<ObjectField>("generated-scripts-parent-folder");
+            generatedScriptsParentFolderObjectField.value = SOCSettings.Instance.GetParentDefaultAssetScriptsFolderForCollection(collection);
+            
+            generatedScriptsParentFolderObjectField.RegisterValueChangedCallback(evt =>
+            {
+                SOCSettings.Instance.SetGeneratedScriptsParentFolder(collection, evt.newValue);
+                writeAsPartialClass.SetEnabled(CodeGenerationUtility.CheckIfCanBePartial(collection));
+                UpdateGenerateStaticFileButtonState();
+            });
+
+
             Toggle useBaseClassForItems = root.Q<Toggle>("base-class-for-items-toggle");
-            useBaseClassForItems.value = SOCSettings.Instance.GetUseBaseClassForITems(collection);
+            useBaseClassForItems.value = SOCSettings.Instance.GetUseBaseClassForItem(collection);
             useBaseClassForItems.RegisterValueChangedCallback(evt =>
             {
                 SOCSettings.Instance.SetUsingBaseClassForItems(collection, evt.newValue);
@@ -195,7 +214,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             enforceIndirectAccessToggle.RegisterValueChangedCallback(evt =>
             {
                 SOCSettings.Instance.SetEnforceIndirectAccess(collection, evt.newValue);
+                UpdateHelpBox();
             });
+            
 
             namespaceTextField = root.Q<TextField>("namespace-textfield");
             namespaceTextField.value = SOCSettings.Instance.GetNamespaceForCollection(collection);
@@ -206,14 +227,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
             InspectorElement.FillDefaultInspector(imguiContainer, serializedObject, this);
             
 
+            VisualElement advancedOptionsVisualElement = root.Q<VisualElement>("advanced-options-visual-element");
+            helpbox = new HelpBox
+            {
+                style =
+                {
+                    display = DisplayStyle.None
+                }
+            };
 
+            advancedOptionsVisualElement.Add(helpbox);
+
+            writeAddressablesToggle = root.Q<Toggle>("write-addressables-load-toggle");
+            writeAddressablesToggle.SetValueWithoutNotify(SOCSettings.Instance.GetWriteAddressableLoadingMethods(collection));
+            writeAddressablesToggle.style.display = DisplayStyle.None;
+            writeAddressablesToggle.RegisterValueChangedCallback(evt =>
+            {
+                SOCSettings.Instance.SetWriteAddressableLoadingMethods(collection, evt.newValue);
+                UpdateHelpBox();
+            });
+            
+            
             expandShrinkButton = root.Q<Button>("expand-button");
             
             expandShrinkButton.clickable.activators.Clear();
             expandShrinkButton.RegisterCallback<MouseUpEvent>(OnToggleExpand);
 
-            toolbarSearchField = root.Q<ToolbarSearchField>();
+            ToolbarSearchField toolbarSearchField = root.Q<ToolbarSearchField>();
             toolbarSearchField.RegisterValueChangedCallback(OnSearchInputChanged);
+
+            
+            root.schedule.Execute(OnVisualTreeCreated).ExecuteLater(100);
 
             return root;
         }
@@ -239,7 +283,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             Editor editor = EditorCache.GetOrCreateEditorForObject(targetItem);
 
-            Label titleLabel = targetElement.Q<Foldout>("header-foldout").Q<Label>();
+            Label titleLabel = foldout.Q<Label>();
             titleLabel.RegisterCallback<MouseDownEvent, int>(RenameItemAtIndex, targetIndex);
 
             targetElement.RegisterCallback<MouseUpEvent, int>(ShowOptionsForIndex, targetIndex);
@@ -332,7 +376,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 isOn = false;
             }
 
-            expandShrinkButton.text = isOn.Value ? "\u2192" : "\u2193";
+            expandShrinkButton.text = isOn.Value ? "▸◂" : "◂▸";
         }
 
         private void OnEnable()
@@ -352,6 +396,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 RenameItemAtIndex(targetIndex);
                 LAST_ADDED_COLLECTION_ITEM = null;
             }
+        }
+
+        private void OnDisable()
+        {
+            SOCSettings.Instance.SaveCollectionSettings(collection, true);
         }
 
         private void OnNamespaceTextFieldChanged(ChangeEvent<string> evt)
@@ -397,6 +446,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             ReloadFilteredItems();
+        }
+
+        private void OnVisualTreeCreated()
+        {
+            UpdateHelpBox();
+            UpdateGenerateStaticFileButtonState();
+            UpdateWriteAddressablesMethodsState();
+        }
+
+        private void UpdateWriteAddressablesMethodsState()
+        {
+            writeAddressablesToggle.style.display = IsAddressableAsset(collection) && !collection.AutomaticallyLoaded ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        private void UpdateGenerateStaticFileButtonState()
+        {
+            generateStaticFileButton.SetEnabled(
+                AssetDatabase.IsValidFolder(SOCSettings.Instance.GetParentFolderPathForCollection(collection)));
         }
 
         private void OnClickAddNewItem(MouseDownEvent evt)
@@ -464,6 +531,60 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             collectionItemListView.RefreshItems();
+        }
+        
+        
+        private void UpdateHelpBox()
+        {
+            bool isAddressableAsset = IsAddressableAsset(collection);
+
+            HelpBoxMessageType helpBoxMessageType = HelpBoxMessageType.Warning;
+
+            StringBuilder finalMessage = new StringBuilder();
+            
+            if (isAddressableAsset && !collection.AutomaticallyLoaded && !SOCSettings.Instance.GetWriteAddressableLoadingMethods(collection))
+            {
+                finalMessage.AppendLine("You can use the Write Addressable Loading Methods to generate the loading methods for this collection.");
+                helpBoxMessageType = HelpBoxMessageType.Info;
+            }
+
+            if (isAddressableAsset && collection.AutomaticallyLoaded)
+            {
+                finalMessage.AppendLine(
+                    "This collection is set to be automatically loaded but it's also an Addressables asset, Maybe this should be set to be load manually ");
+                
+                helpBoxMessageType = HelpBoxMessageType.Warning;
+            }
+
+            if (isAddressableAsset && !collection.AutomaticallyLoaded && !SOCSettings.Instance.GetEnforceIndirectAccess(collection))
+            {
+                finalMessage.AppendLine("This collection is an not automatically loaded Addressables asset, you should consider enforcing indirect access to avoid loading all the items at once.");
+                
+                helpBoxMessageType = HelpBoxMessageType.Warning;
+            }
+
+            if (finalMessage.Length > 0)
+            {
+                helpbox.style.display = DisplayStyle.Flex;
+                helpbox.messageType = helpBoxMessageType;
+                helpbox.text = finalMessage.ToString();
+            }
+            else
+            {
+                helpbox.style.display = DisplayStyle.None;
+            }
+        }
+
+        private bool IsAddressableAsset(ScriptableObject target)
+        {
+#if ADDRESSABLES_ENABLED
+            string assetPath = AssetDatabase.GetAssetPath(target);
+            AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            AddressableAssetEntry entry = settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(assetPath));
+            return entry != null;
+#else
+            return false;
+#endif
         }
 
         private ScriptableObject AddNewItemOfType(Type targetType, bool autoFocusForRename = true)

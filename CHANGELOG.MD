@@ -6,6 +6,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.1]
+### Added
+- Added Addressables support again, now you if addressables is available on your project and the collection is set to non auto loaded, and the collection is set to use addressables, will write some helper code on the static file to load the collectiom from the addressables.
+- Added a Addressables Sample project as well
+- Added Reset Settings context menu option
+- Added the Write Addressable Loading Methods toggle for the collection
+
+### Changed
+- Updated the visuals of the CollectionEditor again, make it a bit tighter and more readable
+- Refactored the settings again _(sorry, some settings will be lost again)_ to make the system more extensible and easier to maintain, settings are now stored inside the .meta files, so it can be versioned but also keep changes between projects
+
 ## [2.3.0]
 ### Changed
 - Refactored CollectionCustomEditor to use UI Elements, getting rid of multiple hacks to make it work with the IMGUI and Reorderable list
@@ -541,6 +552,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.3.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.1
 [2.3.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.0
 [2.2.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.4
 [2.2.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.3

@@ -1,7 +1,7 @@
 {
   "name": "com.brunomikoski.scriptableobjectcollection",
   "displayName": "Scriptable Object Collection",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "unity": "2021.2",
   "description": "A library to help improve the usability of Unity3D Scriptable Objects by grouping them into a collection and exposing them by code or nice inspectors!",
   "keywords": [
@@ -20,5 +20,12 @@
     "name": "Bruno Mikoski",
     "url": "https://www.brunomikoski.com"
   },
-  "type": "library"
+  "type": "library",
+  "samples": [
+    {
+      "displayName": "Addressables Loaded Collection",
+      "description": "This sample shows how you can leverage the ScriptableObjectCollection to create a collection that is managed by the Addressables system. Allowing you to update it on the fly and also show some of the new features of the 2.3.1 version",
+      "path": "Samples~/AddressablesCollection"
+    }
+  ]
 }

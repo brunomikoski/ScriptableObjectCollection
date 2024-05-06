@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 000901e0da2ebca4cb080cc2b89ef10b, type: 3}
+  m_Name: Ambulance
+  m_EditorClassIdentifier: 
+  guid:
+    value1: 4970954985142910969
+    value2: 9096795907161232567
+  collectionGUID:
+    value1: 5677458002784623978
+    value2: -2514090179870802282
+  carPrefab: {fileID: 919132149155446097, guid: df8a261ac583f3141a4b5cedda174026, type: 3}

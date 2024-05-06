@@ -33,7 +33,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         [SerializeField, HideInInspector]
         private bool automaticallyLoaded = true;
-        internal bool AutomaticallyLoaded => automaticallyLoaded;
+        public bool AutomaticallyLoaded => automaticallyLoaded;
 
         public ScriptableObject this[int index]
         {

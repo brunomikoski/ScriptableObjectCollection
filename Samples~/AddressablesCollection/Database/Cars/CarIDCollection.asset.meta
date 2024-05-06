@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: d6dc9ffb2365b66448ce88ff63f60b6d
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+  userData: '{"Guid":{"value1":5677458002784623978,"value2":-2514090179870802282},"Namespace":"BrunoMikoski.Templates","StaticFilename":"CarIDCollection","ParentFolderPath":"Assets/Samples/Scriptable
+    Object Collection/2.3.1/Addressables Loaded Collection/Scripts/Database/CarIDCollection","WriteAsPartialClass":true,"UseBaseClassForItems":false,"EnforceIndirectAccess":true,"WriteAddressableLoadingMethods":true}'
+  assetBundleName: 
+  assetBundleVariant: 

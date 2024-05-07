@@ -299,7 +299,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SaveCollectionSettings(ScriptableObjectCollection collection, bool forceSave = false)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
-            settings.Save(forceSave);
+            settings.Save();
         }
     }
 }

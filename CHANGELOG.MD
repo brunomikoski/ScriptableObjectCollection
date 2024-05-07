@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.2]
+## Added
+- Added tooltip for the Generate Addressables Method toggle
+
+## Changed
+- Changed the Save method for the SOCSettings to be less expensive
+- Fixed issue when the Addressables Settings haven't been created yet
+- Organized Methods/Properties on the Collection
+- Bumped minimum supported version to 2022.2
+
 ## [2.3.1]
 ### Added
 - Added Addressables support again, now you if addressables is available on your project and the collection is set to non auto loaded, and the collection is set to use addressables, will write some helper code on the static file to load the collectiom from the addressables.
@@ -552,6 +562,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.3.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.2
 [2.3.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.1
 [2.3.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.0
 [2.2.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.2.4

@@ -580,6 +580,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #if ADDRESSABLES_ENABLED
             string assetPath = AssetDatabase.GetAssetPath(target);
             AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
+            if (settings == null)
+                return false;
+            
             AddressableAssetEntry entry = settings.FindAssetEntry(AssetDatabase.AssetPathToGUID(assetPath));
             return entry != null;
 #else

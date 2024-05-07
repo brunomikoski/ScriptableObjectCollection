@@ -35,6 +35,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private bool automaticallyLoaded = true;
         public bool AutomaticallyLoaded => automaticallyLoaded;
 
+        public int Count => items.Count;
+
+        public object SyncRoot => throw new NotSupportedException();
+        public bool IsSynchronized => throw new NotSupportedException();
+        
+        public bool IsFixedSize => false;
+        public bool IsReadOnly => false;
+
+        public virtual bool ShouldProtectItemOrder => false;
+
         public ScriptableObject this[int index]
         {
             get => items[index];
@@ -77,17 +87,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 list.Add(e);
             }
         }
-
-        public int Count => items.Count;
-
-        public object SyncRoot => throw new NotSupportedException();
-        public bool IsSynchronized => throw new NotSupportedException();
-        
-        public bool IsFixedSize => false;
-        public bool IsReadOnly => false;
-
-        public virtual bool ShouldProtectItemOrder => false;
-
         
         public int Add(object value)
         {

@@ -1,8 +1,8 @@
 {
   "name": "com.brunomikoski.scriptableobjectcollection",
   "displayName": "Scriptable Object Collection",
-  "version": "2.3.1",
-  "unity": "2021.2",
+  "version": "2.3.2",
+  "unity": "2022.2",
   "description": "A library to help improve the usability of Unity3D Scriptable Objects by grouping them into a collection and exposing them by code or nice inspectors!",
   "keywords": [
     "scriptable object",

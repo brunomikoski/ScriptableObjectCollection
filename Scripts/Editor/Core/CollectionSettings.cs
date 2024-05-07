@@ -52,11 +52,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             else 
                 StaticFilename = $"{targetCollection.GetType().Name}".FirstToUpper();
 
-            
-            
             WriteAsPartialClass = canBePartial;
             UseBaseClassForItems = false;
             EnforceIndirectAccess = false;
+            Save();
         }
         
         public bool ShouldWriteAddressableLoadingMethods()
@@ -67,30 +66,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return WriteAddressableLoadingMethods;
         }
 
-        public void SetWriteAddressableLoadingMethods(bool evtNewValue)
-        {
-            if (WriteAddressableLoadingMethods == evtNewValue)
-                return;
-
-            WriteAddressableLoadingMethods = evtNewValue;
-            Save();
-        }
-
         public void SetImporter(AssetImporter targetImporter)
         {
             importer = targetImporter;
         }
 
-        public void Save(bool forceSave = false)
+        public void Save()
         {
             if (importer == null)
                 return;
 
             importer.userData = EditorJsonUtility.ToJson(this);
-            if (forceSave)
-            {
-                importer.SaveAndReimport();
-            }
+            AssetDatabase.WriteImportSettingsIfDirty(importer.assetPath);
+        }
+
+        public void SetWriteAddressableLoadingMethods(bool shouldWriteAddressablesMethods)
+        {
+            if (WriteAddressableLoadingMethods == shouldWriteAddressablesMethods)
+                return;
+
+            WriteAddressableLoadingMethods = shouldWriteAddressablesMethods;
+            Save();
         }
 
         public void SetEnforceIndirectAccess(bool enforceIndirectAccess)
@@ -109,7 +105,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             StaticFilename = targetNewName;
             Save();
-
         }
 
         public void SetNamespace(string targetNamespace)

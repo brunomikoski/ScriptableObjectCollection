@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.3]
+## Added
+- Added new plus button for `ItemPicker` allowing you to add new items to the collection from the Drawer itself.
+
+## Removed
+- Removed old `itemsGuids` that was marked as obsolete since last year. If you are upgrading from an older version, please update to a previous version before upgrading to 2.3.3.
+
+## Changed
+- Small cleanups and fixes
+
 ## [2.3.2]
 ## Added
 - Added tooltip for the Generate Addressables Method toggle
@@ -562,6 +572,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.3.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.3
 [2.3.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.2
 [2.3.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.1
 [2.3.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.0

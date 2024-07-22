@@ -13,44 +13,10 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     public class CollectionItemPicker<TItemType> : IList<TItemType>, IEquatable<IList<TItemType>>, IEquatable<CollectionItemPicker<TItemType>>
         where TItemType : ScriptableObject, ISOCItem
     {
-        [SerializeField, Obsolete("Will be removed soon")]
-        private List<LongGuid> itemsGuids = new List<LongGuid>();
-
         [SerializeField]
         private List<CollectionItemIndirectReference<TItemType>> cachedIndirectReferences = new();
 
-#pragma warning disable CS0618 // Type or member is obsolete
-
-        private List<CollectionItemIndirectReference<TItemType>> indirectReferences
-        {
-            get
-            {
-                //Backwards compability with old system
-                if (itemsGuids.Count > 0)
-                {
-                    if (CollectionsRegistry.Instance.TryGetCollectionsOfItemType(out List<ScriptableObjectCollection<TItemType>> results))
-                    {
-                        for (int i = 0; i < itemsGuids.Count; i++)
-                        {
-                            LongGuid itemGuid = itemsGuids[i];
-                            for (int j = 0; j < results.Count; j++)
-                            {
-                                ScriptableObjectCollection<TItemType> collection = results[j];
-                                if (!collection.TryGetItemByGUID(itemGuid, out TItemType result))
-                                    continue;
-
-                                cachedIndirectReferences.Add(new CollectionItemIndirectReference<TItemType>(result));
-                                break;
-                            }
-                        }
-                        itemsGuids.Clear();
-                    }
-                }
-                
-                return cachedIndirectReferences;
-            }
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
+        private List<CollectionItemIndirectReference<TItemType>> indirectReferences => cachedIndirectReferences;
 
         public event Action<TItemType> OnItemTypeAddedEvent;
         public event Action<TItemType> OnItemTypeRemovedEvent;

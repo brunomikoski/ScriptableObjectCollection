@@ -460,4 +460,3 @@ namespace BrunoMikoski.ScriptableObjectCollections
         }
     }
 }
-

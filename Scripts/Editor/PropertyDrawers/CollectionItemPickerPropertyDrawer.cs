@@ -32,25 +32,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             private readonly string name;
             public string Name => name;
             
-            private readonly LongGuid collectionGUID;
-            public LongGuid CollectionGuid => collectionGUID;
-
-            private readonly LongGuid socItemGUID;
-            public LongGuid SocItemGuid => socItemGUID;
-
-
             public PopupItem(ScriptableObject scriptableObject)
             {
                 name = scriptableObject.name;
-                if (scriptableObject is ISOCItem socItem)
-                {
-                    collectionGUID = socItem.Collection.GUID;
-                    socItemGUID = socItem.GUID;
-                    return;
-                }
-
-                collectionGUID = default;
-                socItemGUID = default;
             }
         }
 
@@ -73,6 +57,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             totalPosition.height = buttonHeight;
             buttonRect.height = buttonHeight;
 
+            // Calculate the rect for the + button
+            float buttonWidth = 20f;
+            Rect plusButtonRect = new Rect(position.xMax - buttonWidth, position.y, buttonWidth, buttonHeight);
+
+            // Adjust the total position rect to exclude the + button area
+            totalPosition.width -= buttonWidth;
+
             if (!popupList.IsOpen)
                 SetSelectedValuesOnPopup(property);
 
@@ -89,6 +80,14 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 PopupWindow.Show(buttonRect, popupList);
             }
 
+            using (new EditorGUI.DisabledScope(possibleCollections.Count > 1))
+            {
+                if (GUI.Button(plusButtonRect, "+"))
+                {
+                    CreatAndAddNewItems(property);
+                }
+            }
+
             buttonRect.width = 0;
 
             Rect labelRect = buttonRect;
@@ -98,7 +97,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             float currentLineWidth = position.x + 4;
             float maxHeight = 0;
-            float inspectorWidth = EditorGUIUtility.currentViewWidth;
+            float inspectorWidth = EditorGUIUtility.currentViewWidth - 88;
             float currentLineMaxHeight = 0;
 
             Color originalColor = GUI.backgroundColor;
@@ -130,7 +129,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     GUI.backgroundColor = coloredItem.LabelColor;
                 else
                     GUI.backgroundColor = Color.black;
-                
+
                 GUI.Label(labelRect, labelContent, labelStyle);
             }
 
@@ -142,6 +141,19 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 EditorGUIUtility.singleLineHeight);
 
             EditorGUI.EndProperty();
+        }
+
+        private void CreatAndAddNewItems(SerializedProperty property)
+        {
+            ScriptableObjectCollection scriptableObjectCollection = possibleCollections.First();
+            ScriptableObjectCollection collection = scriptableObjectCollection;
+
+            ScriptableObject newItem = CollectionCustomEditor.AddNewItem(collection, scriptableObjectCollection.GetItemType());
+            SerializedProperty itemsProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+            itemsProperty.arraySize++;
+
+            AssignItemGUIDToProperty(newItem, itemsProperty.GetArrayElementAtIndex(itemsProperty.arraySize - 1));
+            itemsProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private void GetValuesFromPopup(SerializedProperty property)

@@ -389,13 +389,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Need to cache this before the reorderable list is created, because it affects how the list is displayed.
             generatorType = CollectionGenerators.GetGeneratorTypeForCollection(collection.GetType());
             generator = generatorType == null ? null : CollectionGenerators.GetGenerator(generatorType);
-
-            if (LAST_ADDED_COLLECTION_ITEM != null)
-            {
-                int targetIndex = collection.IndexOf(LAST_ADDED_COLLECTION_ITEM);
-                RenameItemAtIndex(targetIndex);
-                LAST_ADDED_COLLECTION_ITEM = null;
-            }
         }
 
         private void OnDisable()
@@ -453,6 +446,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             UpdateHelpBox();
             UpdateGenerateStaticFileButtonState();
             UpdateWriteAddressablesMethodsState();
+
+            if (LAST_ADDED_COLLECTION_ITEM != null)
+            {
+                int targetIndex = collection.IndexOf(LAST_ADDED_COLLECTION_ITEM);
+                RenameItemAtIndex(targetIndex);
+                LAST_ADDED_COLLECTION_ITEM = null;
+            }
         }
 
         private void UpdateWriteAddressablesMethodsState()

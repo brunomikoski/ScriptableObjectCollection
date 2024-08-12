@@ -23,12 +23,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private static GUIStyle buttonStyle;
         private float buttonHeight = EditorGUIUtility.singleLineHeight;
         private List<ScriptableObjectCollection> possibleCollections;
-        private List<ScriptableObject> availableItems = new List<ScriptableObject>();
+        private List<ScriptableObject> availableItems = new();
 
-        private HashSet<string> initializedPropertiesPaths = new HashSet<string>();
+        private readonly HashSet<string> initializedPropertiesPaths = new();
 
-        private Dictionary<string, PopupList<PopupItem>> propertyPathToPopupList =
-            new Dictionary<string, PopupList<PopupItem>>();
+        private readonly Dictionary<string, PopupList<PopupItem>> propertyPathToPopupList = new();
 
         private readonly struct PopupItem : IPopupListItem
         {

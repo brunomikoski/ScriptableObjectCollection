@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## Changed
+- Update PickerPropertyDrawer to use PopupList from property path cache to avoid issue when rendered inside a List/Array
 
 ## [2.3.3]
 ## Added
@@ -39,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.0]
 ### Changed
-- Refactored CollectionCustomEditor to use UI Elements, getting rid of multiple hacks to make it work with the IMGUI and Reorderable list
+- Refactored CollectionCustomEditor to use UI Elements, getting rid of multiple hacks to make it work with the IMGUI and Reorderable list~~~~
 - Updated the visuals of the Collection Editor
 - Advanced Options are now exposed by default, giving more clarify of what is going on
 - Removed the editor only assets from the Collection (`generateAsPartialClass`, `generateAsBaseClass`, `generateAsStaticClass`), those are not stored on the SOCSettings file and versioned

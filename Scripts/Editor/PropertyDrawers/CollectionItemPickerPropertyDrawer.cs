@@ -19,13 +19,15 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         
         private const string ITEMS_PROPERTY_NAME = "cachedIndirectReferences";
 
-        private bool initialized;
-        private PopupList<PopupItem> popupList = new PopupList<PopupItem>();
         private static GUIStyle labelStyle;
         private static GUIStyle buttonStyle;
         private float buttonHeight = EditorGUIUtility.singleLineHeight;
         private List<ScriptableObjectCollection> possibleCollections;
-        private List<ScriptableObject> availableItems = new List<ScriptableObject>();
+        private List<ScriptableObject> availableItems = new();
+
+        private readonly HashSet<string> initializedPropertiesPaths = new();
+
+        private readonly Dictionary<string, PopupList<PopupItem>> propertyPathToPopupList = new();
 
         private readonly struct PopupItem : IPopupListItem
         {
@@ -46,9 +48,12 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            EditorGUI.BeginProperty(position, label, property);
+
             Initialize(property);
 
-            EditorGUI.BeginProperty(position, label, property);
+            PopupList<PopupItem> popupList = propertyPathToPopupList[property.propertyPath];
+
             position = EditorGUI.PrefixLabel(position, label);
 
             Rect totalPosition = position;
@@ -57,15 +62,15 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             totalPosition.height = buttonHeight;
             buttonRect.height = buttonHeight;
 
-            // Calculate the rect for the + button
             float buttonWidth = 20f;
             Rect plusButtonRect = new Rect(position.xMax - buttonWidth, position.y, buttonWidth, buttonHeight);
 
-            // Adjust the total position rect to exclude the + button area
             totalPosition.width -= buttonWidth;
 
             if (!popupList.IsOpen)
-                SetSelectedValuesOnPopup(property);
+            {
+                SetSelectedValuesOnPopup(popupList, property);
+            }
 
             if (GUI.Button(totalPosition, "", buttonStyle))
             {
@@ -73,8 +78,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                 popupList.OnClosedEvent += () =>
                 {
-                    GetValuesFromPopup(property);
-                    SetSelectedValuesOnPopup(property);
+                    GetValuesFromPopup(popupList, property);
+                    SetSelectedValuesOnPopup(popupList, property);
                 };
                 popupList.OnItemSelectedEvent += (x, y) => { inspectorWindow.Repaint(); };
                 PopupWindow.Show(buttonRect, popupList);
@@ -156,7 +161,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             itemsProperty.serializedObject.ApplyModifiedProperties();
         }
 
-        private void GetValuesFromPopup(SerializedProperty property)
+        private void GetValuesFromPopup(PopupList<PopupItem> popupList, SerializedProperty property)
         {
             SerializedProperty itemsProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
             itemsProperty.ClearArray();
@@ -202,7 +207,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             }
         }
 
-        private void SetSelectedValuesOnPopup(SerializedProperty property)
+        private void SetSelectedValuesOnPopup(PopupList<PopupItem> popupList, SerializedProperty property)
         {
             popupList.DeselectAll();
 
@@ -254,12 +259,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return new LongGuid(itemGUIDValueASerializedProperty.longValue, itemGUIDValueBSerializedProperty.longValue);
         }
 
-
         private void Initialize(SerializedProperty property)
         {
-            if (initialized)
+            if (initializedPropertiesPaths.Contains(property.propertyPath))
                 return;
-            
+
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type itemType = arrayOrListType ?? fieldInfo.FieldType;
 
@@ -269,7 +273,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             if (!CollectionsRegistry.Instance.TryGetCollectionsOfItemType(itemType, out possibleCollections))
                 throw new Exception($"No collection found for item type {itemType}");
 
-            popupList.Clear();
+            propertyPathToPopupList.Add(property.propertyPath, new PopupList<PopupItem>());
+
             availableItems.Clear();
             for (int i = 0; i < possibleCollections.Count; i++)
             {
@@ -280,16 +285,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                     if (scriptableObjectType != itemType && !scriptableObjectType.IsSubclassOf(itemType))
                         continue;
-                    
+
                     availableItems.Add(scriptableObject);
-                    popupList.AddItem(new PopupItem(scriptableObject), false);
+                    propertyPathToPopupList[property.propertyPath].AddItem(new PopupItem(scriptableObject), false);
                 }
             }
 
             buttonStyle = EditorStyles.textArea;
             GUIStyle assetLabelStyle = new GUIStyle(EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).FindStyle("AssetLabel"));
             labelStyle = assetLabelStyle;
-            initialized = true;
+            initializedPropertiesPaths.Add(property.propertyPath);
         }
     }
 }

@@ -329,30 +329,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
             List<ScriptableObjectCollection> foundCollections  = new List<ScriptableObjectCollection>();
 
             bool changed = false;
-            TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom<ScriptableObjectCollection>();
-            for (int i = 0; i < types.Count; i++)
+            string[] typeGUIDs = AssetDatabase.FindAssets($"t:{nameof(ScriptableObjectCollection)}");
+
+            for (int j = 0; j < typeGUIDs.Length; j++)
             {
-                Type type = types[i];
-                string[] typeGUIDs = AssetDatabase.FindAssets($"t:{type.Name}");
+                string typeGUID = typeGUIDs[j];
+                ScriptableObjectCollection collection =
+                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(AssetDatabase.GUIDToAssetPath(typeGUID));
 
-                for (int j = 0; j < typeGUIDs.Length; j++)
-                {
-                    string typeGUID = typeGUIDs[j];
-                    ScriptableObjectCollection collection = 
-                        AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(AssetDatabase.GUIDToAssetPath(typeGUID));
+                if (collection == null)
+                    continue;
 
-                    if (collection == null)
-                        continue;
+                if (foundCollections.Contains(collection))
+                    continue;
 
-                    if (foundCollections.Contains(collection))
-                        continue;
+                if (!collections.Contains(collection))
+                    changed = true;
 
-                    if (!collections.Contains(collection))
-                        changed = true;
-                    
-                    collection.RefreshCollection();
-                    foundCollections.Add(collection);
-                }
+                collection.RefreshCollection();
+                foundCollections.Add(collection);
             }
 
             if (changed)

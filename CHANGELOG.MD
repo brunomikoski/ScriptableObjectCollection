@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ## Changed
 - Update PickerPropertyDrawer to use PopupList from property path cache to avoid issue when rendered inside a List/Array
+- Update CollectionRegistry to search for the ScriptableObjectCollection using the `AssetDatabase.FindAssets` instead of the `TypeCache` first
 
 ## [2.3.3]
 ## Added

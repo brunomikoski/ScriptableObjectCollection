@@ -298,6 +298,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnKeyUpOnCollectionListView(KeyUpEvent evt)
         {
+            if (currentRenamingLabel != null)
+                return;
+
             switch (evt.keyCode)
             {
                 case KeyCode.F2:

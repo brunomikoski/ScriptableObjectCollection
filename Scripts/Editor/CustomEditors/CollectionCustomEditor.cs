@@ -651,6 +651,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
+            if (!EditorUtility.DisplayDialog($"Delete {scriptableObject.name}",
+                $"Are you sure you want to delete {scriptableObject.name}?", "Yes", "No"))
+            {
+                return;
+            }
+
             Undo.RecordObject(collection, "Remove Item");
 
             filteredItems.Remove(scriptableObject);

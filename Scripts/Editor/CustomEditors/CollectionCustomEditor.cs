@@ -298,6 +298,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnKeyUpOnCollectionListView(KeyUpEvent evt)
         {
+            if (currentRenamingLabel != null)
+                return;
+
             switch (evt.keyCode)
             {
                 case KeyCode.F2:
@@ -645,6 +648,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (scriptableObject == null)
             {
                 ReloadFilteredItems();
+                return;
+            }
+
+            if (!EditorUtility.DisplayDialog($"Delete {scriptableObject.name}",
+                $"Are you sure you want to delete {scriptableObject.name}?", "Yes", "No"))
+            {
                 return;
             }
 

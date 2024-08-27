@@ -17,7 +17,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private const string COLLECTION_GUID_VALUE_A = "collectionGUIDValueA";
         private const string COLLECTION_GUID_VALUE_B = "collectionGUIDValueB";
         
-        private const string ITEMS_PROPERTY_NAME = "cachedIndirectReferences";
+        private const string ITEMS_PROPERTY_NAME = "indirectReferences";
 
         private static GUIStyle labelStyle;
         private static GUIStyle buttonStyle;
@@ -158,7 +158,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             itemsProperty.arraySize++;
 
             AssignItemGUIDToProperty(newItem, itemsProperty.GetArrayElementAtIndex(itemsProperty.arraySize - 1));
-            itemsProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private void GetValuesFromPopup(PopupList<PopupItem> popupList, SerializedProperty property)
@@ -188,23 +187,21 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     propertyArrayIndex++;
                 }
             }
-
-            itemsProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private void AssignItemGUIDToProperty(ScriptableObject scriptableObject, SerializedProperty newProperty)
         {
-            if (scriptableObject is ISOCItem item)
-            {
-                (long, long) itemValues = item.GUID.GetRawValues();
-                (long, long) collectionValues = item.Collection.GUID.GetRawValues();
+            if (scriptableObject is not ISOCItem item)
+                return;
 
-                newProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A).longValue = itemValues.Item1;
-                newProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B).longValue = itemValues.Item2;
+            (long, long) itemValues = item.GUID.GetRawValues();
+            (long, long) collectionValues = item.Collection.GUID.GetRawValues();
 
-                newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_A).longValue = collectionValues.Item1;
-                newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_B).longValue = collectionValues.Item2;
-            }
+            newProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A).longValue = itemValues.Item1;
+            newProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B).longValue = itemValues.Item2;
+
+            newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_A).longValue = collectionValues.Item1;
+            newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_B).longValue = collectionValues.Item2;
         }
 
         private void SetSelectedValuesOnPopup(PopupList<PopupItem> popupList, SerializedProperty property)

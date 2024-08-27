@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace BrunoMikoski.ScriptableObjectCollections.Picker
 {
@@ -13,10 +14,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     public class CollectionItemPicker<TItemType> : IList<TItemType>, IEquatable<IList<TItemType>>, IEquatable<CollectionItemPicker<TItemType>>
         where TItemType : ScriptableObject, ISOCItem
     {
-        [SerializeField]
-        private List<CollectionItemIndirectReference<TItemType>> cachedIndirectReferences = new();
-
-        private List<CollectionItemIndirectReference<TItemType>> indirectReferences => cachedIndirectReferences;
+        [SerializeField, FormerlySerializedAs("cachedIndirectReferences")]
+        private List<CollectionItemIndirectReference<TItemType>> indirectReferences = new();
 
         public event Action<TItemType> OnItemTypeAddedEvent;
         public event Action<TItemType> OnItemTypeRemovedEvent;
@@ -28,7 +27,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         {
             get
             {
-                if (isDirty)
+                if (!Application.isPlaying || isDirty)
                 {
                     cachedItems.Clear();
 
@@ -103,6 +102,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         
         //Implement mathematical operators  
         #region Operators
+
+        public static implicit operator List<TItemType>(CollectionItemPicker<TItemType> targetPicker)
+        {
+            return targetPicker.Items;
+        }
 
         public static CollectionItemPicker<TItemType> operator +(CollectionItemPicker<TItemType> picker1,
             CollectionItemPicker<TItemType> picker2)
@@ -261,7 +265,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         public int IndexOf(TItemType item)
         {
-            return indirectReferences.FindIndex(reference => reference.Ref.GUID== item.GUID);
+            return indirectReferences.FindIndex(reference => reference.Ref.GUID == item.GUID);
         }
 
         public void Insert(int index, TItemType item)

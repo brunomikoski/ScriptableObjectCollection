@@ -73,11 +73,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void DrawItemDrawer(Rect position, SerializedProperty property, GUIContent label, ScriptableObject collectionItem)
         {
-            collectionItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, item =>
-            {
-                SetSerializedPropertyGUIDs(item);
-                drawingProperty.serializedObject.ApplyModifiedProperties();
-            });
+            collectionItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, SetSerializedPropertyGUIDs);
         }
 
         private void SetSerializedPropertyGUIDs(ScriptableObject item)

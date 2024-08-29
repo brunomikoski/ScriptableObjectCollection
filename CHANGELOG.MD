@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed issue while renaming one asset could be canceled on arrow keys press
 - Fix removing wrong usages of ApplyModifiedProperties
 - Fixed issue with the CollectionItemPicker not updating the collection properly on editor mode
+- Fixed issue with check if a collection could be partial not working, and newly created collections were not being generated as partial
+- Updated the Reload of collections when entering Edit Mode to only load collections that have been removed.
 
 ## [2.3.3]
 ## Added

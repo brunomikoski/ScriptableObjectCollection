@@ -18,8 +18,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             else if (playModeStateChange == PlayModeStateChange.EnteredEditMode)
             {
-                if (CollectionsRegistry.Instance.AutoSearchForCollections)
-                    CollectionsRegistry.Instance.ReloadCollections();
+                CollectionsRegistry.Instance.ReloadUnloadedCollectionsIfNeeded();
             }
         }
     }

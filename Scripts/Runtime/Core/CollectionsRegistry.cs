@@ -5,6 +5,7 @@ using BrunoMikoski.ScriptableObjectCollections.Core;
 using UnityEngine;
 using UnityEngine.Scripting;
 #if UNITY_EDITOR
+using System.Text;
 using UnityEditor;
 #endif
 
@@ -14,12 +15,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [Preserve]
     public class CollectionsRegistry : ResourceScriptableObjectSingleton<CollectionsRegistry>
     {
-        [SerializeField] 
+        private const string NON_AUTO_INITIALIZED_COLLECTIONS_KEY = "NON_AUTO_INITIALIZED_COLLECTIONS";
+
+        [SerializeField]
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
         public IReadOnlyList<ScriptableObjectCollection> Collections => collections;
         
-        [SerializeField]
-        private bool autoSearchForCollections = true;
+        [SerializeField, HideInInspector]
+        private bool autoSearchForCollections;
         public bool AutoSearchForCollections => autoSearchForCollections;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -371,6 +374,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void RemoveNonAutomaticallyInitializedCollections()
         {
 #if UNITY_EDITOR
+            StringBuilder removedAssetPaths = new StringBuilder();
             bool dirty = false;
             for (int i = collections.Count - 1; i >= 0; i--)
             {
@@ -380,13 +384,43 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 collections.Remove(collection);
+                removedAssetPaths.Append($"{AssetDatabase.GetAssetPath(collection)}|");
+
                 dirty = true;
             }
 
             if (dirty)
             {
+                EditorPrefs.SetString(NON_AUTO_INITIALIZED_COLLECTIONS_KEY, removedAssetPaths.ToString());
                 ObjectUtility.SetDirty(this);
             }
+            else
+            {
+                EditorPrefs.DeleteKey(NON_AUTO_INITIALIZED_COLLECTIONS_KEY);
+            }
+#endif
+        }
+
+        public void ReloadUnloadedCollectionsIfNeeded()
+        {
+#if UNITY_EDITOR
+            string removedAssetPaths = EditorPrefs.GetString(NON_AUTO_INITIALIZED_COLLECTIONS_KEY, string.Empty);
+            if (string.IsNullOrEmpty(removedAssetPaths))
+                return;
+
+            string[] paths = removedAssetPaths.Split('|', StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < paths.Length; i++)
+            {
+                string path = paths[i];
+                ScriptableObjectCollection collection = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(path);
+                if (collection == null)
+                    continue;
+
+                collections.Add(collection);
+            }
+
+            EditorPrefs.DeleteKey(NON_AUTO_INITIALIZED_COLLECTIONS_KEY);
+            ObjectUtility.SetDirty(this);
 #endif
         }
 
@@ -452,6 +486,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             autoSearchForCollections = isOn;
             ObjectUtility.SetDirty(this);
+        }
+
+        public void UpdateAutoSearchForCollections()
+        {
+            for (int i = 0; i < Collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = Collections[i];
+                if (!collection.AutomaticallyLoaded)
+                {
+                    SetAutoSearchForCollections(true);
+                    return;
+                }
+            }
+
+            SetAutoSearchForCollections(false);
         }
     }
 }

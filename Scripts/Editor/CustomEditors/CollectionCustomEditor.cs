@@ -171,6 +171,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Toggle automaticLoadToggle = root.Q<Toggle>("automatic-loaded-toggle");
             automaticLoadToggle.RegisterValueChangedCallback(evt =>
             {
+                UpdateAutomaticallyLoaded();
                 UpdateHelpBox();
             });
             
@@ -260,6 +261,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             root.schedule.Execute(OnVisualTreeCreated).ExecuteLater(100);
 
             return root;
+        }
+
+        private void UpdateAutomaticallyLoaded()
+        {
+            CollectionsRegistry.Instance.UpdateAutoSearchForCollections();
         }
 
         private VisualElement MakeCollectionItemListItem()

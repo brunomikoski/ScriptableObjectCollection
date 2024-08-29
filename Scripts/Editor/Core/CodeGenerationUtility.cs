@@ -311,12 +311,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(collection));
             string baseAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(baseClassPath);
-            if(string.IsNullOrEmpty(destinationFolder))
-                destinationFolder = CompilationPipeline.GetAssemblyNameFromScriptPath(SOCSettings.Instance.GetParentFolderPathForCollection(collection));
-            
+            if (string.IsNullOrEmpty(destinationFolder))
+            {
+                destinationFolder = SOCSettings.Instance.GetParentFolderPathForCollection(collection);
+            }
+
+            string destinationFolderAssembly = CompilationPipeline.GetAssemblyNameFromScriptPath(destinationFolder);
+
             // NOTE: If you're not using assemblies for your code, it's expected that 'targetGeneratedCodePath' would
             // be the same as 'baseAssembly', but it isn't. 'targetGeneratedCodePath' seems to be empty in that case.
-            bool canBePartial = baseAssembly.Equals(destinationFolder, StringComparison.Ordinal) ||
+            bool canBePartial = baseAssembly.Equals(destinationFolderAssembly, StringComparison.Ordinal) ||
                                 string.IsNullOrEmpty(destinationFolder);
             
             return canBePartial;

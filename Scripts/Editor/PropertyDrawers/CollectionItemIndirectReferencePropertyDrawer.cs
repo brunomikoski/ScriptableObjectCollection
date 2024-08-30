@@ -64,16 +64,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (collectionItemPropertyDrawer.OptionsAttribute.DrawType == DrawType.Dropdown)
             {
-                DrawItemDrawer(position, property, label, collectionItem);
+                collectionItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, item =>
+                {
+                    SetSerializedPropertyGUIDs(item);
+                    drawingProperty.serializedObject.ApplyModifiedProperties();
+                });
                 return;
             }
 
             EditorGUI.PropertyField(position, property, label, true);
-        }
-
-        private void DrawItemDrawer(Rect position, SerializedProperty property, GUIContent label, ScriptableObject collectionItem)
-        {
-            collectionItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, SetSerializedPropertyGUIDs);
         }
 
         private void SetSerializedPropertyGUIDs(ScriptableObject item)
@@ -103,6 +102,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     collectionLastKnowNameSerializedProperty.stringValue = socItem.Collection.name;
                 }
             }
+
         }
 
         private bool TryGetCollectionItem(out ScriptableObject item)

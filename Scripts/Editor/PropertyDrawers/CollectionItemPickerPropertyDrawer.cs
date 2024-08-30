@@ -187,6 +187,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     propertyArrayIndex++;
                 }
             }
+
+            itemsProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private void AssignItemGUIDToProperty(ScriptableObject scriptableObject, SerializedProperty newProperty)
@@ -246,6 +248,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     itemsProperty.DeleteArrayElementAtIndex(i);
                 }
             }
+
+            itemsProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private LongGuid GetGUIDFromProperty(SerializedProperty property)

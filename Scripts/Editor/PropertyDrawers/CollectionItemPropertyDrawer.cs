@@ -102,6 +102,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     newItem =>
                     {
                         property.objectReferenceValue = newItem;
+                        property.serializedObject.ApplyModifiedProperties();
                     });
             }
             EditorGUI.EndProperty();

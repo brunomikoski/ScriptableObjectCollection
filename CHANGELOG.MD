@@ -5,10 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [2.3.6]
+## Changed
+- Updated ListView to allow for multiple selection
+- Updated Context Menu functionality to support multiple selection (Copy/Paste/Duplicate/Delete)
+
 ## [2.3.5]
 ## Changed
 - Added `ApplyModifiedProperties()` to property drawers again, since was causing issues with the shareable picker. This was removed on [2.3.4]
-
 
 ## [2.3.4]
 ## Changed
@@ -587,7 +591,8 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
-[2.3.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.5~~~~
+[2.3.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.6
+[2.3.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.5
 [2.3.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.4
 [2.3.3]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.3
 [2.3.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.2

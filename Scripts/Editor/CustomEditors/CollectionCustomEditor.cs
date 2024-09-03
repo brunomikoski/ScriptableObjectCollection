@@ -18,6 +18,7 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
+
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class CollectionCustomEditor : Editor
     {
@@ -290,9 +291,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             Editor editor = EditorCache.GetOrCreateEditorForObject(targetItem);
 
             Label titleLabel = foldout.Q<Label>();
-            titleLabel.RegisterCallback<MouseDownEvent, int>(RenameItemAtIndex, targetIndex);
+            titleLabel.RegisterCallback<MouseDownEvent, int>(RenameItemAtIndex, targetIndex, TrickleDown.TrickleDown);
 
-            targetElement.RegisterCallback<MouseUpEvent, int>(ShowOptionsForIndex, targetIndex);
+            targetElement.parent.parent.RegisterCallback<MouseUpEvent, int>(ShowOptionsForIndex, targetIndex);
 
             imguiContainer.onGUIHandler = () =>
             {
@@ -435,15 +436,35 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnClickRemoveSelectedItems(MouseUpEvent evt)
         {
+
+
             if (!collectionItemListView.selectedIndices.Any())
             {
+                if (!EditorUtility.DisplayDialog($"Delete Item",
+                        $"Are you sure you want to delete {filteredItems[^1].name}?", "Yes", "No"))
+                {
+                    return;
+                }
+
                 DeleteItemAtIndex(filteredItems.Count - 1);
             }
             else
             {
+                if (!EditorUtility.DisplayDialog($"Delete {collectionItemListView.selectedIndices.Count()} Items",
+                        $"Are you sure you want to delete all {collectionItemListView.selectedIndices.Count()} items?", "Yes", "No"))
+                {
+                    return;
+                }
+
+                List<ScriptableObject> itemsToBeDuplicated = new List<ScriptableObject>();
                 foreach (int selectedIndex in collectionItemListView.selectedIndices)
                 {
-                    DeleteItemAtIndex(selectedIndex);
+                    itemsToBeDuplicated.Add(filteredItems[selectedIndex]);
+                }
+
+                foreach (ScriptableObject item in itemsToBeDuplicated)
+                {
+                    DeleteItemAtIndex(collection.IndexOf(item));
                 }
             }
 
@@ -657,12 +678,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
             }
 
-            if (!EditorUtility.DisplayDialog($"Delete {scriptableObject.name}",
-                $"Are you sure you want to delete {scriptableObject.name}?", "Yes", "No"))
-            {
-                return;
-            }
-
             Undo.RecordObject(collection, "Remove Item");
 
             filteredItems.Remove(scriptableObject);
@@ -696,22 +711,47 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (evt.button != 1)
                 return;
-            
+
+            int selectedItemsCount = collectionItemListView.selectedIndices.Count();
+            bool singleItemSelected = selectedItemsCount == 1;
+
             ScriptableObject scriptableObject = filteredItems[targetIndex];
 
             GenericMenu menu = new GenericMenu();
 
-            menu.AddItem(
-                new GUIContent("Copy Values"),
-                false,
-                () => { CopyCollectionItemUtility.SetSource(scriptableObject); }
-            );
+            if (singleItemSelected)
+            {
+                menu.AddItem(
+                    new GUIContent("Copy Values"),
+                    false,
+                    () => { CopyCollectionItemUtility.SetSource(scriptableObject); }
+                );
+            }
+            else
+            {
+                menu.AddDisabledItem(
+                    new GUIContent("Copy Values"),
+                    false);
+            }
             if (CopyCollectionItemUtility.CanPasteToTarget(scriptableObject))
             {
                 menu.AddItem(
                     new GUIContent("Paste Values"),
                     false,
-                    () => { CopyCollectionItemUtility.ApplySourceToTarget(scriptableObject); }
+                    () =>
+                    {
+                        if (selectedItemsCount > 0)
+                        {
+                            foreach (int selectedIndex in collectionItemListView.selectedIndices)
+                            {
+                                CopyCollectionItemUtility.ApplySourceToTarget(filteredItems[selectedIndex]);
+                            }
+                        }
+                        else
+                        {
+                            CopyCollectionItemUtility.ApplySourceToTarget(scriptableObject);
+                        }
+                    }
                 );
             }
             else
@@ -724,39 +764,118 @@ namespace BrunoMikoski.ScriptableObjectCollections
             menu.AddItem(
                 new GUIContent("Duplicate Item"),
                 false,
-                () => { DuplicateItem(targetIndex); }
+                () =>
+                {
+                    if (selectedItemsCount > 0)
+                    {
+                        List<ScriptableObject> itemsToBeDuplicated = new List<ScriptableObject>();
+                        foreach (int selectedIndex in collectionItemListView.selectedIndices)
+                        {
+                            itemsToBeDuplicated.Add(filteredItems[selectedIndex]);
+                        }
+
+                        foreach (ScriptableObject item in itemsToBeDuplicated)
+                        {
+                            DuplicateItem(item, false);
+                        }
+                    }
+                    else
+                    {
+                        DuplicateItem(targetIndex);
+                    }
+                }
             );
 
             menu.AddItem(
                 new GUIContent("Delete Item"),
                 false,
-                () => { DeleteItemAtIndex(targetIndex); }
+                () =>
+                {
+                    if (selectedItemsCount > 0)
+                    {
+                        if (!EditorUtility.DisplayDialog($"Delete {collectionItemListView.selectedIndices.Count()} Items",
+                                $"Are you sure you want to delete all {collectionItemListView.selectedIndices.Count()} items?", "Yes", "No"))
+                        {
+                            return;
+                        }
+
+                        List<ScriptableObject> itemsToBeDuplicated = new List<ScriptableObject>();
+                        foreach (int selectedIndex in collectionItemListView.selectedIndices)
+                        {
+                            itemsToBeDuplicated.Add(filteredItems[selectedIndex]);
+                        }
+
+                        foreach (ScriptableObject item in itemsToBeDuplicated)
+                        {
+                            DeleteItemAtIndex(collection.IndexOf(item));
+                        }
+                    }
+                    else
+                    {
+                        if (!EditorUtility.DisplayDialog($"Delete Item",
+                                $"Are you sure you want to delete {filteredItems[^1].name}?", "Yes", "No"))
+                        {
+                            return;
+                        }
+
+                        DeleteItemAtIndex(targetIndex);
+                    }
+                }
             );
 
             menu.AddSeparator("");
             menu.AddItem(
                 new GUIContent("Select Asset"),
                 false,
-                () => { SelectItemAtIndex(targetIndex); }
+                () =>
+                {
+                    if (selectedItemsCount > 0)
+                    {
+                        SelectItemAtIndex(collectionItemListView.selectedIndices.ToArray());
+                    }
+                    else
+                    {
+                        SelectItemAtIndex(targetIndex);
+                    }
+                }
             );
 
             menu.ShowAsContext();
         }
 
-        private void SelectItemAtIndex(int index)
+        private void SelectItemAtIndex(params int[] index)
         {
-            ScriptableObject collectionItem = filteredItems[index];
-            Selection.objects = new Object[] { collectionItem };
+            Object[] selectedObjects = new Object[index.Length];
+            for (int i = 0; i < index.Length; i++)
+            {
+                selectedObjects[i] = filteredItems[index[i]];
+            }
+            Selection.objects = selectedObjects;
         }
 
-        private void DuplicateItem(int index)
+        private void DuplicateItem(int index, bool showRenameAfter = true)
         {
             ScriptableObject source = filteredItems[index];
+            DuplicateItem(source, showRenameAfter);
+        }
+
+        private void DuplicateItem(ScriptableObject source, bool showRenameAfter)
+        {
             CopyCollectionItemUtility.SetSource(source);
             ScriptableObject newItem = AddNewItemOfType(source.GetType(), false);
             CopyCollectionItemUtility.ApplySourceToTarget(newItem);
-            int targetIndex = filteredItems.IndexOf(newItem);
-            RenameItemAtIndex(targetIndex);
+
+            if (showRenameAfter)
+            {
+                int targetIndex = filteredItems.IndexOf(newItem);
+                RenameItemAtIndex(targetIndex);
+            }
+            else
+            {
+                AssetDatabaseUtils.RenameAsset(newItem, $"{source.name} (Copy)");
+                AssetDatabase.SaveAssetIfDirty(newItem);
+                ReloadFilteredItems();
+            }
         }
 
         private void RenameItemAtIndex(MouseDownEvent evt, int targetIndex)

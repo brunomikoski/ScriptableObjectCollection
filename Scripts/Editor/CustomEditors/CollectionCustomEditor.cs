@@ -22,9 +22,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class CollectionCustomEditor : Editor
     {
+        private enum SortType
+        {
+            Default,
+            ByName,
+            ByType,
+        }
+
+
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         private static ScriptableObject LAST_ADDED_COLLECTION_ITEM;
-
 
         [SerializeField]
         private VisualTreeAsset visualTreeAsset;
@@ -53,6 +60,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private HelpBox helpbox;
         private Toggle writeAddressablesToggle;
         private Button generateStaticFileButton;
+
+
+        private bool sortReversed;
+        private SortType currentSortType = SortType.Default;
 
         protected virtual bool CanBeReorderable
         {
@@ -255,6 +266,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             expandShrinkButton.clickable.activators.Clear();
             expandShrinkButton.RegisterCallback<MouseUpEvent>(OnToggleExpand);
 
+
+            Button sortButton = root.Q<Button>("sort-button");
+            sortButton.clickable.activators.Clear();
+
+            sortButton.RegisterCallback<MouseUpEvent>(OnPressOnSortButton);
+
+
+
             ToolbarSearchField toolbarSearchField = root.Q<ToolbarSearchField>();
             toolbarSearchField.RegisterValueChangedCallback(OnSearchInputChanged);
 
@@ -262,6 +281,53 @@ namespace BrunoMikoski.ScriptableObjectCollections
             root.schedule.Execute(OnVisualTreeCreated).ExecuteLater(100);
 
             return root;
+        }
+
+        private void OnPressOnSortButton(MouseUpEvent evt)
+        {
+            if (evt.button == 0)
+            {
+                sortReversed = !sortReversed;
+                ReloadFilteredItems();
+            }
+            else
+            {
+                GenericMenu sortingOptions = new GenericMenu();
+                sortingOptions.AddItem(new GUIContent("Default"), currentSortType == SortType.Default, () =>
+                {
+                    currentSortType = SortType.Default;
+                    ReloadFilteredItems();
+                });
+
+                sortingOptions.AddItem(new GUIContent("Name"), currentSortType == SortType.ByName, () =>
+                {
+                    currentSortType = SortType.ByName;
+                    ReloadFilteredItems();
+                });
+
+                sortingOptions.AddItem(new GUIContent("Type"), currentSortType == SortType.ByType, () =>
+                {
+                    currentSortType = SortType.ByType;
+                    ReloadFilteredItems();
+                });
+
+                sortingOptions.AddSeparator("");
+
+
+                sortingOptions.AddItem(new GUIContent("Apply Current Sorting"), false, () =>
+                {
+                    collection.Items.Clear();
+                    for (int i = 0; i < filteredItems.Count; i++)
+                    {
+                        ScriptableObject filteredItem = filteredItems[i];
+                        collection.Add(filteredItem);
+                    }
+                    EditorUtility.SetDirty(collection);
+                });
+
+
+                sortingOptions.ShowAsContext();
+            }
         }
 
         private void UpdateAutomaticallyLoaded()
@@ -699,6 +765,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
 
                 filteredItems.Add(scriptableObject);
+            }
+
+            switch (currentSortType)
+            {
+                case SortType.Default:
+                    break;
+                case SortType.ByName:
+                    filteredItems = filteredItems.OrderBy(item => item.name).ToList();
+                    break;
+                case SortType.ByType:
+                    filteredItems = filteredItems.OrderBy(item => item.GetType().Name).ToList();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (sortReversed)
+            {
+                filteredItems.Reverse();
             }
 
             if (refreshListView)

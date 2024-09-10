@@ -23,3 +23,7 @@
     border-left-width: 0;
     background-color: rgba(255, 255, 255, 0);
 }
+
+.sort-button {
+    background-image: url("project://database/Packages/com.brunomikoski.scriptableobjectcollection/Editor/Assets/sort-icon.png?fileID=2800000&guid=77270f2ed601c3a4faec3ee2c6cf859f&type=3#sort-icon");
+}

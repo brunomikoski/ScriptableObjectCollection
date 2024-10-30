@@ -885,7 +885,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private void RenameItemAtIndex(int targetIndex)
         {
-            ClearCurrentRenamingItem();
+            ClearCurrentRenamingItem(false);
 
             Undo.RecordObject(filteredItems[targetIndex], "Rename Item");
             VisualElement targetElement = collectionItemListView.GetRootElementForIndex(targetIndex);
@@ -895,19 +895,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
             currentRenamingLabel.style.display = DisplayStyle.None;
 
             currentRenamingTextField = targetElement.Q<TextField>();
-            currentRenamingTextField.RegisterCallback<FocusOutEvent>(OnRenamingAssetLostFocus);
-            currentRenamingTextField.RegisterValueChangedCallback(_ => OnFinishRenamingItem(targetIndex));
 
             currentRenamingTextField.SetValueWithoutNotify(currentRenamingLabel.text);
             currentRenamingTextField.style.display = DisplayStyle.Flex;
             currentRenamingTextField.SelectAll();
             currentRenamingTextField.Focus();
             collectionItemListView.ClearSelection();
+
+            currentRenamingTextField.schedule.Execute(() =>
+            {
+                currentRenamingTextField.SelectAll();
+                currentRenamingTextField.RegisterCallback<FocusOutEvent>(OnRenamingAssetLostFocus);
+                currentRenamingTextField.RegisterValueChangedCallback(_ => OnFinishRenamingItem(targetIndex));
+            }).ExecuteLater(0);
         }
 
         private void OnRenamingAssetLostFocus(FocusOutEvent evt)
         {
-            ClearCurrentRenamingItem();
+            ClearCurrentRenamingItem(false);
         }
 
         private void OnFinishRenamingItem(int targetIndex)
@@ -929,18 +934,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AssetDatabase.SaveAssetIfDirty(asset);
             }
 
-            ClearCurrentRenamingItem();
+            ClearCurrentRenamingItem(true);
         }
 
-        private void ClearCurrentRenamingItem()
+        private void ClearCurrentRenamingItem(bool renamedSuccessfully)
         {
             if (currentRenamingTextField == null)
                 return;
 
+            currentRenamingTextField.UnregisterCallback<FocusOutEvent>(OnRenamingAssetLostFocus);
             currentRenamingTextField.style.display = DisplayStyle.None;
             currentRenamingLabel.style.display = DisplayStyle.Flex;
-            currentRenamingLabel.text = currentRenamingTextField.text;
-            currentRenamingTextField.SetValueWithoutNotify("");
+            if (renamedSuccessfully)
+            {
+                currentRenamingLabel.text = currentRenamingTextField.text;
+                currentRenamingTextField.SetValueWithoutNotify("");
+            }
             currentRenamingLabel = null;
             currentRenamingTextField = null;
         }

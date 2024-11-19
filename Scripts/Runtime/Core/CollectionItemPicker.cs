@@ -33,7 +33,14 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                     for (int i = 0; i < indirectReferences.Count; i++)
                     {
-                        cachedItems.Add(indirectReferences[i].Ref);
+                        CollectionItemIndirectReference<TItemType> collectionItemIndirectReference = indirectReferences[i];
+                        if (!collectionItemIndirectReference.IsValid() || collectionItemIndirectReference.Ref == null)
+                        {
+                            indirectReferences.RemoveAt(i);
+                            continue;
+                        }
+
+                        cachedItems.Add(collectionItemIndirectReference.Ref);
                     }
 
                     isDirty = false;

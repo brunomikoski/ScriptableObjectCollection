@@ -29,6 +29,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string WAITING_SCRIPTS_TO_RECOMPILE_TO_CONTINUE_KEY = "WaitingScriptsToRecompileToContinueKey";
         private const string LAST_COLLECTION_SCRIPTABLE_OBJECT_PATH_KEY = "CollectionScriptableObjectPathKey";
         private const string LAST_COLLECTION_FULL_NAME_KEY = "CollectionFullNameKey";
+        private const string LAST_COLLECTION_NAMESPACE_KEY = "CollectionNamespaceKey";
         private const string LAST_GENERATED_COLLECTION_SCRIPT_PATH_KEY = "CollectionScriptPathKey";
         private const string LAST_TARGET_SCRIPTS_FOLDER_KEY = "LastTargetScriptsFolder";
         private const string GENERATE_INDIRECT_ACCESS_KEY = "GenerateIndirectAccess";
@@ -265,6 +266,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static readonly EditorPreferenceString LastCollectionFullName =
             new EditorPreferenceString(LAST_COLLECTION_FULL_NAME_KEY, null, true);
+        
+        private static readonly EditorPreferenceString LastCollectionNamespace =
+            new EditorPreferenceString(LAST_COLLECTION_NAMESPACE_KEY, null, true);
 
         private static readonly EditorPreferenceString LastScriptsTargetFolder =
             new EditorPreferenceString(LAST_TARGET_SCRIPTS_FOLDER_KEY, null, true);
@@ -593,6 +597,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void CreateNewCollection()
         {
+            LastCollectionNamespace.Value = Namespace;
+            
             bool scriptsGenerated = false;
             scriptsGenerated |= CreateCollectionItemScript();
             scriptsGenerated |= CreateCollectionScript();
@@ -700,6 +706,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObjectCollection collectionAsset =
                 ScriptableObjectCollectionUtility.CreateScriptableObjectOfType(targetType, 
                     windowInstance.ScriptableObjectFolderPath, windowInstance.CollectionName) as ScriptableObjectCollection;
+            
+            if (!string.IsNullOrEmpty(LastCollectionNamespace.Value))
+                SOCSettings.Instance.SetNamespaceForCollection(collectionAsset, LastCollectionNamespace.Value);
             
             Selection.objects = new Object[] {collectionAsset};
             EditorGUIUtility.PingObject(collectionAsset);

@@ -891,6 +891,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             );
 
+            if (selectedItemsCount == 1)
+            {
+                menu.AddItem(
+                    new GUIContent("Rename Asset"),
+                    false,
+                    () =>
+                    {
+                        RenameItemAtIndex(collectionItemListView.selectedIndices.First());
+                    }
+                );
+            }
+
             menu.ShowAsContext();
         }
 

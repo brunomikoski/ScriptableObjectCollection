@@ -823,6 +823,57 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             );
 
+
+            List<ScriptableObjectCollection> possibleAnotherCollections = GetPossibleAnotherCollections();
+
+            if (possibleAnotherCollections.Count > 0)
+            {
+                foreach (ScriptableObjectCollection scriptableObjectCollection in possibleAnotherCollections)
+                {
+                    if (scriptableObjectCollection == collection)
+                        continue;
+
+                    menu.AddItem(
+                        new GUIContent($"Move to {(AssetDatabase.GetAssetPath(scriptableObject).Replace("/","\\").Replace("Assets", "").Replace(".asset", ""))}"),
+                        false,
+                        () =>
+                        {
+                            if (selectedItemsCount > 0)
+                            {
+                                if (!EditorUtility.DisplayDialog($"Move {collectionItemListView.selectedIndices.Count()} Items",
+                                        $"Are you sure you want to move {collectionItemListView.selectedIndices.Count()} items, from {AssetDatabase.GetAssetPath(collection)} to {AssetDatabase.GetAssetPath(scriptableObject)}", "Yes", "No"))
+                                {
+                                    return;
+                                }
+
+                                List<ScriptableObject> moveItems =
+                                    new List<ScriptableObject>();
+                                foreach (int selectedIndex in collectionItemListView.selectedIndices)
+                                {
+                                    moveItems.Add(filteredItems[selectedIndex]);
+                                }
+
+                                foreach (ScriptableObject item in moveItems)
+                                {
+                                    MoveItem(item, scriptableObjectCollection);
+                                }
+
+                            }
+                            else
+                            {
+                                if (!EditorUtility.DisplayDialog($"Move Item",
+                                        $"Are you sure you want to move {filteredItems[^1].name}, from {AssetDatabase.GetAssetPath(collection)} to {AssetDatabase.GetAssetPath(scriptableObject)}", "Yes", "No"))
+                                {
+                                    return;
+                                }
+
+                                MoveItem(filteredItems[targetIndex], scriptableObjectCollection);
+                            }
+                        }
+                    );
+                }
+            }
+
             menu.AddSeparator("");
             menu.AddItem(
                 new GUIContent("Select Asset"),
@@ -841,6 +892,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
             );
 
             menu.ShowAsContext();
+        }
+
+        private void MoveItem(ScriptableObject item, ScriptableObjectCollection targetCollection)
+        {
+            Undo.RecordObject(collection, "Move Item");
+            Undo.RecordObject(targetCollection, "Move Item");
+
+            collection.Remove(item);
+            targetCollection.Add(item);
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            ReloadFilteredItems();
+        }
+
+        private List<ScriptableObjectCollection> GetPossibleAnotherCollections()
+        {
+            CollectionsRegistry.Instance.TryGetCollectionsOfItemType(collection.GetItemType(), out List<ScriptableObjectCollection> collections);
+            return collections;
         }
 
         private void SelectItemAtIndex(params int[] index)

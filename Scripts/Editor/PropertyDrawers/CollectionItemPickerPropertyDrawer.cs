@@ -265,6 +265,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             if (initializedPropertiesPaths.Contains(property.propertyPath))
                 return;
 
+            ValidateIndirectReferencesInProperty(property);
+
             Type arrayOrListType = fieldInfo.FieldType.GetArrayOrListType();
             Type itemType = arrayOrListType ?? fieldInfo.FieldType;
 
@@ -297,5 +299,46 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             labelStyle = assetLabelStyle;
             initializedPropertiesPaths.Add(property.propertyPath);
         }
+
+        private void ValidateIndirectReferencesInProperty(SerializedProperty property)
+        {
+            SerializedProperty indirectReferencesProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+
+            bool changed = false;
+            for (int i = indirectReferencesProperty.arraySize - 1; i >= 0; i--)
+            {
+                SerializedProperty elementProperty = indirectReferencesProperty.GetArrayElementAtIndex(i);
+
+                long collectionGUIDValueA = elementProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_A).longValue;
+                long collectionGUIDValueB = elementProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_B).longValue;
+                LongGuid collectionGUID = new(collectionGUIDValueA, collectionGUIDValueB);
+
+                long itemGUIDValueA = elementProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A).longValue;
+                long itemGUIDValueB = elementProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B).longValue;
+                LongGuid itemGUID = new(itemGUIDValueA, itemGUIDValueB);
+
+                bool validReference = false;
+                if(CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID, out ScriptableObjectCollection collection))
+                {
+                    if (collection.TryGetItemByGUID(itemGUID, out _))
+                    {
+                        validReference = true;
+                    }
+                }
+
+                if (!validReference)
+                {
+                    indirectReferencesProperty.DeleteArrayElementAtIndex(i);
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
+                indirectReferencesProperty.serializedObject.ApplyModifiedProperties();
+            }
+        }
+
+
     }
 }

@@ -262,10 +262,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string path = AssetDatabase.GetAssetPath(collection);
             AssetImporter importer = AssetImporter.GetAtPath(path);
 
-            string collectionSettingsData = importer.userData;
-
             CollectionSettings collectionSetting;
-            if (string.IsNullOrEmpty(collectionSettingsData))
+            if (importer == null || string.IsNullOrEmpty(importer.userData))
             {
                 collectionSetting = new CollectionSettings(collection);
             }

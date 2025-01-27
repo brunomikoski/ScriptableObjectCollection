@@ -85,7 +85,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private bool TryResolveReference(out TObject result)
         {
-            if (CollectionsRegistry.Instance.TryGetCollectionByGUID(CollectionGUID, out ScriptableObjectCollection<TObject> collection))
+            if (CollectionsRegistry.Instance.TryGetCollectionByGUID(CollectionGUID, out ScriptableObjectCollection collection))
             {
                 if (collection.TryGetItemByGUID(CollectionItemGUID, out ScriptableObject item))
                 {
@@ -103,8 +103,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                         if (!string.IsNullOrEmpty(itemLastKnownName))
                         {
-                            if(collection.TryGetItemByName(itemLastKnownName, out result))
+                            if(collection.TryGetItemByName(itemLastKnownName, out ScriptableObject possibleResult))
                             {
+                                result = possibleResult as TObject;
+                                if (result == null)
+                                {
+                                    return false;
+                                }
                                 SetCollectionItem(result);
                                 return true;
                             }

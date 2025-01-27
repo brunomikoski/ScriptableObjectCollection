@@ -122,18 +122,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return results;
         }
 
-
         public bool TryGetCollectionsOfItemType(Type targetType, out List<ScriptableObjectCollection> results)
         {
-            List<ScriptableObjectCollection> availables = new List<ScriptableObjectCollection>();
+            List<ScriptableObjectCollection> availables = new();
+            int minDistance = int.MaxValue;
+
             for (int i = 0; i < Collections.Count; i++)
             {
                 ScriptableObjectCollection collection = Collections[i];
 
                 if (collection == null)
                     continue;
-                
-                if (collection.GetItemType() == targetType || collection.GetItemType().IsAssignableFrom(targetType))
+
+                Type itemType = collection.GetItemType();
+
+                if (itemType == null)
+                    continue;
+
+                if (itemType == typeof(ISOCItem) || itemType == typeof(ScriptableObjectCollectionItem) || itemType.BaseType == null)
+                    continue;
+
+                if (!itemType.IsAssignableFrom(targetType))
+                    continue;
+
+                int distance = GetInheritanceDistance(targetType, itemType);
+                if (distance < minDistance)
+                {
+                    availables.Clear();
+                    availables.Add(collection);
+                    minDistance = distance;
+                }
+                else if (distance == minDistance)
                 {
                     availables.Add(collection);
                 }
@@ -145,21 +164,22 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return false;
             }
 
-            if (availables.Count == 1)
-            {
-                results = availables;
-                return true;
-            }
+            results = availables;
+            return true;
+        }
 
-            results = new List<ScriptableObjectCollection>();
-            for (int i = 0; i < availables.Count; i++)
+        private int GetInheritanceDistance(Type fromType, Type toType)
+        {
+            int distance = 0;
+            Type currentType = fromType;
+            while (currentType != null && currentType != toType)
             {
-                ScriptableObjectCollection collection = availables[i];
-                if (collection.GetItemType() == targetType)
-                    results.Add(collection);
+                currentType = currentType.BaseType;
+                distance++;
             }
-
-            return results.Count > 0;
+            if (currentType == toType)
+                return distance;
+            return int.MaxValue;
         }
 
         public bool TryGetCollectionsOfItemType<T>(out List<ScriptableObjectCollection<T>> results)
@@ -308,13 +328,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return false;
         }
         
-        public bool TryGetCollectionByGUID<T>(LongGuid targetGUID, out ScriptableObjectCollection<T> resultCollection) where T : ScriptableObject, ISOCItem
+        public bool TryGetCollectionByGUID<T>(LongGuid targetGUID, out ScriptableObjectCollection resultCollection) where T : ScriptableObject, ISOCItem
         {
             if (targetGUID.IsValid())
             {
                 if (TryGetCollectionByGUID(targetGUID, out ScriptableObjectCollection foundCollection))
                 {
-                    resultCollection = foundCollection as ScriptableObjectCollection<T>;
+                    resultCollection = foundCollection as ScriptableObjectCollection;
                     return true;
                 }
             }

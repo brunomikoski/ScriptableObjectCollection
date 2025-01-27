@@ -12,7 +12,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private static void OnPlayModeStateChanged(PlayModeStateChange playModeStateChange)
         {
-            if (playModeStateChange == PlayModeStateChange.EnteredPlayMode)
+            if (playModeStateChange == PlayModeStateChange.ExitingEditMode)
             {                
                 CollectionsRegistry.Instance.RemoveNonAutomaticallyInitializedCollections();
             }

@@ -389,7 +389,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             expandShrinkButton.text = isOn.Value ? "▸◂" : "◂▸";
         }
 
-        private void OnEnable()
+        protected virtual void OnEnable()
         {
             collection = (ScriptableObjectCollection)target;
 
@@ -401,7 +401,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             generator = generatorType == null ? null : CollectionGenerators.GetGenerator(generatorType);
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             SOCSettings.Instance.SaveCollectionSettings(collection, true);
         }

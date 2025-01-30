@@ -5,6 +5,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.3.8] - 30/01/2025
+## Changed
+ - Fixed naming issue on the new Move Items context menu introduced on [2.3.7]
+ - Renamed `Delete Item` to `Remove Item` on the context menu
+ - Updated the Confirmation for the Removal of items, now ask if you just want to remove the reference, remove the reference and delete the asset or cancel the operation
+ - Exposed OnEnable and OnDisable from the CollectionCustomEditor to be overriden by other editors
+
+## [2.3.7]
+## Added
+- Added new context menu to move items between collections
+- Added new Rename context menu
+- Added new CollectionItemQuery to be used with ItemPicker
+
+## Changed
+- Improved Unity 6 support
+- Fixed null ref when collections settings where not set
+- Fixed some renaming issues
+- Changed event where non automatically loaded items are removed on editor simulation
+- Fixed null ref on empty collection
+
 ## [2.3.6]
 ## Changed
 - Updated ListView to allow for multiple selection
@@ -591,6 +612,8 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.3.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.8
+[2.3.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.7
 [2.3.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.6
 [2.3.5]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.5
 [2.3.4]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.4

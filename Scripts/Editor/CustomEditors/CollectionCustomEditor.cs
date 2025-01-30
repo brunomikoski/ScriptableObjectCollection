@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -436,40 +437,45 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnClickRemoveSelectedItems(MouseUpEvent evt)
         {
-
-
             if (!collectionItemListView.selectedIndices.Any())
             {
-                if (!EditorUtility.DisplayDialog($"Delete Item",
-                        $"Are you sure you want to delete {filteredItems[^1].name}?", "Yes", "No"))
+                int result = EditorUtility.DisplayDialogComplex($"Remove Item",
+                    $"Are you sure you want to remove the item {filteredItems[^1].name} from {collection.name}?", "Yes",
+                    "No", "Remove and Delete Asset");
+                if (result == 1)
                 {
                     return;
                 }
 
-                DeleteItemAtIndex(filteredItems.Count - 1);
+                RemoveItemAtIndex(filteredItems.Count - 1, result == 2);
+                ReloadFilteredItems();
             }
             else
             {
-                if (!EditorUtility.DisplayDialog($"Delete {collectionItemListView.selectedIndices.Count()} Items",
-                        $"Are you sure you want to delete all {collectionItemListView.selectedIndices.Count()} items?", "Yes", "No"))
+                int result = EditorUtility.DisplayDialogComplex("Remove Items",
+                    $"Are you sure you want to remove  {collectionItemListView.selectedIndices.Count()} items from {collection.name}?", "Yes",
+                    "No", "Remove and Delete Asset");
+                if (result == 1)
                 {
                     return;
                 }
 
-                List<ScriptableObject> itemsToBeDuplicated = new List<ScriptableObject>();
+                List<ScriptableObject> itemsToBeDeleted = new List<ScriptableObject>();
                 foreach (int selectedIndex in collectionItemListView.selectedIndices)
                 {
-                    itemsToBeDuplicated.Add(filteredItems[selectedIndex]);
+                    itemsToBeDeleted.Add(filteredItems[selectedIndex]);
                 }
 
-                foreach (ScriptableObject item in itemsToBeDuplicated)
+                foreach (ScriptableObject item in itemsToBeDeleted)
                 {
-                    DeleteItemAtIndex(collection.IndexOf(item));
+                    RemoveItemAtIndex(collection.IndexOf(item), result == 2);
                 }
+                ReloadFilteredItems();
+
             }
 
-            ReloadFilteredItems();
         }
+
 
         private void OnVisualTreeCreated()
         {
@@ -669,7 +675,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             });
         }
 
-        protected void DeleteItemAtIndex(int selectedIndex)
+        protected void RemoveItemAtIndex(int selectedIndex, bool deleteAsset)
         {
             ScriptableObject scriptableObject = filteredItems[selectedIndex];
             if (scriptableObject == null)
@@ -683,7 +689,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
             filteredItems.Remove(scriptableObject);
             collection.Remove(scriptableObject);
 
-            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(scriptableObject));
+            if (scriptableObject is ScriptableObjectCollectionItem socItem)
+            {
+                socItem.ClearCollection();
+            }
+
+            if (deleteAsset)
+            {
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(scriptableObject));
+            }
 
             AssetDatabase.SaveAssetIfDirty(collection);
         }
@@ -787,38 +801,42 @@ namespace BrunoMikoski.ScriptableObjectCollections
             );
 
             menu.AddItem(
-                new GUIContent("Delete Item"),
+                new GUIContent("Remove Item"),
                 false,
                 () =>
                 {
                     if (selectedItemsCount > 0)
                     {
-                        if (!EditorUtility.DisplayDialog($"Delete {collectionItemListView.selectedIndices.Count()} Items",
-                                $"Are you sure you want to delete all {collectionItemListView.selectedIndices.Count()} items?", "Yes", "No"))
+                        int result = EditorUtility.DisplayDialogComplex("Remove Items",
+                            $"Are you sure you want to remove  {collectionItemListView.selectedIndices.Count()} items from {collection.name}?", "Yes",
+                            "No", "Remove and Delete Asset");
+                        if (result == 1)
                         {
                             return;
                         }
 
-                        List<ScriptableObject> itemsToBeDuplicated = new List<ScriptableObject>();
+                        List<ScriptableObject> itemsToBeDeleted = new List<ScriptableObject>();
                         foreach (int selectedIndex in collectionItemListView.selectedIndices)
                         {
-                            itemsToBeDuplicated.Add(filteredItems[selectedIndex]);
+                            itemsToBeDeleted.Add(filteredItems[selectedIndex]);
                         }
 
-                        foreach (ScriptableObject item in itemsToBeDuplicated)
+                        foreach (ScriptableObject item in itemsToBeDeleted)
                         {
-                            DeleteItemAtIndex(collection.IndexOf(item));
+                            RemoveItemAtIndex(collection.IndexOf(item), result == 2);
                         }
                     }
                     else
                     {
-                        if (!EditorUtility.DisplayDialog($"Delete Item",
-                                $"Are you sure you want to delete {filteredItems[^1].name}?", "Yes", "No"))
+                        int result = EditorUtility.DisplayDialogComplex($"Remove Item",
+                            $"Are you sure you want to remove the item {filteredItems[^1].name} from {collection.name}?", "Yes",
+                            "No", "Remove and Delete Asset");
+                        if (result == 1)
                         {
                             return;
                         }
 
-                        DeleteItemAtIndex(targetIndex);
+                        RemoveItemAtIndex(filteredItems.Count - 1, result == 2);
                     }
                 }
             );
@@ -834,20 +852,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         continue;
 
                     menu.AddItem(
-                        new GUIContent($"Move to {(AssetDatabase.GetAssetPath(scriptableObject).Replace("/","\\").Replace("Assets", "").Replace(".asset", ""))}"),
+                        new GUIContent($"Move to {(AssetDatabase.GetAssetPath(scriptableObjectCollection).Replace("/","\\").Replace("Assets", "").Replace(".asset", ""))}"),
                         false,
                         () =>
                         {
                             if (selectedItemsCount > 0)
                             {
                                 if (!EditorUtility.DisplayDialog($"Move {collectionItemListView.selectedIndices.Count()} Items",
-                                        $"Are you sure you want to move {collectionItemListView.selectedIndices.Count()} items, from {AssetDatabase.GetAssetPath(collection)} to {AssetDatabase.GetAssetPath(scriptableObject)}", "Yes", "No"))
+                                        $"Are you sure you want to move {collectionItemListView.selectedIndices.Count()} items, from {AssetDatabase.GetAssetPath(collection)} to {AssetDatabase.GetAssetPath(scriptableObjectCollection)}", "Yes", "No"))
                                 {
                                     return;
                                 }
 
-                                List<ScriptableObject> moveItems =
-                                    new List<ScriptableObject>();
+                                List<ScriptableObject> moveItems = new();
                                 foreach (int selectedIndex in collectionItemListView.selectedIndices)
                                 {
                                     moveItems.Add(filteredItems[selectedIndex]);
@@ -913,6 +930,24 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             collection.Remove(item);
             targetCollection.Add(item);
+
+            string itemPath = AssetDatabase.GetAssetPath(item);
+            string targetCollectionPath = AssetDatabase.GetAssetPath(targetCollection);
+
+            if (!string.IsNullOrEmpty(itemPath) && !string.IsNullOrEmpty(targetCollectionPath))
+            {
+                string directory = Path.GetDirectoryName(targetCollectionPath);
+
+                string itemsFolderPath = Path.Combine(directory, "Items");
+                bool hasItemsFolder = AssetDatabase.IsValidFolder(itemsFolderPath);
+
+                string finalDirectory = hasItemsFolder ? itemsFolderPath : directory;
+                string fileName = Path.GetFileName(itemPath);
+
+                string newPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(finalDirectory, fileName));
+
+                AssetDatabase.MoveAsset(itemPath, newPath);
+            }
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

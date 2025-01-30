@@ -75,6 +75,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectionGUID = cachedCollection.GUID;
             ObjectUtility.SetDirty(this);
         }
+
+        public void ClearCollection()
+        {
+            cachedCollection = null;
+            collectionGUID = default;
+            ObjectUtility.SetDirty(this);
+        }
         
         public void GenerateNewGUID()
         {

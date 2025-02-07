@@ -944,9 +944,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 string finalDirectory = hasItemsFolder ? itemsFolderPath : directory;
                 string fileName = Path.GetFileName(itemPath);
 
-                string newPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(finalDirectory, fileName));
-
-                AssetDatabase.MoveAsset(itemPath, newPath);
+                string newPath = Path.Combine(finalDirectory, fileName);
+                if(!string.Equals(Path.GetFullPath(itemPath), Path.GetFullPath(newPath), StringComparison.InvariantCultureIgnoreCase))
+                {
+                    newPath = AssetDatabase.GenerateUniqueAssetPath(newPath);
+                    AssetDatabase.MoveAsset(itemPath, newPath);
+                }
             }
 
             AssetDatabase.SaveAssets();

@@ -626,10 +626,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
-        private ScriptableObject AddNewItemOfType(Type targetType, bool autoFocusForRename = true)
+        private ScriptableObject AddNewItemOfType(Type targetType,string assetName = "", bool autoFocusForRename = true)
         {
             Undo.IncrementCurrentGroup();
-            ScriptableObject newItem = collection.AddNew(targetType);
+            ScriptableObject newItem = collection.AddNew(targetType, assetName);
             Undo.RegisterCreatedObjectUndo(newItem, "Create New Item");
             Undo.RecordObject(collection, "Add New Item");
             Undo.SetCurrentGroupName($"Created new item {newItem.name}");
@@ -792,10 +792,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         {
                             DuplicateItem(item, false);
                         }
+                        ReloadFilteredItems();
                     }
                     else
                     {
                         DuplicateItem(targetIndex);
+                        ReloadFilteredItems();
                     }
                 }
             );
@@ -825,6 +827,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         {
                             RemoveItemAtIndex(collection.IndexOf(item), result == 2);
                         }
+                        ReloadFilteredItems();
                     }
                     else
                     {
@@ -837,6 +840,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         }
 
                         RemoveItemAtIndex(filteredItems.Count - 1, result == 2);
+                        ReloadFilteredItems();
                     }
                 }
             );
@@ -872,19 +876,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                                 foreach (ScriptableObject item in moveItems)
                                 {
-                                    MoveItem(item, scriptableObjectCollection);
+                                    SOCItemUtility.MoveItem(item as ISOCItem, scriptableObjectCollection);
                                 }
+                                ReloadFilteredItems();
 
                             }
                             else
                             {
-                                if (!EditorUtility.DisplayDialog($"Move Item",
+                                if (!EditorUtility.DisplayDialog("Move Item",
                                         $"Are you sure you want to move {filteredItems[^1].name}, from {AssetDatabase.GetAssetPath(collection)} to {AssetDatabase.GetAssetPath(scriptableObject)}", "Yes", "No"))
                                 {
                                     return;
                                 }
-
-                                MoveItem(filteredItems[targetIndex], scriptableObjectCollection);
+                                SOCItemUtility.MoveItem(filteredItems[targetIndex], scriptableObjectCollection);
+                                ReloadFilteredItems();
                             }
                         }
                     );
@@ -923,38 +928,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             menu.ShowAsContext();
         }
 
-        private void MoveItem(ScriptableObject item, ScriptableObjectCollection targetCollection)
-        {
-            Undo.RecordObject(collection, "Move Item");
-            Undo.RecordObject(targetCollection, "Move Item");
-
-            collection.Remove(item);
-            targetCollection.Add(item);
-
-            string itemPath = AssetDatabase.GetAssetPath(item);
-            string targetCollectionPath = AssetDatabase.GetAssetPath(targetCollection);
-
-            if (!string.IsNullOrEmpty(itemPath) && !string.IsNullOrEmpty(targetCollectionPath))
-            {
-                string directory = Path.GetDirectoryName(targetCollectionPath);
-
-                string itemsFolderPath = Path.Combine(directory, "Items");
-                bool hasItemsFolder = AssetDatabase.IsValidFolder(itemsFolderPath);
-
-                string finalDirectory = hasItemsFolder ? itemsFolderPath : directory;
-                string fileName = Path.GetFileName(itemPath);
-
-                string newPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(finalDirectory, fileName));
-
-                AssetDatabase.MoveAsset(itemPath, newPath);
-            }
-
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-
-            ReloadFilteredItems();
-        }
-
         private List<ScriptableObjectCollection> GetPossibleAnotherCollections()
         {
             CollectionsRegistry.Instance.TryGetCollectionsOfItemType(collection.GetItemType(), out List<ScriptableObjectCollection> collections);
@@ -980,7 +953,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void DuplicateItem(ScriptableObject source, bool showRenameAfter)
         {
             CopyCollectionItemUtility.SetSource(source);
-            ScriptableObject newItem = AddNewItemOfType(source.GetType(), false);
+
+            string path = AssetDatabase.GetAssetPath(source);
+            string directory = Path.GetDirectoryName(path);
+            string fileName = $"{source.name} (Clone)";
+
+            fileName = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(directory, $"{fileName}.asset"));
+
+            ScriptableObject newItem = AddNewItemOfType(source.GetType(), Path.GetFileNameWithoutExtension(fileName), false);
             CopyCollectionItemUtility.ApplySourceToTarget(newItem);
 
             if (showRenameAfter)
@@ -990,7 +970,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             else
             {
-                AssetDatabaseUtils.RenameAsset(newItem, $"{source.name} (Copy)");
                 AssetDatabase.SaveAssetIfDirty(newItem);
                 ReloadFilteredItems();
             }

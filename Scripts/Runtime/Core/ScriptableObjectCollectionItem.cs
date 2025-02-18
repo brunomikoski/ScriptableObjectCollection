@@ -79,6 +79,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void ClearCollection()
         {
             cachedCollection = null;
+            hasCachedCollection = false;
             collectionGUID = default;
             ObjectUtility.SetDirty(this);
         }

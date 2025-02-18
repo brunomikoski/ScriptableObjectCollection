@@ -272,6 +272,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool Remove(ScriptableObject item)
         {
             bool result =  items.Remove(item);
+            if (item is ISOCItem socItem)
+                socItem.ClearCollection();
+
             ObjectUtility.SetDirty(this);
             return result;
         }
@@ -360,13 +363,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     changed = true;
             }
 
-            for (int i = items.Count - 1; i >= 0; i--)
+            int itemsCount = items.Count;
+            for (int i = itemsCount - 1; i >= 0; i--)
             {
                 if (items[i] == null)
                 {
                     RemoveAt(i);
                     Debug.Log($"Removing item at index {i} as it is null");
                     changed = true;
+                    continue;
                 }
 
                 ScriptableObject scriptableObject = items[i];

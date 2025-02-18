@@ -9,6 +9,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         string name { get; set; }
         void SetCollection(ScriptableObjectCollection collection);
         void GenerateNewGUID();
+        void ClearCollection();
     }
 
     public interface ISOCColorizedItem

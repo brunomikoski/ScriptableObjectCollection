@@ -522,5 +522,35 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             SetAutoSearchForCollections(false);
         }
+
+        public bool HasUniqueGUID(ISOCItem targetItem)
+        {
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                foreach (ScriptableObject scriptableObject in collection)
+                {
+                    if (scriptableObject is ISOCItem socItem)
+                    {
+                        if(!Equals(socItem, targetItem) && socItem.GUID == targetItem.GUID)
+                            return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        public bool HasUniqueGUID(ScriptableObjectCollection targetCollection)
+        {
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                if (collection != targetCollection && collection.GUID == targetCollection.GUID)
+                    return false;
+            }
+
+            return true;
+        }
     }
 }

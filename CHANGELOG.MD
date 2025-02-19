@@ -5,6 +5,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [2.3.9] - 19/02/2025
+## Changed
+ - Added some general fixes to validate Collection and Items have unique `LongGuid`
+ - Fixed issues when after some operation with the context menu on the CollectionEditor items would not refresh properly
+ - Fixed issue when moving items between collection would not generate unique names
+ - Removed the post processing of assets that tried to assign items to collections automatically, since this was causing issue when duplicating collections, everyting now is done on the collection
+ - Overall code improvement and organization
+
+## Added
+ - Added new Context Menu for moving items between collections
+ - Added the new PropertyDrawer that shows what Collection every item belongs to
+ - Added a few more Confirmation dialog when detecting items that looks wrong
+
 
 ## [2.3.8] - 30/01/2025
 ## Changed
@@ -612,6 +625,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.3.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.9
 [2.3.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.8
 [2.3.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.7
 [2.3.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.6

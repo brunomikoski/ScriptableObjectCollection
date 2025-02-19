@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        [SerializeField, HideInInspector]
+        [SerializeField, CollectionReferenceLongGuid]
         private LongGuid collectionGUID;
 
 

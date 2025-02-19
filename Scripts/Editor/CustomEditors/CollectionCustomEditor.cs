@@ -19,7 +19,6 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class CollectionCustomEditor : Editor
     {
@@ -393,6 +392,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected virtual void OnEnable()
         {
             collection = (ScriptableObjectCollection)target;
+
+            if (!CollectionsRegistry.Instance.HasUniqueGUID(collection))
+            {
+                collection.GenerateNewGUID();
+                collection.Clear();
+            }
 
             if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
                 CollectionsRegistry.Instance.ReloadCollections();

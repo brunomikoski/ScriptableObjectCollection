@@ -29,30 +29,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     ScriptableObject collectionItem =
                         AssetDatabase.LoadAssetAtPath<ScriptableObject>(importedAssetPath);
 
-                    if (collectionItem != null)
+                    if (collectionItem == null)
                     {
-                        if (collectionItem is ISOCItem socItem)
-                        {
-                            if (socItem.Collection == null)
-                            {
-                                continue;
-                            }
+                        continue;
+                    }
 
-                            if (!socItem.Collection.Contains(collectionItem))
-                            {
-                                if (socItem.Collection.TryGetItemByGUID(socItem.GUID, out _))
-                                {
-                                    Debug.LogWarning(
-                                        $"Collection already contains one item with the same GUID" +
-                                        $" ({socItem.GUID}) but different name ({socItem.name}), generating new GUID");
-                                    socItem.GenerateNewGUID();
-                                }
-                                    
-                                socItem.Collection.Add(collectionItem);
-                                Debug.Log($"{collectionItem.name} has collection assigned "
-                                          + $"{socItem.Collection} but its missing from collection list, adding it");
-                            }
-                        }
+                    if (collectionItem is not ISOCItem socItem)
+                    {
+                        continue;
+                    }
+
+                    if (!CollectionsRegistry.Instance.HasUniqueGUID(socItem))
+                    {
+                        socItem.GenerateNewGUID();
+                        socItem.ClearCollection();
+                        Debug.LogWarning($"Item {socItem} GUID was not unique, generating a new one and clearing the collection");
                     }
                 }
                 
@@ -63,6 +54,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                     if (collection == null)
                         continue;
+
+                    if (!CollectionsRegistry.Instance.HasUniqueGUID(collection))
+                    {
+                        collection.GenerateNewGUID();
+                        collection.Clear();
+                        Debug.LogWarning($"Collection {collection} GUID was not unique, generating a new one, and clearing the items");
+                    }
 
                     if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
                     {

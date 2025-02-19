@@ -111,7 +111,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return true;
         }
 
-        internal void GenerateNewGUID()
+        public void GenerateNewGUID()
         {
             guid = LongGuid.NewGuid();
             ObjectUtility.SetDirty(this);
@@ -331,7 +331,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string[] guids = AssetDatabase.FindAssets($"t:{collectionItemType.Name}", new []{folder});
 
             List<ISOCItem> itemsFromOtherCollections = new List<ISOCItem>();
-            List<ISOCItem> itemsMissingCollection = new List<ISOCItem>();
             for (int i = 0; i < guids.Length; i++)
             {
                 ScriptableObject item =
@@ -354,10 +353,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (socItem.Collection.Contains(item))
                         continue;
                 }
-                else
-                {
-                    itemsMissingCollection.Add(socItem);
-                }
 
                 if (Add(item))
                     changed = true;
@@ -375,6 +370,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
 
                 ScriptableObject scriptableObject = items[i];
+
+
+                if (scriptableObject is ISOCItem socItem)
+                {
+                    if (socItem.Collection != this)
+                    {
+                        RemoveAt(i);
+                        Debug.Log($"Removing item at index {i} since it belongs to another collection {socItem.Collection}");
+                        changed = true;
+                    }
+                }
+
                 if (scriptableObject.GetType() == GetItemType() || scriptableObject.GetType().IsSubclassOf(GetItemType()))
                     continue;
 
@@ -393,13 +400,31 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     foreach (ISOCItem itemsFromOtherCollection in itemsFromOtherCollections)
                     {
                         SOCItemUtility.MoveItem(itemsFromOtherCollection, itemsFromOtherCollection.Collection);
+                        changed = true;
+                        ObjectUtility.SetDirty(itemsFromOtherCollection.Collection);
                     }
+
                 }
                 else if (result == 1)
                 {
+                    if (!CollectionsRegistry.Instance.HasUniqueGUID(this))
+                    {
+                        GenerateNewGUID();
+                        Clear();
+                    }
+
+                    if (!CollectionsRegistry.Instance.IsKnowCollection(this))
+                    {
+                        CollectionsRegistry.Instance.RegisterCollection(this);
+                    }
+
                     foreach (ISOCItem itemsFromOtherCollection in itemsFromOtherCollections)
                     {
-                        SOCItemUtility.MoveItem(itemsFromOtherCollection, this);
+                        itemsFromOtherCollection.ClearCollection();
+                        Add(itemsFromOtherCollection as ScriptableObject);
+                        ObjectUtility.SetDirty(itemsFromOtherCollection as ScriptableObject);
+                        changed = true;
+
                     }
                 }
             }

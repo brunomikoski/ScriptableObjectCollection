@@ -141,3 +141,66 @@ You can also add it directly from GitHub on Unity 2019.4+. Note that you won't b
 - paste `https://github.com/brunomikoski/ScriptableObjectCollection.git`
 - click <kbd>Add</kbd>
 </details>
+
+
+## Upgrading Guide: < 2.3.0 ➡️ 2.4.0
+
+<details>
+<summary><strong>⚠️ Upgrading from &lt;2.3.0 to 2.4.0 — Important Migration Notes</strong></summary>
+
+
+If you are upgrading **ScriptableObjectCollection** from a version prior to **2.3.0** to **2.4.0**, please read this section carefully to avoid breaking changes and compile errors.
+
+---
+
+### 1. Generated Files Now Use the `.g.cs` Suffix
+
+- All generated static files now use the `.g.cs` suffix.
+- **Action Required:**  
+  Manually **delete any previously generated files that do NOT have the `.g.cs` suffix** from your project.  
+  Keeping these files may cause compile errors after the upgrade.
+
+---
+
+### 2. Namespace and Filename Settings Have Moved
+
+- Namespace and filename settings are now stored in the `.meta` file instead of in the generator/collection files.
+- Any custom settings will need to be **reconfigured** after the upgrade.
+- Old settings are not automatically migrated.
+
+---
+
+### 3. Breaking Changes & Versioning
+
+- This release introduces breaking changes that may cause compile errors if migration steps are not followed.
+- Make sure to **read and follow these instructions** before or after upgrading.
+
+---
+
+### 4. Automatic Cleanup
+
+- Starting from **2.4.0**, the package attempts to **automatically delete obsolete generated `.cs` files** (without the `.g.cs` suffix) during the upgrade process.
+- However, always **double-check** your generated files and remove any leftovers if necessary.
+
+---
+
+### 5. Troubleshooting
+
+If you encounter problems after upgrading:
+- Ensure **all old generated files** without `.g.cs` are deleted.
+- Check your collection settings, as these may need to be **set again** due to the migration to `.meta` files.
+- Confirm you are using the latest version (**2.4.0** or newer).
+- If issues persist, please [open an issue](https://github.com/brunomikoski/ScriptableObjectCollection/issues).
+
+---
+
+### **Migration Steps Checklist**
+
+1. **Delete all previously generated files that do not end with `.g.cs`.**
+2. **Update the package to version 2.4.0.**
+3. **Reconfigure your namespace/filename settings if needed.**
+4. **Verify your project compiles and all generators work as expected.**
+
+---
+
+</details>

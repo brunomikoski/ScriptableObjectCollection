@@ -4,13 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-## [2.3.9] - 19/02/2025
+## [2.4.0] - 24/05/2025
 ## Changed
  - Fixed generated static access code overwriting the collection definition
  - Pre 2.3.0 collections will now be assumed to want a namespace setting that is the same namespace as its item type
  - When generating static/indirect access code using the new `.g.cs` suffix, existing static/indirect access code that uses the old `.cs` suffix is now automatically removed to prevent compile errors
+ - Added Generic SetValue for Collection Generator
 
+
+## [2.3.9] - 19/02/2025
 ## Changed
  - Added some general fixes to validate Collection and Items have unique `LongGuid`
  - Fixed issues when after some operation with the context menu on the CollectionEditor items would not refresh properly

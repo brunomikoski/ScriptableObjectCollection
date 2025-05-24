@@ -29,7 +29,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Guid = targetCollection.GUID;
             string targetNamespace = targetCollection.GetItemType().Namespace;
-            if (!string.IsNullOrEmpty(SOCSettings.Instance.NamespacePrefix))
+            if (string.IsNullOrEmpty(targetNamespace) && !string.IsNullOrEmpty(SOCSettings.Instance.NamespacePrefix))
                 targetNamespace = $"{SOCSettings.Instance.NamespacePrefix}";
             
             Namespace = targetNamespace;

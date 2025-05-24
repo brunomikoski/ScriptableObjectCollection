@@ -47,7 +47,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             bool canBePartial = CodeGenerationUtility.CheckIfCanBePartial(targetCollection, ParentFolderPath);
             
-            if (!canBePartial)
+            if (canBePartial)
                 StaticFilename = $"{targetCollection.GetType().Name}Static".FirstToUpper();
             else 
                 StaticFilename = $"{targetCollection.GetType().Name}".FirstToUpper();

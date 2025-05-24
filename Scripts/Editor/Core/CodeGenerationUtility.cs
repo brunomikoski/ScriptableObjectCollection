@@ -348,7 +348,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string deprecatedFileName = targetFileName + ExtensionOld;
             if (AssetDatabase.AssetPathExists(deprecatedFileName))
             {
-                Debug.Log($"Supposed to delete deprecated Indirect Access file '{deprecatedFileName}'");
+                Debug.LogWarning($"Deleting deprecated Indirect Access file '{deprecatedFileName}'.");
                 AssetDatabase.DeleteAsset(deprecatedFileName);
             }
 
@@ -406,7 +406,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string deprecatedFileName = finalFileName + ExtensionOld;
             if (File.Exists(deprecatedFileName))
             {
-                Debug.Log($"Supposed to delete deprecated Static Access file '{deprecatedFileName}'");
+                Debug.LogWarning($"Deleting deprecated Static Access file '{deprecatedFileName}'.");
                 AssetDatabase.DeleteAsset(deprecatedFileName);
             }
             

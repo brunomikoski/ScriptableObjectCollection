@@ -28,9 +28,55 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             return fieldInfo;
         }
-        
-        public static void SetValue(this SerializedProperty serializedProperty, object value)
+
+        public static void SetValueReflective(this SerializedProperty prop, object value)
         {
+            object root = prop.serializedObject.targetObject;
+
+            string[] parts = prop.propertyPath
+                .Replace(".Array.data[", "[")
+                .Split('.');
+
+            object current = root;
+            FieldInfo fi = null;
+
+            for (int i = 0; i < parts.Length; i++)
+            {
+                string part = parts[i];
+
+                if (part.EndsWith("]"))
+                {
+                    int b = part.IndexOf('[');
+                    string name = part.Substring(0, b);
+                    int idx = int.Parse(part.Substring(b + 1, part.Length - b - 2));
+
+                    fi = current.GetType()
+                        .GetField(name,
+                            BindingFlags.Instance
+                            | BindingFlags.NonPublic
+                            | BindingFlags.Public);
+                    IList list = fi.GetValue(current) as System.Collections.IList;
+                    current = list[idx];
+                }
+                else
+                {
+                    fi = current.GetType()
+                        .GetField(part,
+                            BindingFlags.Instance
+                            | BindingFlags.NonPublic
+                            | BindingFlags.Public);
+                    if (i < parts.Length - 1)
+                        current = fi.GetValue(current);
+                }
+            }
+
+            fi.SetValue(current, value);
+
+            prop.serializedObject.Update();
+            prop.serializedObject.ApplyModifiedProperties();
+        }
+
+        public static void SetValue(this SerializedProperty serializedProperty, object value) {
             switch (serializedProperty.propertyType)
             {
                 case SerializedPropertyType.Integer:
@@ -106,6 +152,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 case SerializedPropertyType.Hash128:
                     serializedProperty.hash128Value = (Hash128)value;
                 break;
+                case SerializedPropertyType.ManagedReference:
+                    serializedProperty.managedReferenceValue = value;
+                    break;
+                case SerializedPropertyType.Generic:
+                    serializedProperty.SetValueReflective(value);
+                    break;
                 default:
                     Debug.LogWarning(
                         $"Tried to copy value '{value}' from a template to an SOC item but apparently that's not supported.");

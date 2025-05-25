@@ -138,19 +138,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 itemName = $"{itemType.Name}";
             }
             
-            newItem.name = AssetDatabase.GenerateUniqueAssetPath(itemName);
+            string uniqueAssetPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(parentFolderPath, itemName + ".asset"));
+            string uniqueName = Path.GetFileNameWithoutExtension(uniqueAssetPath);
+            
+            newItem.name = uniqueName;
 
-            if(itemName.IsReservedKeyword())
+            if (itemName.IsReservedKeyword())
                 Debug.LogError($"{itemName} is a reserved keyword name, will cause issues with code generation, please rename it");
-
-            string newFileName = Path.Combine(parentFolderPath, newItem.name + ".asset");
 
             ISOCItem socItem = newItem as ISOCItem;
             socItem.GenerateNewGUID();
             
             this.Add(newItem);
 
-            AssetDatabase.CreateAsset(newItem, newFileName);
+            AssetDatabase.CreateAsset(newItem, uniqueAssetPath);
             ObjectUtility.SetDirty(this);
 
             SerializedObject serializedObject = new SerializedObject(this);
@@ -392,8 +393,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (itemsFromOtherCollections.Any())
             {
                 int result = EditorUtility.DisplayDialogComplex("Items from another collections",
-                    $"The following items {string.Join(",", itemsFromOtherCollections.Select(o => o.name).ToArray())} belong to other collections, should I move to the appropriated folder?",
-                    "Move to the assigned collection", $"Assign it to this collection ", "Do nothing");
+                    $"The following items {string.Join(",", itemsFromOtherCollections.Select(o => o.name).ToArray())} belong to other collection, what you want to do?",
+                    "Move to the assigned collection", $"Assign it the parent collection ", "Do nothing");
 
                 if (result == 0)
                 {

@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[Unreleased]
+## Changed
+ - Fixed issue when creating multiple items without renaming it would cause a null reference.
+ - Removed Synchronize Assets button from the Collection Editor, this is already happening multiple times
+ - Renamed Generator button to Run Generator instead of Generate Items since was misleading
 
 ## [2.4.0] - 24/05/2025
 ## Changed

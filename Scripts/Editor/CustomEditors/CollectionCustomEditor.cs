@@ -154,10 +154,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             removeSelectedItemsButton.RegisterCallback<MouseUpEvent>(OnClickRemoveSelectedItems);
             removeSelectedItemsButton.SetEnabled(DisplayRemoveButton);
 
-            Button synchronizeAssetsButton = root.Q<Button>("synchronize-items-button");
-            synchronizeAssetsButton.clickable.activators.Clear();
-            synchronizeAssetsButton.RegisterCallback<MouseUpEvent>(OnClickToSynchronizeAssets);
-
             generateStaticFileButton = root.Q<Button>("generate-static-file-button");
             generateStaticFileButton.clickable.activators.Clear();
             generateStaticFileButton.RegisterCallback<MouseUpEvent>(OnClickGenerateStaticFile);
@@ -422,12 +418,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             namespaceTextField.SetValueWithoutNotify(trimmed);
 
             SOCSettings.Instance.SetNamespaceForCollection(collection, trimmed);
-        }
-
-        private void OnClickToSynchronizeAssets(MouseUpEvent evt)
-        {
-            collection.RefreshCollection();
-            ReloadFilteredItems();
         }
 
         private void OnClickGenerateItems(MouseUpEvent evt)

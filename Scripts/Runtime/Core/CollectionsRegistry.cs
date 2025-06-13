@@ -525,9 +525,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool HasUniqueGUID(ISOCItem targetItem)
         {
-            for (int i = 0; i < collections.Count; i++)
+            for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
+                if (collection is null)
+                {
+                    Debug.LogWarning($"Collection at index {i} is null, running validation to fix it");
+                    ValidateCollections();
+                    continue;
+                }
                 foreach (ScriptableObject scriptableObject in collection)
                 {
                     if (scriptableObject is ISOCItem socItem)

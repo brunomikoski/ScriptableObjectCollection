@@ -58,13 +58,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public IEnumerator<ScriptableObject> GetEnumerator()
         {
-            using (IEnumerator<ScriptableObject> itemEnum = items.GetEnumerator())
+            using (IEnumerator<ScriptableObject> scriptableObject = items.GetEnumerator())
             {
-                while (itemEnum.MoveNext())
+                while (scriptableObject.MoveNext())
                 {
-                    if (itemEnum.Current.IsNull())
+                    ScriptableObject current = scriptableObject.Current;
+                    if (current is null || scriptableObject.Current.IsNull())
+                    {
+                        
                         continue;
-                    yield return itemEnum.Current;
+                    }
+                    yield return scriptableObject.Current;
                 }
             }
         }

@@ -266,7 +266,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Get the property to copy the value to.
             SerializedProperty serializedProperty = serializedObject.FindProperty(field.Name);
             if (serializedProperty == null)
-                return;
+            {
+                //Try one more time using the backing field name.
+                serializedProperty = serializedObject.FindProperty($"<{nameof(field.Name)}>k__BackingField");
+                if (serializedProperty == null)
+                    return;
+            }
             
             object value = field.GetValue(owner);
             

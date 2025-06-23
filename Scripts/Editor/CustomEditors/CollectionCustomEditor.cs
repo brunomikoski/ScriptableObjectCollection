@@ -423,6 +423,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private void OnClickGenerateItems(MouseUpEvent evt)
         {
             CollectionGenerators.RunGenerator(generatorType, collection);
+            ReloadFilteredItems();
         }
 
         private void OnClickGenerateStaticFile(MouseUpEvent evt)

@@ -9,7 +9,6 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-    
     public static class SerializedPropertyExtensions
     {
         public static FieldInfo GetFieldInfoFromPathByType(this SerializedProperty property, Type parentType)
@@ -302,5 +301,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return DescendHierarchy<T>(newObj, splitName, splitCounts, depth + 1);
         }
+        
     }
 }

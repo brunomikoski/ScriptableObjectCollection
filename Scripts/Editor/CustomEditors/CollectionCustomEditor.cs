@@ -461,12 +461,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     itemsToBeDeleted.Add(filteredItems[selectedIndex]);
                 }
 
-                foreach (ScriptableObject item in itemsToBeDeleted)
+                try
                 {
-                    RemoveItemAtIndex(collection.IndexOf(item), result == 2);
+                    AssetDatabase.StartAssetEditing();
+                    foreach (ScriptableObject item in itemsToBeDeleted)
+                    {
+                        RemoveItemAtIndex(collection.IndexOf(item), result == 2);
+                    }
                 }
-                ReloadFilteredItems();
-
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+                finally
+                {
+                    AssetDatabase.StopAssetEditing();
+                    ReloadFilteredItems();
+                }
             }
 
         }

@@ -118,8 +118,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collection == null)
             {
                 // Check that the corresponding collection exists.
-                CollectionsRegistry.Instance.TryGetCollectionOfType(
-                    collectionType, out collection);
+                CollectionsRegistry.Instance.TryGetCollectionOfType(collectionType, out collection);
                 if (collection == null)
                 {
                     Debug.LogWarning(
@@ -137,70 +136,86 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Make the generator generate item templates.
             MethodInfo getItemTemplatesMethod = generatorType.GetMethod(
                 "GetItemTemplates", BindingFlags.Public | BindingFlags.Instance);
-            getItemTemplatesMethod.Invoke(generator, new object[] {templates, collection});
+            getItemTemplatesMethod.Invoke(generator, new object[] { templates, collection });
 
-            // If necessary, first remove any items that weren't re-generated.
-            bool shouldRemoveNonGeneratedItems = (bool)generatorType
-                .GetProperty("ShouldRemoveNonGeneratedItems", BindingFlags.Public | BindingFlags.Instance)
-                .GetValue(generator);
-            if (shouldRemoveNonGeneratedItems)
+            try
             {
-                for (int i = collection.Items.Count - 1; i >= 0; i--)
+                AssetDatabase.StartAssetEditing();
+                
+                // If necessary, first remove any items that weren't re-generated.
+                bool shouldRemoveNonGeneratedItems = (bool)generatorType
+                    .GetProperty("ShouldRemoveNonGeneratedItems", BindingFlags.Public | BindingFlags.Instance)
+                    .GetValue(generator);
+                if (shouldRemoveNonGeneratedItems)
                 {
-                    // Remove any items for which there isn't a template by the same name.
-                    bool foundItemOfSameName = false;
-                    for (int j = 0; j < templates.Count; j++)
+                    for (int i = collection.Items.Count - 1; i >= 0; i--)
                     {
-                        ItemTemplate itemTemplate = (ItemTemplate)templates[j];
-                        if (collection.Items[i].name == itemTemplate.name)
+                        // Remove any items for which there isn't a template by the same name.
+                        bool foundItemOfSameName = false;
+                        for (int j = 0; j < templates.Count; j++)
                         {
-                            foundItemOfSameName = true;
-                            break;
+                            ItemTemplate itemTemplate = (ItemTemplate)templates[j];
+                            if (string.Equals(collection.Items[i].name, itemTemplate.name, StringComparison.Ordinal))
+                            {
+                                foundItemOfSameName = true;
+                                break;
+                            }
+                        }
+
+                        if (!foundItemOfSameName)
+                        {
+                            // No corresponding template existed, so remove this item.
+                            ScriptableObject itemToRemove = collection.Items[i];
+                            collection.RemoveAt(i);
+                            AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(itemToRemove));
                         }
                     }
-                    if (!foundItemOfSameName)
-                    {
-                        // No corresponding template existed, so remove this item.
-                        ScriptableObject itemToRemove = collection.Items[i];
-                        collection.RemoveAt(i);
-                        AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(itemToRemove));
-                    }
                 }
+
+                // Now try to find or create corresponding items in the collection and copy the fields over.
+                for (int i = 0; i < templates.Count; i++)
+                {
+                    ItemTemplate itemTemplate = (ItemTemplate)templates[i];
+
+                    if (itemTemplate == null)
+                        continue;
+
+
+                    if (!TryGetItemTemplateType(itemTemplate, out Type templateItemType))
+                        templateItemType = collection.GetItemType();
+
+                    ISOCItem itemInstance = collection.GetOrAddNew(templateItemType, itemTemplate.name);
+
+                    CopyFieldsFromTemplateToItem(itemTemplate, itemInstance);
+                }
+
+
+                // Optional Callback to be called when the generation completes
+                MethodInfo completionCallback = generatorType.GetMethod(
+                    "OnItemsGenerationComplete", BindingFlags.Public | BindingFlags.Instance);
+                if (completionCallback != null)
+                    completionCallback!.Invoke(generator, new object[] { collection });
+
+                if (refresh)
+                {
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
+                }
+
+                if (generateStaticAccess)
+                    CodeGenerationUtility.GenerateStaticCollectionScript(collection);
             }
-            
-            // Now try to find or create corresponding items in the collection and copy the fields over.
-            for (int i = 0; i < templates.Count; i++)
+            catch (Exception e)
             {
-                ItemTemplate itemTemplate = (ItemTemplate)templates[i];
-
-                if (itemTemplate == null)
-                    continue;
-
-
-                if (!TryGetItemTemplateType(itemTemplate, out Type templateItemType))
-                    templateItemType = collection.GetItemType();
-                
-                ISOCItem itemInstance = collection.GetOrAddNew(templateItemType, itemTemplate.name);
-
-                CopyFieldsFromTemplateToItem(itemTemplate, itemInstance);
+                Debug.LogException(e);
+                throw;
             }
-            
-            
-            // Optional Callback to be called when the generation completes
-            MethodInfo completionCallback = generatorType.GetMethod(
-                "OnItemsGenerationComplete", BindingFlags.Public | BindingFlags.Instance);
-            if (completionCallback != null)
-                completionCallback!.Invoke(generator, new object[] {collection });
-            
-
-            if (refresh)
+            finally
             {
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
+                AssetDatabase.StopAssetEditing();
             }
             
-            if (generateStaticAccess)
-                CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+            
         }
 
         private static bool TryGetItemTemplateType(ItemTemplate itemTemplate, out Type resultType)
@@ -263,15 +278,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (field.IsPrivate && field.GetCustomAttribute<SerializeField>() == null)
                 return;
 
-            // Get the property to copy the value to.
-            SerializedProperty serializedProperty = serializedObject.FindProperty(field.Name);
-            if (serializedProperty == null)
-            {
-                //Try one more time using the backing field name.
-                serializedProperty = serializedObject.FindProperty($"<{nameof(field.Name)}>k__BackingField");
-                if (serializedProperty == null)
-                    return;
-            }
+            if (!serializedObject.TryFindSerializedPropertyByName(field.Name, out SerializedProperty serializedProperty))
+                return;
             
             object value = field.GetValue(owner);
             

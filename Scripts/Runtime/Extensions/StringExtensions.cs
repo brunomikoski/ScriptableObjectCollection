@@ -333,5 +333,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string relativePath = ToPathWithConsistentSeparators(Path.GetRelativePath(projectPath, absolutePath));
             return relativePath;
         }
+        
+        public static string AsBackingField(this string value)
+        {
+            return $"<{value}>k__BackingField";
+        }
     }
 }

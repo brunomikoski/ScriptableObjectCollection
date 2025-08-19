@@ -114,7 +114,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             float originY = position.y;
             position.height = 15;
-            Rect prefixPosition = EditorGUI.PrefixLabel(position, label);
+            bool shouldDrawLabel = OptionsAttribute.LabelMode != LabelMode.NoLabel;
+            Rect prefixPosition = shouldDrawLabel ? EditorGUI.PrefixLabel(position, label) : position;
+            
             int indent = EditorGUI.indentLevel;
             EditorGUI.indentLevel = 0;
             if (collectionItem != null)

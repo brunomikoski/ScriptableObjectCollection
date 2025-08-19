@@ -9,6 +9,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         AsReference = 1
     }
     
+    public enum LabelMode
+    {
+        Default = 0,
+        NoLabel = 1,
+        //LabelOnSeparateLine = 2, // TODO
+    }
+    
 #if UNITY_2022_2_OR_NEWER
     [Obsolete("DrawAsSOCItemAttribute is not needed anymore, since Unity 2022 PropertyDrawers can be applied to interfaces")]
 #endif
@@ -34,7 +41,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         /// If specified, only show collection items that belong to the collection assigned to the specified field.
         /// </summary>
         public string ConstrainToCollectionField { get; set; }
-        
+
+        public LabelMode LabelMode { get; set; }
+
         /// <summary>
         /// If specified, will perform this method whenever the value changes.
         /// Parameters of the method should be: ItemType from, ItemType to

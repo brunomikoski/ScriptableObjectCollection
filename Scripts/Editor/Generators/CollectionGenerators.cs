@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using BrunoMikoski.ScriptableObjectCollections.Utils;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -266,7 +267,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             // Get the property to copy the value to.
             SerializedProperty serializedProperty = serializedObject.FindProperty(field.Name);
             if (serializedProperty == null)
-                return;
+            {
+                serializedProperty = serializedObject.FindProperty(field.Name.AsBackingField());
+                if(serializedProperty == null)
+                    return;
+            }
             
             object value = field.GetValue(owner);
             

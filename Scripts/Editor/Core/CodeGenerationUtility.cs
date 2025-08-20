@@ -346,7 +346,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             // Delete any existing files that have the old deprecated extension.
             string deprecatedFileName = targetFileName + ExtensionOld;
+#if UNITY_2023_1_OR_NEWER
             if (AssetDatabase.AssetPathExists(deprecatedFileName))
+#else
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(deprecatedFileName) != null)
+#endif
             {
                 Debug.LogWarning($"Deleting deprecated Indirect Access file '{deprecatedFileName}'.");
                 AssetDatabase.DeleteAsset(deprecatedFileName);

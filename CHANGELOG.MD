@@ -4,10 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 [Unreleased]
+
+## [2.4.1] - 21/08/2025
 ## Changed
  - Fixed issue when creating multiple items without renaming it would cause a null reference.
  - Removed Synchronize Assets button from the Collection Editor, this is already happening multiple times
  - Renamed Generator button to Run Generator instead of Generate Items since was misleading
+ - Fixed use of `AssetPathExists` on older Unity versions
+ - Removed Syncronize Button (was not needed anymore)
+ - Fixed generator not refreshing CollectionEditor after running the generator
+ - Fixed unique name generation for new items
+ - 
+
+## Added
+ - Added new label options to make the picker smaller
+ - 
 
 ## [2.4.0] - 24/05/2025
 ## Changed
@@ -637,6 +648,8 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.1
+[2.4.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.0
 [2.3.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.9
 [2.3.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.8
 [2.3.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.7

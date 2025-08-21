@@ -202,6 +202,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if (generateStaticAccess)
                 CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+
+            EditorUtility.SetDirty(collection);
+            ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
         private static bool TryGetItemTemplateType(ItemTemplate itemTemplate, out Type resultType)

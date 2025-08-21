@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using BrunoMikoski.ScriptableObjectCollections.Utils;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -201,6 +202,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             if (generateStaticAccess)
                 CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+
+            EditorUtility.SetDirty(collection);
+            ActiveEditorTracker.sharedTracker.ForceRebuild();
         }
 
         private static bool TryGetItemTemplateType(ItemTemplate itemTemplate, out Type resultType)
@@ -264,8 +268,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return;
 
             // Get the property to copy the value to.
-            SerializedProperty serializedProperty = serializedObject.FindProperty(field.Name);
-            if (serializedProperty == null)
+            if(!serializedObject.TryFindProperty(field.Name, out SerializedProperty serializedProperty))
                 return;
             
             object value = field.GetValue(owner);

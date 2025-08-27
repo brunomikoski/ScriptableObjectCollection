@@ -972,7 +972,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if(!string.Equals(Path.GetFullPath(itemPath), Path.GetFullPath(newPath), StringComparison.InvariantCultureIgnoreCase))
                 {
                     newPath = AssetDatabase.GenerateUniqueAssetPath(newPath);
-                AssetDatabase.MoveAsset(itemPath, newPath);
+                    AssetDatabase.MoveAsset(itemPath, newPath);
                 }
             }
 

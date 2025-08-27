@@ -950,6 +950,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             collection.Remove(item);
             targetCollection.Add(item);
+            if (item is ISOCItem socItem)
+            {
+                socItem.SetCollection(targetCollection);
+            }
 
             string itemPath = AssetDatabase.GetAssetPath(item);
             string targetCollectionPath = AssetDatabase.GetAssetPath(targetCollection);

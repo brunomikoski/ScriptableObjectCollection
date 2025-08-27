@@ -321,7 +321,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             (items[targetIndex], items[newIndex]) = (items[newIndex], items[targetIndex]);
             ObjectUtility.SetDirty(this);
         }
-        
+
         [ContextMenu("Refresh Collection")]
         public void RefreshCollection()
         {
@@ -369,6 +369,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     RemoveAt(i);
                     Debug.Log($"Removing item at index {i} as it is null");
                     changed = true;
+                    continue;
                 }
                 
                 ScriptableObject scriptableObject = items[i];

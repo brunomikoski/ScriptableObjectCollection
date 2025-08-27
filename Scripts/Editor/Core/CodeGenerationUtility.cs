@@ -19,6 +19,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string PrivateValuesName = "cachedValues";
         private const string PublicValuesName = "Values";
         private const string HasCachedValuesName = "hasCachedValues";
+        private const string ExtensionOld = ".cs";
+        private const string ExtensionNew = ".g.cs";
         
 
         public static bool CreateNewScript(
@@ -339,7 +341,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string fileName = $"{collectionName}IndirectReference";
 
             AssetDatabaseUtils.CreatePathIfDoesntExist(targetFolder);
-            using (StreamWriter writer = new StreamWriter(Path.Combine(targetFolder, $"{fileName}.g.cs")))
+            
+            string targetFileName = Path.Combine(targetFolder, fileName);
+            
+            // Delete any existing files that have the old deprecated extension.
+            string deprecatedFileName = targetFileName + ExtensionOld;
+#if UNITY_2023_1_OR_NEWER
+            if (AssetDatabase.AssetPathExists(deprecatedFileName))
+#else
+            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(deprecatedFileName) != null)
+#endif
+            {
+                Debug.LogWarning($"Deleting deprecated Indirect Access file '{deprecatedFileName}'.");
+                AssetDatabase.DeleteAsset(deprecatedFileName);
+            }
+
+            targetFileName += ExtensionNew;
+            using (StreamWriter writer = new StreamWriter(targetFileName))
             {
                 int indentation = 0;
                 List<string> directives = new List<string>();
@@ -385,7 +403,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 
             AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
-            using (StreamWriter writer = new StreamWriter(Path.Combine(finalFolder, $"{fileName}.g.cs")))
+
+            string finalFileName = Path.Combine(finalFolder, fileName);
+            
+            // Delete any existing files that have the old deprecated extension.
+            string deprecatedFileName = finalFileName + ExtensionOld;
+            if (File.Exists(deprecatedFileName))
+            {
+                Debug.LogWarning($"Deleting deprecated Static Access file '{deprecatedFileName}'.");
+                AssetDatabase.DeleteAsset(deprecatedFileName);
+            }
+            
+            finalFileName += ExtensionNew;
+            using (StreamWriter writer = new StreamWriter(finalFileName))
             {
                 int indentation = 0;
                 
@@ -637,7 +667,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             return File.Exists(Path.Combine(
                 AssetDatabase.GetAssetPath(SOCSettings.Instance.GetParentDefaultAssetScriptsFolderForCollection(collection)),
-                $"{SOCSettings.Instance.GetStaticFilenameForCollection(collection)}.g.cs"));
+                $"{SOCSettings.Instance.GetStaticFilenameForCollection(collection)}{ExtensionNew}"));
         }
 
         private static string GetCollectionSpecificVariableName(string variableName, string collectionName)

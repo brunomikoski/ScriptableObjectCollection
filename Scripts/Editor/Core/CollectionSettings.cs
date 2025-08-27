@@ -29,7 +29,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             Guid = targetCollection.GUID;
             string targetNamespace = targetCollection.GetItemType().Namespace;
-            if (!string.IsNullOrEmpty(SOCSettings.Instance.NamespacePrefix))
+            if (string.IsNullOrEmpty(targetNamespace) && !string.IsNullOrEmpty(SOCSettings.Instance.NamespacePrefix))
                 targetNamespace = $"{SOCSettings.Instance.NamespacePrefix}";
             
             Namespace = targetNamespace;
@@ -47,7 +47,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             bool canBePartial = CodeGenerationUtility.CheckIfCanBePartial(targetCollection, ParentFolderPath);
             
-            if (!canBePartial)
+            if (canBePartial)
                 StaticFilename = $"{targetCollection.GetType().Name}Static".FirstToUpper();
             else 
                 StaticFilename = $"{targetCollection.GetType().Name}".FirstToUpper();

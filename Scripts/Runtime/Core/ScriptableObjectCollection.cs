@@ -111,7 +111,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return true;
         }
 
-        internal void GenerateNewGUID()
+        public void GenerateNewGUID()
         {
             guid = LongGuid.NewGuid();
             ObjectUtility.SetDirty(this);
@@ -135,32 +135,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (string.IsNullOrEmpty(itemName))
             {
-                int count = Count;
-                while (true)
-                {
-                    itemName = $"New{itemType.Name}{count}";
-                    string testPath = Path.Combine(parentFolderPath, itemName);
-
-                    if (!File.Exists(Path.GetFullPath($"{testPath}.asset")))
-                        break;
-                
-                    count++;
-                }
+                itemName = $"{itemType.Name}";
             }
             
-            newItem.name = itemName;
+            string uniqueAssetPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(parentFolderPath, itemName + ".asset"));
+            string uniqueName = Path.GetFileNameWithoutExtension(uniqueAssetPath);
 
-            if(itemName.IsReservedKeyword())
+            newItem.name = uniqueName;
+
+            if (itemName.IsReservedKeyword())
                 Debug.LogError($"{itemName} is a reserved keyword name, will cause issues with code generation, please rename it");
-
-            string newFileName = Path.Combine(parentFolderPath, newItem.name + ".asset");
 
             ISOCItem socItem = newItem as ISOCItem;
             socItem.GenerateNewGUID();
             
             this.Add(newItem);
 
-            AssetDatabase.CreateAsset(newItem, newFileName);
+            AssetDatabase.CreateAsset(newItem, uniqueAssetPath);
             ObjectUtility.SetDirty(this);
 
             SerializedObject serializedObject = new SerializedObject(this);
@@ -282,6 +273,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool Remove(ScriptableObject item)
         {
             bool result =  items.Remove(item);
+            if (item is ISOCItem socItem)
+                socItem.ClearCollection();
+
             ObjectUtility.SetDirty(this);
             return result;
         }
@@ -322,7 +316,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
-        [ContextMenu("Refresh Collection")]
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
@@ -334,15 +327,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string assetPath = AssetDatabase.GetAssetPath(this);
             if (string.IsNullOrEmpty(assetPath))
                 return;
-            
+
             string folder = Path.GetDirectoryName(assetPath);
             string[] guids = AssetDatabase.FindAssets($"t:{collectionItemType.Name}", new []{folder});
 
+            List<ISOCItem> itemsFromOtherCollections = new List<ISOCItem>();
             for (int i = 0; i < guids.Length; i++)
             {
                 ScriptableObject item =
                     AssetDatabase.LoadAssetAtPath<ScriptableObject>(AssetDatabase.GUIDToAssetPath(guids[i]));
-                
+
                 if (item == null)
                     continue;
 
@@ -352,7 +346,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (socItem.Collection != null)
                 {
                     if (socItem.Collection != this)
+                    {
+                        itemsFromOtherCollections.Add(socItem);
                         continue;
+                    }
 
                     if (socItem.Collection.Contains(item))
                         continue;
@@ -362,7 +359,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     changed = true;
             }
 
-            for (int i = items.Count - 1; i >= 0; i--)
+            int itemsCount = items.Count;
+            for (int i = itemsCount - 1; i >= 0; i--)
             {
                 if (items[i] == null)
                 {
@@ -371,13 +369,65 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     changed = true;
                     continue;
                 }
-                
+
                 ScriptableObject scriptableObject = items[i];
+
+
+                if (scriptableObject is ISOCItem socItem)
+                {
+                    if (socItem.Collection != this)
+                    {
+                        RemoveAt(i);
+                        Debug.Log($"Removing item at index {i} since it belongs to another collection {socItem.Collection}");
+                        changed = true;
+                    }
+                }
+
                 if (scriptableObject.GetType() == GetItemType() || scriptableObject.GetType().IsSubclassOf(GetItemType()))
                     continue;
-                
+
                 RemoveAt(i);
                 Debug.Log($"Removing item at index {i} {scriptableObject} since it is not of type {GetItemType()}");
+            }
+
+            if (itemsFromOtherCollections.Any())
+            {
+                int result = EditorUtility.DisplayDialogComplex("Items from another collections",
+                    $"The following items {string.Join(",", itemsFromOtherCollections.Select(o => o.name).ToArray())} belong to other collection, what you want to do?",
+                    "Move to the assigned collection", $"Assign it the parent collection ", "Do nothing");
+
+                if (result == 0)
+                {
+                    foreach (ISOCItem itemsFromOtherCollection in itemsFromOtherCollections)
+                    {
+                        SOCItemUtility.MoveItem(itemsFromOtherCollection, itemsFromOtherCollection.Collection);
+                        changed = true;
+                        ObjectUtility.SetDirty(itemsFromOtherCollection.Collection);
+                    }
+
+                }
+                else if (result == 1)
+                {
+                    if (!CollectionsRegistry.Instance.HasUniqueGUID(this))
+                    {
+                        GenerateNewGUID();
+                        Clear();
+                    }
+
+                    if (!CollectionsRegistry.Instance.IsKnowCollection(this))
+                    {
+                        CollectionsRegistry.Instance.RegisterCollection(this);
+                    }
+
+                    foreach (ISOCItem itemsFromOtherCollection in itemsFromOtherCollections)
+                    {
+                        itemsFromOtherCollection.ClearCollection();
+                        Add(itemsFromOtherCollection as ScriptableObject);
+                        ObjectUtility.SetDirty(itemsFromOtherCollection as ScriptableObject);
+                        changed = true;
+
+                    }
+                }
             }
 
             if (changed)

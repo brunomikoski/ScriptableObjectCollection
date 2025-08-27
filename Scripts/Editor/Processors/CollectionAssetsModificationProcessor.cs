@@ -24,6 +24,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (socItem == null)
                     return AssetDeleteResult.DidNotDelete;
 
+                if (socItem.Collection == null)
+                    return AssetDeleteResult.DidNotDelete;
+
                 socItem.Collection.Remove(collectionItem);
                 return AssetDeleteResult.DidNotDelete;
             }

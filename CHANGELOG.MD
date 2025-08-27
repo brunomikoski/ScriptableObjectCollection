@@ -3,8 +3,44 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+[Unreleased]
 
-## [Unreleased]
+## [2.4.1] - 21/08/2025
+## Changed
+ - Fixed issue when creating multiple items without renaming it would cause a null reference.
+ - Removed Synchronize Assets button from the Collection Editor, this is already happening multiple times
+ - Renamed Generator button to Run Generator instead of Generate Items since was misleading
+ - Fixed use of `AssetPathExists` on older Unity versions
+ - Removed Syncronize Button (was not needed anymore)
+ - Fixed generator not refreshing CollectionEditor after running the generator
+ - Fixed unique name generation for new items
+ - 
+
+## Added
+ - Added new label options to make the picker smaller
+ - 
+
+## [2.4.0] - 24/05/2025
+## Changed
+ - Fixed generated static access code overwriting the collection definition
+ - Pre 2.3.0 collections will now be assumed to want a namespace setting that is the same namespace as its item type
+ - When generating static/indirect access code using the new `.g.cs` suffix, existing static/indirect access code that uses the old `.cs` suffix is now automatically removed to prevent compile errors
+ - Added Generic SetValue for Collection Generator
+
+
+## [2.3.9] - 19/02/2025
+## Changed
+ - Added some general fixes to validate Collection and Items have unique `LongGuid`
+ - Fixed issues when after some operation with the context menu on the CollectionEditor items would not refresh properly
+ - Fixed issue when moving items between collection would not generate unique names
+ - Removed the post processing of assets that tried to assign items to collections automatically, since this was causing issue when duplicating collections, everyting now is done on the collection
+ - Overall code improvement and organization
+
+## Added
+ - Added new Context Menu for moving items between collections
+ - Added the new PropertyDrawer that shows what Collection every item belongs to
+ - Added a few more Confirmation dialog when detecting items that looks wrong
+
 
 ## [2.3.8] - 30/01/2025
 ## Changed
@@ -612,6 +648,9 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.1
+[2.4.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.0
+[2.3.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.9
 [2.3.8]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.8
 [2.3.7]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.7
 [2.3.6]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.6

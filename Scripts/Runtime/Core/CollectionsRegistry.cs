@@ -513,7 +513,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < Collections.Count; i++)
             {
                 ScriptableObjectCollection collection = Collections[i];
-                if (!collection.AutomaticallyLoaded)
+                if (collection != null && !collection.AutomaticallyLoaded)
                 {
                     SetAutoSearchForCollections(true);
                     return;

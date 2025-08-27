@@ -740,12 +740,32 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     false,
                     () => { CopyCollectionItemUtility.SetSource(scriptableObject); }
                 );
+
+                menu.AddDisabledItem(new GUIContent("Sort Items"), false);
             }
             else
             {
                 menu.AddDisabledItem(
                     new GUIContent("Copy Values"),
                     false);
+
+                menu.AddItem(
+                    new GUIContent("Sort Items"),
+                    false,
+                    () =>
+                    {
+                        Undo.RecordObject(collection, "Sort Items");
+                        List<ScriptableObject> itemsToBeSorted = new();
+                        foreach (int selectedIndex in collectionItemListView.selectedIndices)
+                        {
+                            itemsToBeSorted.Add(filteredItems[selectedIndex]);
+                        }
+
+                        collection.Sort(new LimitedComparer(itemsToBeSorted));
+
+                        ReloadFilteredItems();
+                    }
+                );
             }
             if (CopyCollectionItemUtility.CanPasteToTarget(scriptableObject))
             {
@@ -1109,6 +1129,50 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     Selection.activeObject = collection;
                 }
             }
+        }
+    }
+
+    internal struct LimitedComparer : IComparer<ScriptableObject>
+    {
+        private readonly HashSet<ScriptableObjectCollectionItem> m_ItemsToBeSorted;
+        private readonly int m_FirstItemIndex;
+        public LimitedComparer(List<ScriptableObject> itemsToBeSorted)
+        {
+            m_ItemsToBeSorted = itemsToBeSorted.OfType<ScriptableObjectCollectionItem>().ToHashSet();
+            m_FirstItemIndex = m_ItemsToBeSorted.Select(i => i.Index).Min();
+        }
+
+        public int Compare(ScriptableObject xObject, ScriptableObject yObject)
+        {
+            if (ReferenceEquals(xObject, yObject)) return 0;
+            if (yObject is null) return 1;
+            if (xObject is null) return -1;
+
+            if (xObject is not ScriptableObjectCollectionItem x || yObject is not ScriptableObjectCollectionItem y)
+            {
+                return 0; // or throw an exception if you want to enforce that both are of type ScriptableObjectCollectionItem
+            }
+
+            bool toSortX = m_ItemsToBeSorted.Contains(x);
+            bool toSortY = m_ItemsToBeSorted.Contains(y);
+
+            if (toSortX && toSortY)
+            {
+                return String.Compare(x.name, y.name, StringComparison.Ordinal);
+            }
+
+            if (toSortX)
+            {
+                // compare y with the first item in the list to sort
+                return x.Index - m_FirstItemIndex;
+            }
+            if (toSortY)
+            {
+                // compare x with the first item in the list to sort
+                return m_FirstItemIndex - y.Index;
+            }
+            // neither x nor y are in the list to sort, compare by Index
+            return x.Index.CompareTo(y.Index);
         }
     }
 }

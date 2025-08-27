@@ -49,7 +49,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private static Type[] GetAllGeneratorTypes()
         {
-            return InterfaceType.GetAllAssignableClasses();
+            return TypeCache.GetTypesDerivedFrom(InterfaceType).ToArray();
         }
 
         public static Type GetGeneratorTypeForCollection(Type collectionType, bool allowSubclasses = true)

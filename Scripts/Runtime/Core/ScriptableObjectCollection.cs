@@ -99,12 +99,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (item is not ISOCItem socItem)
                 return false;
 
-            if (items.Contains(item))
+            bool contains = items.Contains(item);
+            bool valid = socItem.Collection != this;
+
+            if (contains && valid)
+            {
                 return false;
+            }
 
-            items.Add(item);
+            if (!contains)
+            {
+                items.Add(item);
+            }
 
-            socItem.SetCollection(this);
+            if (!valid)
+            {
+                socItem.SetCollection(this);
+            }
 
             ObjectUtility.SetDirty(this);
             ClearCachedValues();
@@ -316,6 +327,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
         }
 
+        private string Desc(int index)
+        {
+            var item = items[index];
+            string name = item != null ? item.name : "NULL";
+            return $"{index} ({name})";
+        }
+
         public void RefreshCollection()
         {
 #if UNITY_EDITOR
@@ -358,6 +376,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         // Don't fight with neighbor collections
                         if (socItem.Collection.Contains(socItem) && neighbors.Contains(socItem.Collection))
                         {
+                            Debug.Log($"Don't fight with neighbor collections {this} {socItem.Collection}");
                             continue;
                         }
                         itemsFromOtherCollections.Add(socItem);
@@ -377,8 +396,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (items[i] == null)
                 {
+                    Debug.Log($"Removing item at index {Desc(i)} as it is null");
                     RemoveAt(i);
-                    Debug.Log($"Removing item at index {i} as it is null");
                     changed = true;
                     continue;
                 }
@@ -390,8 +409,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 {
                     if (socItem.Collection != this)
                     {
+                        Debug.Log($"Removing item at index {Desc(i)} since it belongs to another collection {socItem.Collection}");
                         RemoveAt(i);
-                        Debug.Log($"Removing item at index {i} since it belongs to another collection {socItem.Collection}");
                         changed = true;
                     }
                 }
@@ -399,8 +418,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (scriptableObject.GetType() == GetItemType() || scriptableObject.GetType().IsSubclassOf(GetItemType()))
                     continue;
 
+                Debug.Log($"Removing item at index {Desc(i)} {scriptableObject} since it is not of type {GetItemType()}");
                 RemoveAt(i);
-                Debug.Log($"Removing item at index {i} {scriptableObject} since it is not of type {GetItemType()}");
             }
 
             if (itemsFromOtherCollections.Any())

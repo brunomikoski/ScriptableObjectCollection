@@ -347,6 +347,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         private void OnCollectionItemOrderChanged(int fromIndex, int toIndex)
         {
+            ReloadFilteredItems();
             ScriptableObject sourceItem = filteredItems[fromIndex];
             ScriptableObject targetItem = filteredItems[toIndex];
 

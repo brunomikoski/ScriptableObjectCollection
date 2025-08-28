@@ -376,7 +376,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         // Don't fight with neighbor collections
                         if (socItem.Collection.Contains(socItem) && neighbors.Contains(socItem.Collection))
                         {
-                            Debug.Log($"Don't fight with neighbor collections {this} {socItem.Collection}");
                             continue;
                         }
                         itemsFromOtherCollections.Add(socItem);

@@ -18,6 +18,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
+        public static string NormalizePath(string path)
+        {
+            return Path.GetFullPath(new Uri(path).LocalPath)
+                       .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       .ToUpperInvariant();
+        }
+
         public static void MoveItem(ISOCItem item, ScriptableObjectCollection targetCollection, Action onCompleteCallback = null)
         {
 #if  UNITY_EDITOR
@@ -42,7 +49,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 string fileName = Path.GetFileName(itemPath);
                 string newPathCandidate = Path.Combine(finalDirectory, fileName);
 
-                if (itemPath != newPathCandidate)
+                if (NormalizePath(itemPath) != NormalizePath(newPathCandidate))
                 {
                     string newPath = AssetDatabase.GenerateUniqueAssetPath(newPathCandidate);
                     AssetDatabase.MoveAsset(itemPath, newPath);

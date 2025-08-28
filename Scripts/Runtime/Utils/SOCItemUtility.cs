@@ -12,9 +12,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static void MoveItem(ScriptableObject item, ScriptableObjectCollection targetCollection,
             Action onCompleteCallback = null)
         {
-            if (item is ISOCItem)
+            if (item is ISOCItem iItem)
             {
-                MoveItem(item, targetCollection, onCompleteCallback);
+                MoveItem(iItem, targetCollection, onCompleteCallback);
             }
         }
 

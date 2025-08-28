@@ -393,7 +393,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (itemsFromOtherCollections.Any())
             {
                 int result = EditorUtility.DisplayDialogComplex("Items from another collections",
-                    $"The following items {string.Join(",", itemsFromOtherCollections.Select(o => o.name).ToArray())} belong to other collection, what you want to do?",
+                    $"The following items {string.Join(", ", itemsFromOtherCollections.Select(o => o.name).ToArray())} belong to other collection, what you want to do?",
                     "Move to the assigned collection", $"Assign it the parent collection ", "Do nothing");
 
                 if (result == 0)

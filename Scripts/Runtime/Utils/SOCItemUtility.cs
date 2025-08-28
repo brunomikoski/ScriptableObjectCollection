@@ -40,10 +40,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 string finalDirectory = hasItemsFolder ? itemsFolderPath : directory;
                 string fileName = Path.GetFileName(itemPath);
+                string newPathCandidate = Path.Combine(finalDirectory, fileName);
 
-                string newPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(finalDirectory, fileName));
-
-                AssetDatabase.MoveAsset(itemPath, newPath);
+                if (itemPath != newPathCandidate)
+                {
+                    string newPath = AssetDatabase.GenerateUniqueAssetPath(newPathCandidate);
+                    AssetDatabase.MoveAsset(itemPath, newPath);
+                }
             }
 
             AssetDatabase.SaveAssets();

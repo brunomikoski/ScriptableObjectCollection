@@ -100,9 +100,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return false;
 
             bool contains = items.Contains(item);
-            bool valid = socItem.Collection != this;
+            bool set = socItem.Collection == this;
 
-            if (contains && valid)
+            if (contains && set)
             {
                 return false;
             }
@@ -112,7 +112,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 items.Add(item);
             }
 
-            if (!valid)
+            if (!set)
             {
                 socItem.SetCollection(this);
             }

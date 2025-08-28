@@ -398,11 +398,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (result == 0)
                 {
-                    foreach (ISOCItem itemsFromOtherCollection in itemsFromOtherCollections)
+                    try {
+                        AssetDatabase.StartAssetEditing();
+                        foreach (ISOCItem itemsFromOtherCollection in itemsFromOtherCollections)
+                        {
+                            SOCItemUtility.MoveItem(itemsFromOtherCollection, itemsFromOtherCollection.Collection);
+                            changed = true;
+                            ObjectUtility.SetDirty(itemsFromOtherCollection.Collection);
+                        }
+                    }
+                    finally
                     {
-                        SOCItemUtility.MoveItem(itemsFromOtherCollection, itemsFromOtherCollection.Collection);
-                        changed = true;
-                        ObjectUtility.SetDirty(itemsFromOtherCollection.Collection);
+                        AssetDatabase.StopAssetEditing();
                     }
 
                 }

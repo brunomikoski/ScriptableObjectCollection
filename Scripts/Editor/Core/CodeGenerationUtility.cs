@@ -19,7 +19,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string PrivateValuesName = "cachedValues";
         private const string PublicValuesName = "Values";
         private const string HasCachedValuesName = "hasCachedValues";
-        private const string ExtensionOld = ".cs";
         private const string ExtensionNew = ".g.cs";
         
 
@@ -343,18 +342,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabaseUtils.CreatePathIfDoesntExist(targetFolder);
             
             string targetFileName = Path.Combine(targetFolder, fileName);
-            
-            // Delete any existing files that have the old deprecated extension.
-            string deprecatedFileName = targetFileName + ExtensionOld;
-#if UNITY_2023_1_OR_NEWER
-            if (AssetDatabase.AssetPathExists(deprecatedFileName))
-#else
-            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(deprecatedFileName) != null)
-#endif
-            {
-                Debug.LogWarning($"Deleting deprecated Indirect Access file '{deprecatedFileName}'.");
-                AssetDatabase.DeleteAsset(deprecatedFileName);
-            }
 
             targetFileName += ExtensionNew;
             using (StreamWriter writer = new StreamWriter(targetFileName))

@@ -510,9 +510,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void UpdateAutoSearchForCollections()
         {
-            for (int i = 0; i < Collections.Count; i++)
+            foreach (ScriptableObjectCollection collection in collections)
             {
-                ScriptableObjectCollection collection = Collections[i];
+                if (!collection)
+                {
+                    continue;
+                }
                 if (collection != null && !collection.AutomaticallyLoaded)
                 {
                     SetAutoSearchForCollections(true);
@@ -525,9 +528,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool HasUniqueGUID(ISOCItem targetItem)
         {
-            for (int i = 0; i < collections.Count; i++)
+            foreach (ScriptableObjectCollection collection in collections)
             {
-                ScriptableObjectCollection collection = collections[i];
+                if (!collection)
+                {
+                    continue;
+                }
                 foreach (ScriptableObject scriptableObject in collection)
                 {
                     if (scriptableObject is ISOCItem socItem)
@@ -543,9 +549,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool HasUniqueGUID(ScriptableObjectCollection targetCollection)
         {
-            for (int i = 0; i < collections.Count; i++)
+            foreach (ScriptableObjectCollection collection in collections)
             {
-                ScriptableObjectCollection collection = collections[i];
+                if (!collection)
+                {
+                    continue;
+                }
                 if (collection != targetCollection && collection.GUID == targetCollection.GUID)
                     return false;
             }

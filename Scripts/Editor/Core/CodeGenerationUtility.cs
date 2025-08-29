@@ -393,14 +393,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             string finalFileName = Path.Combine(finalFolder, fileName);
             
-            // Delete any existing files that have the old deprecated extension.
-            string deprecatedFileName = finalFileName + ExtensionOld;
-            if (File.Exists(deprecatedFileName))
-            {
-                Debug.LogWarning($"Deleting deprecated Static Access file '{deprecatedFileName}'.");
-                AssetDatabase.DeleteAsset(deprecatedFileName);
-            }
-            
             finalFileName += ExtensionNew;
             using (StreamWriter writer = new StreamWriter(finalFileName))
             {

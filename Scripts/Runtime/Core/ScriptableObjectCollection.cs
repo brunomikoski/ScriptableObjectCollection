@@ -429,7 +429,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 if (result == 0)
                 {
-                    try {
+                    try
+                    {
                         AssetDatabase.StartAssetEditing();
                     foreach (ISOCItem itemsFromOtherCollection in itemsFromOtherCollections)
                     {

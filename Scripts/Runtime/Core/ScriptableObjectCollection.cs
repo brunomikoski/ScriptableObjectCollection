@@ -351,7 +351,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             HashSet<ScriptableObjectCollection> neighbors =
                 AssetDatabase
-                   .FindAssets($"t:ScriptableObjectCollection", new[] { folder })
+                   .FindAssets($"t:{nameof(ScriptableObjectCollection)}", new[] { folder })
                    .Select(AssetDatabase.GUIDToAssetPath)
                    .Select(AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>)
                    .Where(o => o != null && o != this)

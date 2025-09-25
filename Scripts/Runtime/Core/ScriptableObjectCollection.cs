@@ -44,6 +44,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool IsReadOnly => false;
 
         public virtual bool ShouldProtectItemOrder => false;
+        
+        private Dictionary<string,ScriptableObject> itemNameToScriptableObject = new();
 
         public ScriptableObject this[int index]
         {
@@ -435,20 +437,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
-        public bool TryGetItemByName(string targetItemName, out ScriptableObject scriptableObjectCollectionItem)
+        public void CacheItemNames()
         {
+            itemNameToScriptableObject.Clear();
             for (int i = 0; i < items.Count; i++)
             {
                 ScriptableObject item = items[i];
-                if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
+                itemNameToScriptableObject.TryAdd(item.name, item);
+            }
+        }
+        
+        public bool TryGetItemByName(string targetItemName, out ScriptableObject scriptableObjectCollectionItem)
+        {
+            if (!itemNameToScriptableObject.TryGetValue(targetItemName, out scriptableObjectCollectionItem))
+            {
+                for (int i = 0; i < items.Count; i++)
                 {
-                    scriptableObjectCollectionItem = item;
-                    return true;
+                    ScriptableObject item = items[i];
+                    if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
+                    {
+                        scriptableObjectCollectionItem = item;
+                        itemNameToScriptableObject[targetItemName] = item;
+                        break;
+                    }
                 }
             }
 
-            scriptableObjectCollectionItem = null;
-            return false;
+            return scriptableObjectCollectionItem != null;
         }
 
         public bool TryGetItemByGUID<T>(LongGuid itemGUID, out T scriptableObjectCollectionItem)
@@ -581,14 +596,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public bool TryGetItemByName<T>(string targetItemName, out T scriptableObjectCollectionItem) where T : TObjectType
         {
-            for (int i = 0; i < items.Count; i++)
+            if (base.TryGetItemByName(targetItemName, out ScriptableObject resultScriptableObject))
             {
-                ScriptableObject item = items[i];
-                if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
-                {
-                    scriptableObjectCollectionItem = item as T;
-                    return scriptableObjectCollectionItem != null;
-                }
+                scriptableObjectCollectionItem = resultScriptableObject as T;
+                return scriptableObjectCollectionItem != null;
             }
 
             scriptableObjectCollectionItem = null;

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections.Browser
 {
-    public class BrowserTreeView : TreeView
+    public class BrowserTreeView : TreeView<int>
     {
         public delegate void ItemClickedDelegate(BrowserTreeViewItem item);
 
@@ -16,13 +16,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
         private readonly GUIContent showHiddenCollectionsContent = new("Show Hidden Collections");
         private readonly GUIContent hideHiddenCollectionsContent = new("Hide Hidden Collections");
 
-        public BrowserTreeView(TreeViewState state)
+        public BrowserTreeView(TreeViewState<int> state)
             : base(state)
         {
             Initialize();
         }
 
-        public BrowserTreeView(TreeViewState state, MultiColumnHeader multiColumnHeader)
+        public BrowserTreeView(TreeViewState<int> state, MultiColumnHeader multiColumnHeader)
             : base(state, multiColumnHeader)
         {
             Initialize();
@@ -34,9 +34,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
             Reload();
         }
 
-        protected override TreeViewItem BuildRoot()
+        protected override TreeViewItem<int> BuildRoot()
         {
-            TreeViewItem root = new(0, -1);
+            TreeViewItem<int> root = new(0, -1);
             int id = 1;
 
             string[] scriptableObjectCollections = AssetDatabase.FindAssets("t:ScriptableObjectCollection");
@@ -63,10 +63,15 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
                 root.AddChild(parentItem);
             }
 
+            if (root.children == null)
+            {
+                root.children = new List<TreeViewItem<int>>();
+            }
+
             return root;
         }
 
-        protected override bool CanMultiSelect(TreeViewItem item)
+        protected override bool CanMultiSelect(TreeViewItem<int> item)
         {
             return false;
         }
@@ -76,7 +81,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
             if (selectedIds.Count != 1)
                 return;
 
-            TreeViewItem item = FindItem(selectedIds[0], rootItem);
+            TreeViewItem<int> item = FindItem(selectedIds[0], rootItem);
 
             if (item is BrowserTreeViewItem treeViewItem)
             {
@@ -86,7 +91,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         protected override void SingleClickedItem(int id)
         {
-            TreeViewItem item = FindItem(id, rootItem);
+            TreeViewItem<int> item = FindItem(id, rootItem);
 
             if (item is BrowserTreeViewItem treeViewItem)
             {
@@ -96,7 +101,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         protected override void DoubleClickedItem(int id)
         {
-            TreeViewItem item = FindItem(id, rootItem);
+            TreeViewItem<int> item = FindItem(id, rootItem);
 
             if (item is BrowserTreeViewItem treeViewItem)
             {
@@ -106,7 +111,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         protected override void ContextClickedItem(int id)
         {
-            TreeViewItem item = FindItem(id, rootItem);
+            TreeViewItem<int> item = FindItem(id, rootItem);
 
             if (item is not BrowserTreeViewItem treeViewItem)
                 return;

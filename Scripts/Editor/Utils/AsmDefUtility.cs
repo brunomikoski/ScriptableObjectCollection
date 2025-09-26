@@ -218,10 +218,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string[] asmDefsGuids = AssetDatabase.FindAssets("t:asmdef", new[] { path });
             for (int i = 0; i < asmDefsGuids.Length; i++)
             {
-                string asmDefPath = AssetDatabase.GUIDToAssetPath(asmDefsGuids[i]);
+                string asmDefPath = AssetDatabase.GUIDToAssetPath(asmDefsGuids[i]).ToPathWithConsistentSeparators();
                 string asmDefDirectory = Path.GetDirectoryName(asmDefPath);
             
-                if (asmDefDirectory == path)
+                if (string.Equals(asmDefDirectory, path, StringComparison.Ordinal))
                     return AssetDatabase.LoadAssetAtPath<AssemblyDefinitionAsset>(asmDefPath);
             }
 

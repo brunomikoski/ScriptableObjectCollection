@@ -19,7 +19,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string PrivateValuesName = "cachedValues";
         private const string PublicValuesName = "Values";
         private const string HasCachedValuesName = "hasCachedValues";
-        private const string ExtensionOld = ".cs";
         private const string ExtensionNew = ".g.cs";
         
 
@@ -343,18 +342,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabaseUtils.CreatePathIfDoesntExist(targetFolder);
             
             string targetFileName = Path.Combine(targetFolder, fileName);
-            
-            // Delete any existing files that have the old deprecated extension.
-            string deprecatedFileName = targetFileName + ExtensionOld;
-#if UNITY_2023_1_OR_NEWER
-            if (AssetDatabase.AssetPathExists(deprecatedFileName))
-#else
-            if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(deprecatedFileName) != null)
-#endif
-            {
-                Debug.LogWarning($"Deleting deprecated Indirect Access file '{deprecatedFileName}'.");
-                AssetDatabase.DeleteAsset(deprecatedFileName);
-            }
 
             targetFileName += ExtensionNew;
             using (StreamWriter writer = new StreamWriter(targetFileName))
@@ -405,14 +392,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             AssetDatabaseUtils.CreatePathIfDoesntExist(finalFolder);
 
             string finalFileName = Path.Combine(finalFolder, fileName);
-            
-            // Delete any existing files that have the old deprecated extension.
-            string deprecatedFileName = finalFileName + ExtensionOld;
-            if (File.Exists(deprecatedFileName))
-            {
-                Debug.LogWarning($"Deleting deprecated Static Access file '{deprecatedFileName}'.");
-                AssetDatabase.DeleteAsset(deprecatedFileName);
-            }
             
             finalFileName += ExtensionNew;
             using (StreamWriter writer = new StreamWriter(finalFileName))
@@ -519,8 +498,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private static void WriteDirectAccessCollectionStatic(ScriptableObjectCollection collection, StreamWriter writer,
             ref int indentation, bool useBaseClass)
         {
-            AppendLine(writer, indentation, $"private static bool {HasCachedValuesName};");
-            AppendLine(writer, indentation, $"private static {collection.GetType().Name} {PrivateValuesName};");
+            string privateValuesName = GetCollectionSpecificVariableName(PrivateValuesName, collection.name);
+            string publicValuesName = GetCollectionSpecificVariableName(PublicValuesName, collection.name);
+            string hasCachedValuesName = GetCollectionSpecificVariableName(HasCachedValuesName, collection.name);
+
+            AppendLine(writer, indentation, $"private static bool {hasCachedValuesName};");
+            AppendLine(writer, indentation, $"private static {collection.GetType().Name} {privateValuesName};");
 
             AppendLine(writer, indentation);
 
@@ -538,20 +521,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
 
             AppendLine(writer, indentation,
-                $"public static {collection.GetType().FullName} {PublicValuesName}");
+                $"public static {collection.GetType().FullName} {publicValuesName}");
             
             AppendLine(writer, indentation, "{");
             indentation++;
             AppendLine(writer, indentation, "get");
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, $"if (!{HasCachedValuesName})");
+            AppendLine(writer, indentation, $"if (!{hasCachedValuesName})");
             indentation++;
             (long, long) collectionGUIDValues = collection.GUID.GetRawValues();
             AppendLine(writer, indentation,
-                $"{HasCachedValuesName} = CollectionsRegistry.Instance.TryGetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}), out {PrivateValuesName});");
+                $"{hasCachedValuesName} = CollectionsRegistry.Instance.TryGetCollectionByGUID(new LongGuid({collectionGUIDValues.Item1}, {collectionGUIDValues.Item2}), out {privateValuesName});");
             indentation--;
-            AppendLine(writer, indentation, $"return {PrivateValuesName};");
+            AppendLine(writer, indentation, $"return {privateValuesName};");
             indentation--;
             AppendLine(writer, indentation, "}");
             indentation--;
@@ -583,7 +566,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 indentation++;
                 (long, long) collectionItemGUIDValues = socItem.GUID.GetRawValues();
                 AppendLine(writer, indentation,
-                    $"{privateHasCachedName} = {PublicValuesName}.TryGetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}), out {privateStaticCachedName});");
+                    $"{privateHasCachedName} = {publicValuesName}.TryGetItemByGUID(new LongGuid({collectionItemGUIDValues.Item1}, {collectionItemGUIDValues.Item2}), out {privateStaticCachedName});");
                 indentation--;
                 AppendLine(writer, indentation, $"return {privateStaticCachedName};");
                 indentation--;
@@ -598,12 +581,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private static void WriteNonAutomaticallyLoadedCollectionItems(ScriptableObjectCollection collection, StreamWriter writer, ref int indentation, bool useBaseClass)
         {
+            string privateValuesName = GetCollectionSpecificVariableName(PrivateValuesName, collection.name);
+            string publicValuesName = GetCollectionSpecificVariableName(PublicValuesName, collection.name);
+            string hasCachedValuesName = GetCollectionSpecificVariableName(HasCachedValuesName, collection.name);
+
             AppendLine(writer, indentation,
                 $"public static bool IsCollectionLoaded()");
             
             AppendLine(writer, indentation, "{");
             indentation++;
-            AppendLine(writer, indentation, $"return {PublicValuesName} != null;");
+            AppendLine(writer, indentation, $"return {publicValuesName} != null;");
             indentation--;
             AppendLine(writer, indentation, "}");
 
@@ -630,8 +617,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, "{");
                 indentation++;
                 AppendLine(writer, indentation, "CollectionsRegistry.Instance.RegisterCollection(operation.Result);");
-                AppendLine(writer, indentation, $"{HasCachedValuesName} = true;");
-                AppendLine(writer, indentation, $"{PrivateValuesName} = operation.Result;");
+                AppendLine(writer, indentation, $"{hasCachedValuesName} = true;");
+                AppendLine(writer, indentation, $"{privateValuesName} = operation.Result;");
                 indentation--;
                 AppendLine(writer, indentation, "};");
                 AppendLine(writer, indentation, "return collectionHandle;");
@@ -642,9 +629,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation, "public static void UnloadCollection()");
                 AppendLine(writer, indentation, "{");
                 indentation++;
-                AppendLine(writer, indentation, $"CollectionsRegistry.Instance.UnregisterCollection({PublicValuesName});");
-                AppendLine(writer, indentation, $"{HasCachedValuesName} = false;");
-                AppendLine(writer, indentation, $"{PrivateValuesName} = null;");
+                AppendLine(writer, indentation, $"CollectionsRegistry.Instance.UnregisterCollection({publicValuesName});");
+                AppendLine(writer, indentation, $"{hasCachedValuesName} = false;");
+                AppendLine(writer, indentation, $"{privateValuesName} = null;");
 
                 AppendLine(writer, indentation, "Addressables.Release(collectionHandle);");
                 indentation--;
@@ -660,6 +647,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return File.Exists(Path.Combine(
                 AssetDatabase.GetAssetPath(SOCSettings.Instance.GetParentDefaultAssetScriptsFolderForCollection(collection)),
                 $"{SOCSettings.Instance.GetStaticFilenameForCollection(collection)}{ExtensionNew}"));
+        }
+
+        private static string GetCollectionSpecificVariableName(string variableName, string collectionName)
+        {
+            return $"{variableName}_{collectionName}";
         }
     }
 }

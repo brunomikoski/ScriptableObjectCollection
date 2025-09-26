@@ -12,10 +12,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public static void MoveItem(ScriptableObject item, ScriptableObjectCollection targetCollection,
             Action onCompleteCallback = null)
         {
-            if (item is ISOCItem)
+            if (item is ISOCItem iItem)
             {
-                MoveItem(item, targetCollection, onCompleteCallback);
+                MoveItem(iItem, targetCollection, onCompleteCallback);
             }
+        }
+
+        public static string NormalizePath(string path)
+        {
+            return Path.GetFullPath(path)
+                       .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                       .ToUpperInvariant();
         }
 
         public static void MoveItem(ISOCItem item, ScriptableObjectCollection targetCollection, Action onCompleteCallback = null)
@@ -40,10 +47,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 string finalDirectory = hasItemsFolder ? itemsFolderPath : directory;
                 string fileName = Path.GetFileName(itemPath);
+                string newPathCandidate = Path.Combine(finalDirectory, fileName);
 
-                string newPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(finalDirectory, fileName));
-
-                AssetDatabase.MoveAsset(itemPath, newPath);
+                if (NormalizePath(itemPath) != NormalizePath(newPathCandidate))
+                {
+                    string newPath = AssetDatabase.GenerateUniqueAssetPath(newPathCandidate);
+                    AssetDatabase.MoveAsset(itemPath, newPath);
+                }
             }
 
             AssetDatabase.SaveAssets();

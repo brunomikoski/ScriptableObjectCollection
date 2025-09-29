@@ -293,9 +293,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             imguiContainer.onGUIHandler = () =>
             {
-                {
-                    editor.OnInspectorGUI();
-                }
+                if (editor == null || editor.target == null)
+                    return;
+                
+                editor.OnInspectorGUI();
             };
         }
 
@@ -345,19 +346,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
 
-        private void OnCollectionItemOrderChanged(int fromIndex, int toIndex)
+        private void OnCollectionItemOrderChanged(int oldIndex, int newIndex)
         {
-            ScriptableObject sourceItem = filteredItems[fromIndex];
-            ScriptableObject targetItem = filteredItems[toIndex];
-
-            int sourceIndex = collection.Items.IndexOf(sourceItem);
-            int targetIndex = collection.Items.IndexOf(targetItem);
-
-            Undo.RecordObject(collection, "Reorder Item");
-            collection.Items.RemoveAt(sourceIndex);
-            collection.Items.Insert(targetIndex, sourceItem);
+            ScriptableObject fromIndexItem = collection.Items[oldIndex];
+        
+            collection.Items.RemoveAt(oldIndex);
+            collection.Items.Insert(newIndex, fromIndexItem);
+        
             EditorUtility.SetDirty(collection);
-
             ReloadFilteredItems();
         }
 
@@ -1021,7 +1017,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             else
             {
                 ScriptableObject asset = filteredItems[targetIndex];
-                Undo.RecordObject(asset, "Rename Item");
                 AssetDatabaseUtils.RenameAsset(asset, targetNewName);
                 AssetDatabase.SaveAssetIfDirty(asset);
             }

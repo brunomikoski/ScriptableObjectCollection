@@ -260,7 +260,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void Insert(int index, ScriptableObject item)
         {
-            items.Insert(index, item);
+            int existingIndex = items.IndexOf(item);
+            if (existingIndex >= 0)
+            {
+                // If the item already exists in the list, move it to the new index instead of duplicating.
+                if (existingIndex != index)
+                {
+                    items.RemoveAt(existingIndex);
+                    if (index > existingIndex)
+                        index--; // Adjust index due to removal shift.
+                    items.Insert(index, item);
+                }
+            }
+            else
+            {
+                items.Insert(index, item);
+            }
+
             if (item is ISOCItem socItem)
                 socItem.SetCollection(this);
             
@@ -390,6 +406,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 RemoveAt(i);
                 Debug.Log($"Removing item at index {i} {scriptableObject} since it is not of type {GetItemType()}");
+            }
+
+            HashSet<ScriptableObject> seen = new HashSet<ScriptableObject>();
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                ScriptableObject obj = items[i];
+                if (!seen.Add(obj))
+                {
+                    RemoveAt(i);
+                    Debug.Log($"Removing duplicated reference to item {obj} at index {i}");
+                    changed = true;
+                }
             }
 
             if (itemsFromOtherCollections.Any())

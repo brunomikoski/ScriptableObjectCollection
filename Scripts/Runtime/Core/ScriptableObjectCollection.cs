@@ -546,6 +546,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => (TObjectType)base[index];
             set => base[index] = value;
         }
+        
+        private readonly Dictionary<Type, List<TObjectType>> typeToItems = new();
 
 
         public new IEnumerator<TObjectType> GetEnumerator()
@@ -621,7 +623,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return null;
         }
+        
+        public List<T> GetItemsByType<T>() where T : TObjectType
+        {
+            List<T> results = new List<T>();
+            for (int i = 0; i < Items.Count; i++)
+            {
+                if (Items[i] is T t)
+                    results.Add(t);
+            }
 
+            return results;
+        }
+        
         public bool TryGetItemByName<T>(string targetItemName, out T scriptableObjectCollectionItem) where T : TObjectType
         {
             if (base.TryGetItemByName(targetItemName, out ScriptableObject resultScriptableObject))

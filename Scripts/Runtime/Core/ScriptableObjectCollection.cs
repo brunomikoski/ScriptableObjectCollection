@@ -475,14 +475,14 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
         }
         
-        public bool TryGetItemByName(string targetItemName, out ScriptableObject scriptableObjectCollectionItem)
+        public bool TryGetItemByName(string targetItemName, out ScriptableObject scriptableObjectCollectionItem, StringComparison stringComparison = StringComparison.Ordinal)
         {
             if (!itemNameToScriptableObject.TryGetValue(targetItemName, out scriptableObjectCollectionItem))
             {
                 for (int i = 0; i < items.Count; i++)
                 {
                     ScriptableObject item = items[i];
-                    if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
+                    if (string.Equals(item.name, targetItemName, stringComparison))
                     {
                         scriptableObjectCollectionItem = item;
                         itemNameToScriptableObject[targetItemName] = item;
@@ -636,9 +636,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return results;
         }
         
-        public bool TryGetItemByName<T>(string targetItemName, out T scriptableObjectCollectionItem) where T : TObjectType
+        public bool TryGetItemByName<T>(string targetItemName, out T scriptableObjectCollectionItem, StringComparison stringComparison = StringComparison.Ordinal) where T : TObjectType
         {
-            if (base.TryGetItemByName(targetItemName, out ScriptableObject resultScriptableObject))
+            if (base.TryGetItemByName(targetItemName, out ScriptableObject resultScriptableObject, stringComparison))
             {
                 scriptableObjectCollectionItem = resultScriptableObject as T;
                 return scriptableObjectCollectionItem != null;

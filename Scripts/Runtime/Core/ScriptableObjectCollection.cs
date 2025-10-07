@@ -44,6 +44,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool IsReadOnly => false;
 
         public virtual bool ShouldProtectItemOrder => false;
+        
+        private Dictionary<string,ScriptableObject> itemNameToScriptableObject = new();
 
         public ScriptableObject this[int index]
         {
@@ -258,7 +260,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void Insert(int index, ScriptableObject item)
         {
-            items.Insert(index, item);
+            int existingIndex = items.IndexOf(item);
+            if (existingIndex >= 0)
+            {
+                // If the item already exists in the list, move it to the new index instead of duplicating.
+                if (existingIndex != index)
+                {
+                    items.RemoveAt(existingIndex);
+                    if (index > existingIndex)
+                        index--; // Adjust index due to removal shift.
+                    items.Insert(index, item);
+                }
+            }
+            else
+            {
+                items.Insert(index, item);
+            }
+
             if (item is ISOCItem socItem)
                 socItem.SetCollection(this);
             
@@ -390,6 +408,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 Debug.Log($"Removing item at index {i} {scriptableObject} since it is not of type {GetItemType()}");
             }
 
+            HashSet<ScriptableObject> seen = new HashSet<ScriptableObject>();
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                ScriptableObject obj = items[i];
+                if (!seen.Add(obj))
+                {
+                    RemoveAt(i);
+                    Debug.Log($"Removing duplicated reference to item {obj} at index {i}");
+                    changed = true;
+                }
+            }
+
             if (itemsFromOtherCollections.Any())
             {
                 int result = EditorUtility.DisplayDialogComplex("Items from another collections",
@@ -435,20 +465,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
-        public bool TryGetItemByName(string targetItemName, out ScriptableObject scriptableObjectCollectionItem)
+        public void CacheItemNames()
         {
+            itemNameToScriptableObject.Clear();
             for (int i = 0; i < items.Count; i++)
             {
                 ScriptableObject item = items[i];
-                if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
+                itemNameToScriptableObject.TryAdd(item.name, item);
+            }
+        }
+        
+        public bool TryGetItemByName(string targetItemName, out ScriptableObject scriptableObjectCollectionItem, StringComparison stringComparison = StringComparison.Ordinal)
+        {
+            if (!itemNameToScriptableObject.TryGetValue(targetItemName, out scriptableObjectCollectionItem))
+            {
+                for (int i = 0; i < items.Count; i++)
                 {
-                    scriptableObjectCollectionItem = item;
-                    return true;
+                    ScriptableObject item = items[i];
+                    if (string.Equals(item.name, targetItemName, stringComparison))
+                    {
+                        scriptableObjectCollectionItem = item;
+                        itemNameToScriptableObject[targetItemName] = item;
+                        break;
+                    }
                 }
             }
 
-            scriptableObjectCollectionItem = null;
-            return false;
+            return scriptableObjectCollectionItem != null;
         }
 
         public bool TryGetItemByGUID<T>(LongGuid itemGUID, out T scriptableObjectCollectionItem)
@@ -503,6 +546,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => (TObjectType)base[index];
             set => base[index] = value;
         }
+        
+        private readonly Dictionary<Type, List<TObjectType>> typeToItems = new();
 
 
         public new IEnumerator<TObjectType> GetEnumerator()
@@ -578,17 +623,25 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             return null;
         }
-
-        public bool TryGetItemByName<T>(string targetItemName, out T scriptableObjectCollectionItem) where T : TObjectType
+        
+        public List<T> GetItemsByType<T>() where T : TObjectType
         {
-            for (int i = 0; i < items.Count; i++)
+            List<T> results = new List<T>();
+            for (int i = 0; i < Items.Count; i++)
             {
-                ScriptableObject item = items[i];
-                if (string.Equals(item.name, targetItemName, StringComparison.Ordinal))
-                {
-                    scriptableObjectCollectionItem = item as T;
-                    return scriptableObjectCollectionItem != null;
-                }
+                if (Items[i] is T t)
+                    results.Add(t);
+            }
+
+            return results;
+        }
+        
+        public bool TryGetItemByName<T>(string targetItemName, out T scriptableObjectCollectionItem, StringComparison stringComparison = StringComparison.Ordinal) where T : TObjectType
+        {
+            if (base.TryGetItemByName(targetItemName, out ScriptableObject resultScriptableObject, stringComparison))
+            {
+                scriptableObjectCollectionItem = resultScriptableObject as T;
+                return scriptableObjectCollectionItem != null;
             }
 
             scriptableObjectCollectionItem = null;

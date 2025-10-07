@@ -19,7 +19,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
         private const float DIVIDER_MAXIMUM = 0.8f;
 
         private BrowserTreeView treeView;
+#if UNITY_6000_0_OR_NEWER
+        private TreeViewState<int> treeViewState;
+#else
         private TreeViewState treeViewState;
+#endif
         private Editor itemEditor;
         private Vector2 scrollPosition;
         private int separatorPosition = 250;
@@ -29,7 +33,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         private void OnEnable()
         {
+#if UNITY_6000_0_OR_NEWER
+            treeViewState ??= new TreeViewState<int>();
+#else
             treeViewState ??= new TreeViewState();
+#endif
             treeView = new BrowserTreeView(treeViewState);
             treeView.ItemClicked += OnItemClicked;
 

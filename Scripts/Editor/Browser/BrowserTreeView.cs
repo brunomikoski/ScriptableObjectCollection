@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections.Browser
 {
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
     public class BrowserTreeView : TreeView<int>
 #else
     public class BrowserTreeView : TreeView
@@ -20,7 +20,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
         private readonly GUIContent showHiddenCollectionsContent = new("Show Hidden Collections");
         private readonly GUIContent hideHiddenCollectionsContent = new("Hide Hidden Collections");
 
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
         public BrowserTreeView(TreeViewState<int> state)
             : base(state)
         {
@@ -52,7 +52,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
             Reload();
         }
 
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
         protected override TreeViewItem<int> BuildRoot()
         {
             TreeViewItem<int> root = new(0, -1);
@@ -128,7 +128,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
         }
 #endif
 
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
         protected override bool CanMultiSelect(TreeViewItem<int> item)
 #else
         protected override bool CanMultiSelect(TreeViewItem item)
@@ -142,7 +142,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
             if (selectedIds.Count != 1)
                 return;
 
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
             TreeViewItem<int> item = FindItem(selectedIds[0], rootItem);
 #else
             TreeViewItem item = FindItem(selectedIds[0], rootItem);
@@ -156,7 +156,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         protected override void SingleClickedItem(int id)
         {
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
             TreeViewItem<int> item = FindItem(id, rootItem);
 #else
             TreeViewItem item = FindItem(id, rootItem);
@@ -170,7 +170,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         protected override void DoubleClickedItem(int id)
         {
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
             TreeViewItem<int> item = FindItem(id, rootItem);
 #else
             TreeViewItem item = FindItem(id, rootItem);
@@ -184,7 +184,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         protected override void ContextClickedItem(int id)
         {
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
             TreeViewItem<int> item = FindItem(id, rootItem);
 #else
             TreeViewItem item = FindItem(id, rootItem);

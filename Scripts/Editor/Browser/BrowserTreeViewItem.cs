@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections.Browser
 {
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
     public class BrowserTreeViewItem : TreeViewItem<int>
 #else
     public class BrowserTreeViewItem : TreeViewItem

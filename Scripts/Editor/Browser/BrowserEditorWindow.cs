@@ -19,7 +19,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
         private const float DIVIDER_MAXIMUM = 0.8f;
 
         private BrowserTreeView treeView;
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
         private TreeViewState<int> treeViewState;
 #else
         private TreeViewState treeViewState;
@@ -33,7 +33,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Browser
 
         private void OnEnable()
         {
-#if UNITY_6000_0_OR_NEWER
+#if UNITY_6000_1_OR_NEWER
             treeViewState ??= new TreeViewState<int>();
 #else
             treeViewState ??= new TreeViewState();

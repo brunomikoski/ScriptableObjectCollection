@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditorInternal;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if ADDRESSABLES_ENABLED
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -330,9 +331,54 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateIndirectAccessForCollectionItemType(Type collectionItemType)
         {
-            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(ScriptableObject.CreateInstance(collectionItemType)));
-            string parentFolder = Path.GetDirectoryName(baseClassPath);
-            GenerateIndirectAccessForCollectionItemType(collectionItemType.Name, collectionItemType.Namespace, parentFolder);
+            ScriptableObject instance = ScriptableObject.CreateInstance(collectionItemType);
+            string fallbackBaseClassPath = AssetDatabase.GetAssetPath(
+                MonoScript.FromScriptableObject(instance));
+            string fallbackParentFolder = Path.GetDirectoryName(fallbackBaseClassPath);
+
+            List<Type> targetTypes = new List<Type>();
+            foreach (Type t in TypeCache.GetTypesDerivedFrom(collectionItemType))
+            {
+                if (t.IsAbstract) 
+                    continue;
+                
+                targetTypes.Add(t);
+            }
+
+            if (!collectionItemType.IsAbstract)
+                targetTypes.Add(collectionItemType);
+
+            foreach (Type type in targetTypes)
+            {
+                if (type == null)
+                    continue;
+
+                ScriptableObject tempInstance = null;
+                string targetFolder = fallbackParentFolder;
+                try
+                {
+                    tempInstance = ScriptableObject.CreateInstance(type);
+                    MonoScript script = MonoScript.FromScriptableObject(tempInstance);
+                    string scriptPath = AssetDatabase.GetAssetPath(script);
+                    if (!string.IsNullOrEmpty(scriptPath))
+                    {
+                        string parentFolder = Path.GetDirectoryName(scriptPath);
+                        if (!string.IsNullOrEmpty(parentFolder))
+                            targetFolder = parentFolder;
+                    }
+                }
+                catch (Exception)
+                {
+                    // If we fail to create/locate the script, fall back to the base type's folder
+                }
+                finally
+                {
+                    if (tempInstance != null)
+                        Object.DestroyImmediate(tempInstance);
+                }
+
+                GenerateIndirectAccessForCollectionItemType(type.Name, type.Namespace, targetFolder);
+            }
         }
 
         public static void GenerateIndirectAccessForCollectionItemType(string collectionName, string collectionNamespace,

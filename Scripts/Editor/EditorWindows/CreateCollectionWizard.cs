@@ -639,7 +639,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             bool result = CodeGenerationUtility.CreateNewScript(CollectionName,
                 folder,
                 Namespace,
-                $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create {CollectionName}\", fileName = \"{CollectionName}\", order = 0)]",
+                $"[CreateAssetMenu(menuName = \"ScriptableObject Collection/Collections/Create \" + nameof({CollectionName}), fileName = nameof({CollectionName}), order = 0)]",
                 $"public class {CollectionName} : ScriptableObjectCollection<{collectionItemName}>",
                 null,
                 typeof(ScriptableObjectCollection).Namespace, "UnityEngine", "System.Collections.Generic");

@@ -70,6 +70,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             Initialize(property);
+            
+            // If this property is inside of a list, don't show a label. It would just say something like "Element 0"
+            // anyway which is not useful. Might as well have a bit more room to see what the value says.
+            if (property.IsInArray())
+                label = GUIContent.none;
 
             if (OptionsAttribute.DrawType == DrawType.AsReference)
             {

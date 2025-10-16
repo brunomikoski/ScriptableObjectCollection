@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 [Unreleased]
 
+## [2.4.2] - 07/10/2025
+## Changed
+* Fixed the assembly definition search not checking for consistent fold… by @RoyTheunissen in https://github.com/brunomikoski/ScriptableObjectCollection/pull/177
+* Set up menu paths so they update if you rename the collection by @RoyTheunissen in https://github.com/brunomikoski/ScriptableObjectCollection/pull/178
+* Feature/small fixes by @brunomikoski in https://github.com/brunomikoski/ScriptableObjectCollection/pull/179
+
+
 ## [2.4.1] - 21/08/2025
 ## Changed
  - Fixed issue when creating multiple items without renaming it would cause a null reference.
@@ -648,6 +655,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.4.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.2
 [2.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.1
 [2.4.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.0
 [2.3.9]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.3.9

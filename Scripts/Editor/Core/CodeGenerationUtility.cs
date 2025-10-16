@@ -331,53 +331,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateIndirectAccessForCollectionItemType(Type collectionItemType)
         {
-            ScriptableObject instance = ScriptableObject.CreateInstance(collectionItemType);
-            string fallbackBaseClassPath = AssetDatabase.GetAssetPath(
-                MonoScript.FromScriptableObject(instance));
-            string fallbackParentFolder = Path.GetDirectoryName(fallbackBaseClassPath);
-
             List<Type> targetTypes = new List<Type>();
             foreach (Type t in TypeCache.GetTypesDerivedFrom(collectionItemType))
             {
-                if (t.IsAbstract) 
-                    continue;
-                
                 targetTypes.Add(t);
             }
 
-            if (!collectionItemType.IsAbstract)
-                targetTypes.Add(collectionItemType);
+            targetTypes.Add(collectionItemType);
 
             foreach (Type type in targetTypes)
             {
                 if (type == null)
                     continue;
-
-                ScriptableObject tempInstance = null;
-                string targetFolder = fallbackParentFolder;
-                try
+                
+                if (!ScriptUtility.TryGetFolderOfClass(type, out string parentFolder))
                 {
-                    tempInstance = ScriptableObject.CreateInstance(type);
-                    MonoScript script = MonoScript.FromScriptableObject(tempInstance);
-                    string scriptPath = AssetDatabase.GetAssetPath(script);
-                    if (!string.IsNullOrEmpty(scriptPath))
-                    {
-                        string parentFolder = Path.GetDirectoryName(scriptPath);
-                        if (!string.IsNullOrEmpty(parentFolder))
-                            targetFolder = parentFolder;
-                    }
-                }
-                catch (Exception)
-                {
-                    // If we fail to create/locate the script, fall back to the base type's folder
-                }
-                finally
-                {
-                    if (tempInstance != null)
-                        Object.DestroyImmediate(tempInstance);
+                    Debug.LogError($"Could not find the script path for the collection item type '{collectionItemType.FullName}', " +
+                                   $"cannot generate indirect access class.");
+                    continue;
                 }
 
-                GenerateIndirectAccessForCollectionItemType(type.Name, type.Namespace, targetFolder);
+                GenerateIndirectAccessForCollectionItemType(type.Name, type.Namespace, parentFolder);
             }
         }
 

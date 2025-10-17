@@ -397,6 +397,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 AppendLine(writer, indentation,
                     $"public {collectionName}IndirectReference({collectionName} collectionItemScriptableObject) : base(collectionItemScriptableObject) {{}}");
 
+                AppendLine(writer, indentation,
+                    $"public static implicit operator {collectionName}IndirectReference({collectionName} item) => item == null ? null : new {collectionName}IndirectReference(item);");
+
+                AppendLine(writer, indentation,
+                    $"public static implicit operator ScriptableObjectCollectionItem({collectionName}IndirectReference reference) => reference?.Ref;");
+
                 indentation--;
                 AppendFooter(writer, ref indentation, collectionNamespace);
             }

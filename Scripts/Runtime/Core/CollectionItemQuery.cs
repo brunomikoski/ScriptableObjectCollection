@@ -42,7 +42,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return Matches(targetItems, out _);
         }
 
-        public bool Matches(IList<T> targetItems)
+        public bool Matches(IEnumerable<T> targetItems)
         {
             return Matches(targetItems, out _);
         }
@@ -61,7 +61,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return stringBuilder.ToString();
         }
 
-        public bool Matches(IList<T> targetItems, out int resultMatchCount)
+        public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
             resultMatchCount = 0;
 
@@ -80,9 +80,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     {
                         continue;
                     }
-                    for (int k = 0; k < targetItems.Count; k++)
+
+                    foreach (T item in targetItems)
                     {
-                        T item = targetItems[k];
                         if (!item)
                         {
                             continue;

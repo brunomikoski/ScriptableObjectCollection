@@ -108,11 +108,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     }
                     case MatchType.NotAll:
                     {
-                        if(matchCount == querySet.Picker.Count)
-                        {
-                            return false;
-                        }
-                        break;
+                        return matchCount == 0;
                     }
                     case MatchType.Any:
                     {

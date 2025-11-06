@@ -142,7 +142,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (itemType == typeof(ISOCItem) || itemType == typeof(ScriptableObjectCollectionItem) || itemType.BaseType == null)
                     continue;
 
-                if (!itemType.IsAssignableFrom(targetType))
+                if (!targetType.IsAssignableFrom(itemType))
                     continue;
 
                 int distance = GetInheritanceDistance(targetType, itemType);
@@ -225,7 +225,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (scriptableObjectCollection.GetItemType().IsAssignableFrom(targetCollectionItemType))
+                if (targetCollectionItemType.IsAssignableFrom(scriptableObjectCollection.GetItemType()))
                 {
                     result.Add(scriptableObjectCollection);
                 }

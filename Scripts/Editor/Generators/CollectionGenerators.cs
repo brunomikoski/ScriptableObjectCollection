@@ -289,6 +289,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             serializedProperty.SetValue(value);
+            serializedProperty.serializedObject.ApplyModifiedProperties();
         }
     }
 }

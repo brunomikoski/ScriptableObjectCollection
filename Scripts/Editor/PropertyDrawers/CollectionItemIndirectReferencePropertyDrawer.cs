@@ -17,8 +17,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         private Type collectionItemType;
         private CollectionItemPropertyDrawer collectionItemPropertyDrawer;
-
-        private SerializedProperty drawingProperty;
+        
         private SerializedProperty itemGUIDValueASerializedProperty;
         private SerializedProperty itemGUIDValueBSerializedProperty;
         private SerializedProperty itemLastKnowNameSerializedProperty;
@@ -43,7 +42,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionItemPropertyDrawer == null) 
                 CreateCollectionItemPropertyDrawer(property);
 
-            drawingProperty = property;
             itemGUIDValueASerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A_PROPERTY_PATH);
             itemGUIDValueBSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B_PROPERTY_PATH);
             itemLastKnowNameSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_LAST_KNOW_NAME_PROPERTY_PATH);
@@ -66,8 +64,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 collectionItemPropertyDrawer.DrawCollectionItemDrawer(ref position, property, collectionItem, label, item =>
                 {
-                    SetSerializedPropertyGUIDs(item);
-                    drawingProperty.serializedObject.ApplyModifiedProperties();
+                    var element = property.serializedObject.FindProperty(property.propertyPath);
+                    SetSerializedPropertyGUIDs(element, item);
+                    property.serializedObject.ApplyModifiedProperties();
                 });
                 return;
             }
@@ -75,32 +74,37 @@ namespace BrunoMikoski.ScriptableObjectCollections
             EditorGUI.PropertyField(position, property, label, true);
         }
 
-        private void SetSerializedPropertyGUIDs(ScriptableObject item)
+        private void SetSerializedPropertyGUIDs(SerializedProperty element, ScriptableObject item)
         {
+            SerializedProperty itemA = element.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A_PROPERTY_PATH);
+            SerializedProperty itemB = element.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B_PROPERTY_PATH);
+            SerializedProperty itemName = element.FindPropertyRelative(COLLECTION_ITEM_LAST_KNOW_NAME_PROPERTY_PATH);
+            SerializedProperty colA = element.FindPropertyRelative(COLLECTION_GUID_VALUE_A_PROPERTY_PATH);
+            SerializedProperty colB = element.FindPropertyRelative(COLLECTION_GUID_VALUE_B_PROPERTY_PATH);
+            SerializedProperty colName = element.FindPropertyRelative(COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH);
+
             if (item == null)
             {
-                itemGUIDValueASerializedProperty.longValue = 0;
-                itemGUIDValueBSerializedProperty.longValue = 0;
-                collectionGUIDValueASerializedProperty.longValue = 0;
-                collectionGUIDValueBSerializedProperty.longValue = 0;
-                itemLastKnowNameSerializedProperty.stringValue = string.Empty;
-                collectionLastKnowNameSerializedProperty.stringValue = string.Empty;
-
+                itemA.longValue = 0;
+                itemB.longValue = 0;
+                colA.longValue = 0;
+                colB.longValue = 0;
+                itemName.stringValue = string.Empty;
+                colName.stringValue = string.Empty;
+                return;
             }
-            else
-            {
-                if (item is ISOCItem socItem)
-                {
-                    (long, long) itemGUIDValues = socItem.GUID.GetRawValues();
-                    itemGUIDValueASerializedProperty.longValue = itemGUIDValues.Item1;
-                    itemGUIDValueBSerializedProperty.longValue = itemGUIDValues.Item2;
-                    itemLastKnowNameSerializedProperty.stringValue = socItem.name;
 
-                    (long, long) collectionGUIDValues = socItem.Collection.GUID.GetRawValues();
-                    collectionGUIDValueASerializedProperty.longValue = collectionGUIDValues.Item1;
-                    collectionGUIDValueBSerializedProperty.longValue = collectionGUIDValues.Item2;
-                    collectionLastKnowNameSerializedProperty.stringValue = socItem.Collection.name;
-                }
+            if (item is ISOCItem socItem)
+            {
+                (long ia, long ib) = socItem.GUID.GetRawValues();
+                itemA.longValue = ia;
+                itemB.longValue = ib;
+                itemName.stringValue = socItem.name;
+
+                (long ca, long cb) = socItem.Collection.GUID.GetRawValues();
+                colA.longValue = ca;
+                colB.longValue = cb;
+                colName.stringValue = socItem.Collection.name;
             }
 
         }

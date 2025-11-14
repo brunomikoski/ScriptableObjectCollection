@@ -14,7 +14,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             long value2 = value2Property.longValue;
 
             LongGuid guid = new LongGuid(value1, value2);
-            string guidString = guid.ToString();
+            string guidString = guid.ToBase64String();
 
             EditorGUI.BeginDisabledGroup(true);
 

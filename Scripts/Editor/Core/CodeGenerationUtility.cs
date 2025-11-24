@@ -562,9 +562,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AppendLine(writer, indentation);
 
+            Type itemType = collection.GetItemType();
+            bool writeAsPartial = SOCSettings.Instance.GetWriteAsPartialClass(collection);
+            bool hasBaseTypeCollection = false;
 
-            AppendLine(writer, indentation,
-                $"public static {collection.GetType().FullName} {PublicValuesName}");
+            if (itemType != null && itemType.BaseType != null)
+            {
+                List<ScriptableObjectCollection> baseCollections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType.BaseType);
+                hasBaseTypeCollection = baseCollections != null && baseCollections.Count > 0;
+            }
+
+            bool addNewModifier = writeAsPartial && hasBaseTypeCollection;
+
+            AppendLine(writer, indentation, $"public {(addNewModifier ? "new " : string.Empty)}static {collection.GetType().FullName} {PublicValuesName}");
             
             AppendLine(writer, indentation, "{");
             indentation++;

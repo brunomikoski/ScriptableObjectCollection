@@ -7,17 +7,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         [SerializeField, HideInInspector]
         private LongGuid guid;
-        public LongGuid GUID
-        {
-            get
-            {
-                if (guid.IsValid())
-                    return guid;
-                
-                GenerateNewGUID();
-                return guid;
-            }
-        }
+        public LongGuid GUID => guid;
 
         [SerializeField, CollectionReferenceLongGuid]
         private LongGuid collectionGUID;
@@ -68,6 +58,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return cachedIndex;
             }
         }
+        
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (!guid.IsValid())
+            {
+                GenerateNewGUID();
+            }
+        }
+#endif
 
         public void SetCollection(ScriptableObjectCollection collection)
         {
@@ -108,8 +108,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObjectCollectionItem other = o as ScriptableObjectCollectionItem;
             if (other == null)
                 return false;
-
-            return ReferenceEquals(this, other);
+            
+            return guid.IsValid() && other.guid.IsValid() && guid == other.guid;
         }
 
         public static bool operator==(ScriptableObjectCollectionItem left, ScriptableObjectCollectionItem right)
@@ -133,7 +133,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         
         public override int GetHashCode()
         {
-            return GUID.GetHashCode();
+            return guid.IsValid() ? guid.GetHashCode() : 0;
         }
     }
 }

@@ -133,11 +133,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             string parentFolderPath = Path.Combine(assetPath, "Items" );
             AssetDatabaseUtils.CreatePathIfDoesntExist(parentFolderPath);
 
-            string itemName = assetName;
+            string itemName = assetName.ToValidFilename();
 
             if (string.IsNullOrEmpty(itemName))
             {
-                itemName = $"{itemType.Name}";
+                itemName = $"{itemType.Name}".ToValidFilename();
             }
             
             string uniqueAssetPath = AssetDatabase.GenerateUniqueAssetPath(Path.Combine(parentFolderPath, itemName + ".asset"));

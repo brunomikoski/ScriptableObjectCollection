@@ -6,6 +6,60 @@ namespace BrunoMikoski.ScriptableObjectCollections
 {
     public static class SOCollectionsProjectContextMenus
     {
+        [MenuItem("Tools/ScriptableObjectCollection/Generate All Static Access Files", priority = 2000)]
+        private static void GenerateAllStaticAccessFiles()
+        {
+            CollectionsRegistry.Instance.ReloadCollections();
+
+            int generatedCount = 0;
+            IReadOnlyList<ScriptableObjectCollection> collections = CollectionsRegistry.Instance.Collections;
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                if (!CodeGenerationUtility.DoesStaticFileForCollectionExist(collection))
+                    continue;
+
+                CodeGenerationUtility.GenerateStaticCollectionScript(collection);
+                generatedCount++;
+            }
+
+            AssetDatabase.Refresh();
+            Debug.Log($"[SOC] Generated static access files for {generatedCount} collections.");
+        }
+
+        [MenuItem("Tools/ScriptableObjectCollection/Generate All Static Access Files", validate = true)]
+        private static bool Validate_GenerateAllStaticAccessFiles()
+        {
+            return !EditorApplication.isPlaying;
+        }
+        
+        
+        [MenuItem("Tools/ScriptableObjectCollection/Generate Indirect Access for All Collection", priority = 2000)]
+        private static void GenerateIndirectAccessToAllKnowCollection()
+        {
+            CollectionsRegistry.Instance.ReloadCollections();
+
+            int generatedCount = 0;
+            IReadOnlyList<ScriptableObjectCollection> collections = CollectionsRegistry.Instance.Collections;
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+
+                CodeGenerationUtility.GenerateIndirectAccessForCollectionItemType(collection.GetItemType());
+                generatedCount++;
+            }
+
+            AssetDatabase.Refresh();
+            Debug.Log($"[SOC] Generated indirect access files for {generatedCount} collections.");
+        }
+
+        [MenuItem("Tools/ScriptableObjectCollection/Generate Indirect Access for All Collection", validate = true)]
+        private static bool Validate_GenerateIndirectAccessToAllKnowCollection()
+        {
+            return !EditorApplication.isPlaying;
+        }
+        
+        
         [MenuItem("Assets/Move to Different Collection", true, priority = 10000)]
         private static bool ValidateMoveToDifferentCollection()
         {

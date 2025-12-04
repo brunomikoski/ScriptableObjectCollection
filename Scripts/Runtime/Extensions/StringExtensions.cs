@@ -36,23 +36,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
             "group", "into", "join", "let", "nameof", "notnull", "on", "orderby", "partial", "partial", "remove",
             "select", "set", "unmanaged", "value", "var", "when", "where", "where", "with", "yield","values"
         };
+        
+        private static readonly char[] EXTRA_INVALID_FILE_CHARS = { '`' };
+
+        private static readonly string[] WINDOWS_RESERVED_NAMES =
+        {
+            "CON","PRN","AUX","NUL","COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9",
+            "LPT1","LPT2","LPT3","LPT4","LPT5","LPT6","LPT7","LPT8","LPT9"
+        };
 
         public static string Sanitize(this string input)
         {
-            input = input.StartingNumbersToWords();
-            // replace white spaces with undescore, then replace all invalid chars with empty string
-            IEnumerable<string> pascalCase = 
-                INVALID_CHARS_RGX.Replace(WHITE_SPACE.Replace(input, "_"), string.Empty)
-                // split by underscores
-                .Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries)
-                // set first letter to uppercase
-                .Select(w => STARTS_WITH_LOWER_CASE_CHAR.Replace(w, m => m.Value.ToUpper()))
-                // replace second and all following upper case letters to lower if there is no next lower (ABC -> Abc)
-                .Select(w => FIRST_CHAR_FOLLOWED_BY_UPPER_CASES_ONLY.Replace(w, m => m.Value.ToLower()))
-                // set upper case the first lower case following a number (Ab9cd -> Ab9Cd)
-                .Select(w => LOWER_CASE_NEXT_TO_NUMBER.Replace(w, m => m.Value.ToUpper()))
-                // lower second and next upper case letters except the last if it follows by any lower (ABcDEf -> AbcDef)
-                .Select(w => UPPER_CASE_INSIDE.Replace(w, m => m.Value.ToLower()));
+            // Treat any non-alphanumeric sequence as a word separator
+            input = Regex.Replace(input, "[^a-zA-Z0-9]+", "_");
+
+            IEnumerable<string> pascalCase =
+                input
+                    .Trim('_')
+                    // split by underscores
+                    .Split(new[] { '_' }, StringSplitOptions.RemoveEmptyEntries)
+                    // set first letter to uppercase
+                    .Select(w => STARTS_WITH_LOWER_CASE_CHAR.Replace(w, m => m.Value.ToUpper()))
+                    // replace second and all following upper case letters to lower if there is no next lower (ABC -> Abc)
+                    .Select(w => FIRST_CHAR_FOLLOWED_BY_UPPER_CASES_ONLY.Replace(w, m => m.Value.ToLower()))
+                    // set upper case the first lower case following a number (Ab9cd -> Ab9Cd)
+                    .Select(w => LOWER_CASE_NEXT_TO_NUMBER.Replace(w, m => m.Value.ToUpper()))
+                    // lower second and next upper case letters except the last if it follows by any lower (ABcDEf -> AbcDef)
+                    .Select(w => UPPER_CASE_INSIDE.Replace(w, m => m.Value.ToLower()));
 
             return string.Concat(pascalCase);
         }
@@ -332,6 +342,56 @@ namespace BrunoMikoski.ScriptableObjectCollections
             
             string relativePath = ToPathWithConsistentSeparators(Path.GetRelativePath(projectPath, absolutePath));
             return relativePath;
+        }
+        
+        public static bool IsValidFilename(this string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            char[] invalid = Path.GetInvalidFileNameChars();
+            if (value.IndexOfAny(invalid) >= 0)
+                return false;
+
+            if (value.IndexOfAny(EXTRA_INVALID_FILE_CHARS) >= 0)
+                return false;
+
+            if (value.EndsWith(" ") || value.EndsWith("."))
+                return false;
+
+            string stem = Path.GetFileNameWithoutExtension(value);
+            if (WINDOWS_RESERVED_NAMES.Any(r => r.Equals(stem, StringComparison.OrdinalIgnoreCase)))
+                return false;
+
+            return true;
+        }
+        
+        public static string ToValidFilename(this string value, char replacement = '_')
+        {
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+            if (value.IsValidFilename())
+                return value;
+
+            string safe = value;
+
+            foreach (char c in Path.GetInvalidFileNameChars())
+                safe = safe.Replace(c, replacement);
+
+            foreach (char c in EXTRA_INVALID_FILE_CHARS)
+                safe = safe.Replace(c, replacement);
+
+            safe = safe.TrimEnd(' ', '.');
+
+            string stem = Path.GetFileNameWithoutExtension(safe);
+            if (WINDOWS_RESERVED_NAMES.Any(r => r.Equals(stem, StringComparison.OrdinalIgnoreCase)))
+                safe = "_" + safe;
+
+            if (string.IsNullOrWhiteSpace(safe))
+                safe = "_";
+
+            return safe;
         }
     }
 }

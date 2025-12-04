@@ -142,7 +142,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 if (itemType == typeof(ISOCItem) || itemType == typeof(ScriptableObjectCollectionItem) || itemType.BaseType == null)
                     continue;
 
-                if (!itemType.IsAssignableFrom(targetType))
+                if (!targetType.IsAssignableFrom(itemType))
                     continue;
 
                 int distance = GetInheritanceDistance(targetType, itemType);
@@ -224,16 +224,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             for (int i = 0; i < collections.Count; i++)
             {
-                ScriptableObjectCollection scriptableObjectCollection = collections[i];
-                if (scriptableObjectCollection.GetItemType().IsAssignableFrom(targetCollectionItemType))
+                ScriptableObjectCollection col = collections[i];
+                Type collectionItemType = col.GetItemType();
+                if (collectionItemType != null && collectionItemType.IsAssignableFrom(targetCollectionItemType))
                 {
-                    result.Add(scriptableObjectCollection);
+                    result.Add(col);
                 }
             }
 
             return result;
         }
-
 
         [Obsolete("Use GetCollectionByGUID(ULongGuid guid) is obsolete, please regenerate your static class")]
         public ScriptableObjectCollection GetCollectionByGUID(string guid)

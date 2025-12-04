@@ -304,7 +304,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (currentRenamingLabel != null)
                 return;
-
+            
+            if (EditorGUIUtility.editingTextField)
+                return;
+            
             switch (evt.keyCode)
             {
                 case KeyCode.F2:

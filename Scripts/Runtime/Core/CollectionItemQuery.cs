@@ -42,7 +42,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return Matches(targetItems, out _);
         }
 
-        public bool Matches(IList<T> targetItems)
+        public bool Matches(IEnumerable<T> targetItems)
         {
             return Matches(targetItems, out _);
         }
@@ -61,79 +61,67 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return stringBuilder.ToString();
         }
 
-        public bool Matches(IList<T> targetItems, out int resultMatchCount)
+        public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
-            resultMatchCount = 0;
+            HashSet<LongGuid> targetGuids = new HashSet<LongGuid>();
+            foreach (T item in targetItems)
+            {
+                if (item) 
+                    targetGuids.Add(item.GUID);
+            }
 
+            resultMatchCount = 0;
             if (query.Length == 0)
                 return true;
 
             for (int i = 0; i < query.Length; i++)
             {
-                QuerySet querySet = query[i];
+                QuerySet qs = query[i];
 
+                int pickerCount = qs.Picker.Count;
                 int matchCount = 0;
-                for (int j = 0; j < querySet.Picker.Count; j++)
+                for (int j = 0; j < pickerCount; j++)
                 {
-                    T socItem = querySet.Picker[j];
-                    if (!socItem)
-                    {
+                    T socItem = qs.Picker[j];
+                    if (!socItem) 
                         continue;
-                    }
-                    for (int k = 0; k < targetItems.Count; k++)
-                    {
-                        T item = targetItems[k];
-                        if (!item)
-                        {
-                            continue;
-                        }
-                        if (socItem.GUID.Equals(item.GUID))
-                        {
-                            matchCount++;
-                        }
-                    }
+                    
+                    if (targetGuids.Contains(socItem.GUID))
+                        matchCount++;
                 }
 
                 resultMatchCount += matchCount;
 
-                switch (querySet.MatchType)
+                switch (qs.MatchType)
                 {
                     case MatchType.NotAny:
                     {
-                        if (matchCount > 0)
-                        {
+                        if (matchCount > 0) 
                             return false;
-                        }
                         break;
                     }
                     case MatchType.NotAll:
                     {
-                        if(matchCount == querySet.Picker.Count)
-                        {
-                            return false;
-                        }
+                        if (matchCount == pickerCount) 
+                            return false; 
                         break;
                     }
                     case MatchType.Any:
                     {
-                        if (matchCount == 0)
-                        {
-                            return false;
-                        }
+                        if (matchCount == 0) 
+                            return false; 
                         break;
                     }
                     case MatchType.All:
                     {
-                        if (matchCount < querySet.Picker.Count)
-                        {
-                            return false;
-                        }
+                        if (matchCount < pickerCount) return false; 
                         break;
+
                     }
                 }
             }
-
-            return resultMatchCount > 0;
+            
+            return true;
         }
     }
 }

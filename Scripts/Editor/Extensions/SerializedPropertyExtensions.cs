@@ -98,7 +98,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     serializedProperty.objectReferenceValue = (UnityEngine.Object)value;
                     break;
                 case SerializedPropertyType.LayerMask:
-                    serializedProperty.intValue = (LayerMask)value;
+                    serializedProperty.intValue = ((LayerMask)value).value;
                     break;
                 case SerializedPropertyType.Enum:
                     serializedProperty.intValue = (int)value;
@@ -158,6 +158,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 case SerializedPropertyType.Generic:
                     serializedProperty.SetValueReflective(value);
                     break;
+                
                 default:
                     Debug.LogWarning(
                         $"Tried to copy value '{value}' from a template to an SOC item but apparently that's not supported.");

@@ -82,6 +82,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return cachedRef;
             }
         }
+        
+        public static implicit operator TObject(CollectionItemIndirectReference<TObject> reference)
+        {
+            return reference?.Ref;
+        }
+
+        public static implicit operator ScriptableObjectCollectionItem(CollectionItemIndirectReference<TObject> reference)
+        {
+            return reference?.Ref as ScriptableObjectCollectionItem;
+        }
+
+        public static implicit operator CollectionItemIndirectReference<TObject>(TObject item)
+        {
+            return item == null ? null : new CollectionItemIndirectReference<TObject>(item);
+        }
 
         private bool TryResolveReference(out TObject result)
         {

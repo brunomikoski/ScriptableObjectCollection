@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEditor.Compilation;
 using UnityEditorInternal;
 using UnityEngine;
+using Object = UnityEngine.Object;
 #if ADDRESSABLES_ENABLED
 using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
@@ -330,9 +331,28 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public static void GenerateIndirectAccessForCollectionItemType(Type collectionItemType)
         {
-            string baseClassPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(ScriptableObject.CreateInstance(collectionItemType)));
-            string parentFolder = Path.GetDirectoryName(baseClassPath);
-            GenerateIndirectAccessForCollectionItemType(collectionItemType.Name, collectionItemType.Namespace, parentFolder);
+            List<Type> targetTypes = new List<Type>();
+            foreach (Type t in TypeCache.GetTypesDerivedFrom(collectionItemType))
+            {
+                targetTypes.Add(t);
+            }
+
+            targetTypes.Add(collectionItemType);
+
+            foreach (Type type in targetTypes)
+            {
+                if (type == null)
+                    continue;
+                
+                if (!ScriptUtility.TryGetFolderOfClass(type, out string parentFolder))
+                {
+                    Debug.LogError($"Could not find the script path for the collection item type '{collectionItemType.FullName}', " +
+                                   $"cannot generate indirect access class.");
+                    continue;
+                }
+
+                GenerateIndirectAccessForCollectionItemType(type.Name, type.Namespace, parentFolder);
+            }
         }
 
         public static void GenerateIndirectAccessForCollectionItemType(string collectionName, string collectionNamespace,
@@ -376,6 +396,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 
                 AppendLine(writer, indentation,
                     $"public {collectionName}IndirectReference({collectionName} collectionItemScriptableObject) : base(collectionItemScriptableObject) {{}}");
+
+                AppendLine(writer, indentation,
+                    $"public static implicit operator {collectionName}IndirectReference({collectionName} item) => item == null ? null : new {collectionName}IndirectReference(item);");
+
+                AppendLine(writer, indentation,
+                    $"public static implicit operator ScriptableObjectCollectionItem({collectionName}IndirectReference reference) => reference?.Ref;");
 
                 indentation--;
                 AppendFooter(writer, ref indentation, collectionNamespace);
@@ -536,9 +562,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             AppendLine(writer, indentation);
 
+            Type itemType = collection.GetItemType();
+            bool writeAsPartial = SOCSettings.Instance.GetWriteAsPartialClass(collection);
+            bool hasBaseTypeCollection = false;
 
-            AppendLine(writer, indentation,
-                $"public static {collection.GetType().FullName} {PublicValuesName}");
+            if (itemType != null && itemType.BaseType != null)
+            {
+                List<ScriptableObjectCollection> baseCollections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType.BaseType);
+                hasBaseTypeCollection = baseCollections != null && baseCollections.Count > 0;
+            }
+
+            bool addNewModifier = writeAsPartial && hasBaseTypeCollection;
+
+            AppendLine(writer, indentation, $"public {(addNewModifier ? "new " : string.Empty)}static {collection.GetType().FullName} {PublicValuesName}");
             
             AppendLine(writer, indentation, "{");
             indentation++;

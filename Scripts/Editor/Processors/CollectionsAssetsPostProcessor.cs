@@ -24,29 +24,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 Type type = AssetDatabase.GetMainAssetTypeAtPath(importedAssetPath);
 
-                if (typeof(ScriptableObject).IsAssignableFrom(type))
-                {
-                    ScriptableObject collectionItem =
-                        AssetDatabase.LoadAssetAtPath<ScriptableObject>(importedAssetPath);
-
-                    if (collectionItem == null)
-                    {
-                        continue;
-                    }
-
-                    if (collectionItem is not ISOCItem socItem)
-                    {
-                        continue;
-                    }
-
-                    if (!CollectionsRegistry.Instance.HasUniqueGUID(socItem))
-                    {
-                        socItem.GenerateNewGUID();
-                        socItem.ClearCollection();
-                        Debug.LogWarning($"Item {socItem} GUID was not unique, generating a new one and clearing the collection");
-                    }
-                }
-                
                 if (typeof(ScriptableObjectCollection).IsAssignableFrom(type))
                 {
                     ScriptableObjectCollection collection =

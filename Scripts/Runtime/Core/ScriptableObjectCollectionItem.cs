@@ -58,16 +58,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 return cachedIndex;
             }
         }
-        
-#if UNITY_EDITOR
-        private void OnValidate()
-        {
-            if (!guid.IsValid())
-            {
-                GenerateNewGUID();
-            }
-        }
-#endif
 
         public void SetCollection(ScriptableObjectCollection collection)
         {

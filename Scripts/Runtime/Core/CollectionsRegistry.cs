@@ -451,52 +451,46 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public void ValidateCollections()
         {
-            for (int i = collections.Count - 1; i >= 0; i--)
+            bool changed = false;
+            for (int i = Collections.Count - 1; i >= 0; i--)
             {
-                if (collections[i] == null)
+                ScriptableObjectCollection collection = Collections[i];
+                if (collection == null)
+                {
                     collections.RemoveAt(i);
-            }
+                    changed = true;
+                    Debug.LogWarning($"[SOC] Found null collection reference in CollectionsRegistry, removing it.");
+                    continue;
+                }
 
-            for (int i = collections.Count - 1; i >= 0; i--)
-            {
-                ScriptableObjectCollection collectionA = collections[i];
-                    
-                for (int j = collections.Count - 1; j >= 0; j--)
+                HashSet<LongGuid> seen = new();
+                for (int j = 0; j < collection.Items.Count; j++)
                 {
-                    ScriptableObjectCollection collectionB = collections[j];
-
-                    if (i == j)
+                    if (collection.Items[j] is not ISOCItem item)
                         continue;
-                    
-                    if (collectionA.GUID == collectionB.GUID)
+
+                    LongGuid guid = item.GUID;
+                    if (!guid.IsValid())
                     {
-                        collectionA.GenerateNewGUID();
-                        Debug.LogWarning(
-                            $"Found duplicated GUID between {collectionA} and {collectionB}, please run the validation again to make sure this is fixed");
+                        item.GenerateNewGUID();
+                        EditorUtility.SetDirty((UnityEngine.Object)item);
+                        changed = true;
+                        Debug.LogWarning($"[SOC] Fixing Invalid GUID on item {item} in collection {collection}");
+                        continue;
                     }
-                }
 
-                for (int j = collectionA.Items.Count - 1; j >= 0; j--)
-                {
-                    ScriptableObject scriptableObjectA = collectionA.Items[j];
-                    ISOCItem itemA = scriptableObjectA as ISOCItem;
-                    
-                    for (int k = 0; k < collectionA.Items.Count; k++)
+                    if (!seen.Add(guid))
                     {
-                        ScriptableObject scriptableObjectB = collectionA.Items[k];
-                        ISOCItem itemB = scriptableObjectB as ISOCItem;
-
-                        if (j == k)
-                            continue;
-                        
-                        if (itemA.GUID == itemB.GUID)
-                        {
-                            itemA.GenerateNewGUID();
-                            Debug.LogWarning($"Found duplicated GUID between {itemA} and {itemB}, please run the validation again to make sure this is fixed");
-                        }
+                        item.GenerateNewGUID();
+                        EditorUtility.SetDirty((UnityEngine.Object)item);
+                        changed = true;
+                        Debug.LogWarning($"[SOC] Fixing Duplicate GUID on item {item} in collection {collection}");
                     }
                 }
             }
+
+            if (changed)
+                AssetDatabase.SaveAssets();
         }
 
         public void SetAutoSearchForCollections(bool isOn)
@@ -521,24 +515,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             SetAutoSearchForCollections(false);
-        }
-
-        public bool HasUniqueGUID(ISOCItem targetItem)
-        {
-            for (int i = 0; i < collections.Count; i++)
-            {
-                ScriptableObjectCollection collection = collections[i];
-                foreach (ScriptableObject scriptableObject in collection)
-                {
-                    if (scriptableObject is ISOCItem socItem)
-                    {
-                        if(!Equals(socItem, targetItem) && socItem.GUID == targetItem.GUID)
-                            return false;
-                    }
-                }
-            }
-
-            return true;
         }
 
         public bool HasUniqueGUID(ScriptableObjectCollection targetCollection)

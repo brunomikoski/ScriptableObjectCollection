@@ -473,7 +473,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (!guid.IsValid())
                     {
                         item.GenerateNewGUID();
+#if UNITY_EDITOR
                         EditorUtility.SetDirty((UnityEngine.Object)item);
+#endif
                         changed = true;
                         Debug.LogWarning($"[SOC] Fixing Invalid GUID on item {item} in collection {collection}");
                         continue;
@@ -482,15 +484,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     if (!seen.Add(guid))
                     {
                         item.GenerateNewGUID();
+#if UNITY_EDITOR
                         EditorUtility.SetDirty((UnityEngine.Object)item);
+#endif
                         changed = true;
                         Debug.LogWarning($"[SOC] Fixing Duplicate GUID on item {item} in collection {collection}");
                     }
                 }
             }
-
+            
+#if UNITY_EDITOR
             if (changed)
                 AssetDatabase.SaveAssets();
+#endif
         }
 
         public void SetAutoSearchForCollections(bool isOn)

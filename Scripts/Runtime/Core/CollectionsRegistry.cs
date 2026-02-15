@@ -226,7 +226,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ScriptableObjectCollection col = collections[i];
                 Type collectionItemType = col.GetItemType();
-                if (collectionItemType != null && targetCollectionItemType.IsAssignableFrom(collectionItemType))
+                if (collectionItemType != null && (targetCollectionItemType.IsAssignableFrom(collectionItemType) || collectionItemType.IsAssignableFrom(targetCollectionItemType)))
                 {
                     result.Add(col);
                 }

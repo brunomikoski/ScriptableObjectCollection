@@ -564,15 +564,21 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             Type itemType = collection.GetItemType();
             bool writeAsPartial = SOCSettings.Instance.GetWriteAsPartialClass(collection);
-            bool hasBaseTypeCollection = false;
+            bool baseTypeHasValuesProperty = false;
 
+            // The 'new' modifier is only needed when our item type extends another type that has a generated
+            // Values property (from a base collection using partial class generation). We must not add 'new'
+            // when the base type doesn't have Values - that would cause CS0109 compiler warning.
             if (itemType != null && itemType.BaseType != null)
             {
                 List<ScriptableObjectCollection> baseCollections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType.BaseType);
-                hasBaseTypeCollection = baseCollections != null && baseCollections.Count > 0;
+                if (baseCollections != null && baseCollections.Count > 0)
+                {
+                    baseTypeHasValuesProperty = baseCollections.Any(c => SOCSettings.Instance.GetWriteAsPartialClass(c));
+                }
             }
 
-            bool addNewModifier = writeAsPartial && hasBaseTypeCollection;
+            bool addNewModifier = writeAsPartial && baseTypeHasValuesProperty;
 
             AppendLine(writer, indentation, $"public {(addNewModifier ? "new " : string.Empty)}static {collection.GetType().FullName} {PublicValuesName}");
             

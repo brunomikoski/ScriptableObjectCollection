@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Popup;
@@ -328,6 +328,27 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                 if (!validReference)
                 {
+                    SerializedProperty lastKnownItemNameProperty = elementProperty.FindPropertyRelative("itemLastKnownName");
+                    SerializedProperty lastKnownCollectionNameProperty = elementProperty.FindPropertyRelative("collectionLastKnowName");
+
+                    string lastKnownItemName = lastKnownItemNameProperty != null ? lastKnownItemNameProperty.stringValue : string.Empty;
+                    string lastKnownCollectionName = lastKnownCollectionNameProperty != null ? lastKnownCollectionNameProperty.stringValue : string.Empty;
+
+                    if (!string.IsNullOrEmpty(lastKnownItemName) || !string.IsNullOrEmpty(lastKnownCollectionName))
+                    {
+                        string ownerName = property.serializedObject != null && property.serializedObject.targetObject != null
+                            ? property.serializedObject.targetObject.name
+                            : "Unknown Owner";
+
+                        Debug.LogError(
+                            $"Missing collection item reference in CollectionItemPicker.\n" +
+                            $"Item Tag: '{lastKnownItemName}'\n" +
+                            $"Collection: '{lastKnownCollectionName}'\n" +
+                            $"Owner: '{ownerName}'\n" +
+                            $"Property Path: '{property.propertyPath}'",
+                            property.serializedObject?.targetObject);
+                    }
+
                     indirectReferencesProperty.DeleteArrayElementAtIndex(i);
                     changed = true;
                 }

@@ -453,24 +453,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         private static bool IsCombinationImpossible(int matchA, int matchB)
         {
-            // Based on CollectionItemQuery.MatchType enum:
-            // 0 = Any, 1 = All, 2 = NotAny, 3 = NotAll
+            // 0 = Any, 1 = All (positive) | 2 = SomeNot, 3 = None (negative)
+            // Invalid only when the same tag is in a positive and a negative rule.
             bool aPositive = matchA is 0 or 1;
             bool bPositive = matchB is 0 or 1;
-
             bool aNegative = matchA is 2 or 3;
             bool bNegative = matchB is 2 or 3;
 
-            // Treat any combination of positive and negative on overlapping items as impossible.
-            // Examples:
-            // - Any + NotAny
-            // - Any + NotAll
-            // - All + NotAny
-            // - All + NotAll
             if ((aPositive && bNegative) || (aNegative && bPositive))
                 return true;
 
-            // Positive+positive and negative+negative are allowed.
             return false;
         }
     }

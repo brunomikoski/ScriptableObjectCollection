@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using BrunoMikoski.ScriptableObjectCollections;
 using UnityEditor;
 using UnityEngine;
 
@@ -36,11 +35,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 height += rowHeight + EditorGUIUtility.standardVerticalSpacing * 2f;
             }
 
-            // "Add Rule" button
             height += EditorGUIUtility.singleLineHeight +
                       EditorGUIUtility.standardVerticalSpacing;
 
-            // Optional help box if there are impossible rules
             if (HasImpossibleRules(queryProp))
             {
                 string msg = "This query contains rules that can never be satisfied (conflicting MatchTypes for overlapping items).";
@@ -74,7 +71,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             if (property.isExpanded && queryProp != null)
             {
-                // Base rect for all children, one level deeper than the foldout header
                 int previousIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = previousIndent + 1;
                 Rect contentRect = EditorGUI.IndentedRect(new Rect(
@@ -101,7 +97,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     Rect rowRect = line;
                     rowRect.height = rowHeight;
 
-                    // Remove button on the far right (one line high)
                     float removeButtonWidth = 20f;
                     Rect removeRect = new Rect(
                         rowRect.xMax - removeButtonWidth,
@@ -109,7 +104,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                         removeButtonWidth,
                         EditorGUIUtility.singleLineHeight);
 
-                    // MatchType on the left (single-line height)
                     float matchWidth = 100f;
                     Rect matchRect = new Rect(
                         rowRect.x,
@@ -117,7 +111,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                         matchWidth,
                         EditorGUIUtility.singleLineHeight);
 
-                    // Picker takes remaining horizontal space
                     Rect pickerRect = new Rect(
                         matchRect.xMax + 4f,
                         rowRect.y,
@@ -141,7 +134,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     queryProp.DeleteArrayElementAtIndex(indexToRemove);
                 }
 
-                // Add rule button (fills remaining width under the foldout)
                 Rect addButtonRect = new Rect(
                     line.x,
                     line.y,
@@ -161,7 +153,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 line.y += EditorGUIUtility.singleLineHeight +
                           EditorGUIUtility.standardVerticalSpacing;
 
-                // Overall warning if current configuration is impossible
                 if (HasImpossibleRules(queryProp))
                 {
                     Rect helpRect = line;
@@ -175,7 +166,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     line.y += helpHeight + EditorGUIUtility.standardVerticalSpacing;
                 }
 
-                // Human-readable summary of what this query does
                 string summary = BuildSummaryText(queryProp);
                 if (!string.IsNullOrEmpty(summary))
                 {
@@ -218,7 +208,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 }
             }
 
-            // If no constraints or something went wrong, just draw default popup
             if (validValues.Count == 0 || validValues.Count == enumCount)
             {
                 EditorGUI.PropertyField(position, matchTypeProp, GUIContent.none, true);
@@ -227,8 +216,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             int currentEnumIndex = matchTypeProp.enumValueIndex;
 
-            // Ensure current value is always selectable even if now invalid,
-            // so user can change it back to something valid.
             if (!validValues.Contains(currentEnumIndex))
             {
                 validValues.Add(currentEnumIndex);
@@ -468,11 +455,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         {
             // Based on CollectionItemQuery.MatchType enum:
             // 0 = Any, 1 = All, 2 = NotAny, 3 = NotAll
-            bool aPositive = matchA == 0 || matchA == 1;
-            bool bPositive = matchB == 0 || matchB == 1;
+            bool aPositive = matchA is 0 or 1;
+            bool bPositive = matchB is 0 or 1;
 
-            bool aNegative = matchA == 2 || matchA == 3;
-            bool bNegative = matchB == 2 || matchB == 3;
+            bool aNegative = matchA is 2 or 3;
+            bool bNegative = matchB is 2 or 3;
 
             // Treat any combination of positive and negative on overlapping items as impossible.
             // Examples:

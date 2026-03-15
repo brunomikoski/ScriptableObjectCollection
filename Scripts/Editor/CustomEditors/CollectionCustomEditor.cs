@@ -197,7 +197,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             useBaseClassForItems.value = SOCSettings.Instance.GetUseBaseClassForItem(collection);
             useBaseClassForItems.RegisterValueChangedCallback(evt =>
             {
-                SOCSettings.Instance.SetUsingBaseClassForItems(collection, evt.newValue);
+                SOCSettings.Instance.SetUseBaseClassForItems(collection, evt.newValue);
             });
 
             TextField staticFileNameTextField = root.Q<TextField>("static-filename-textfield");

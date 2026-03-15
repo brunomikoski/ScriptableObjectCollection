@@ -201,7 +201,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return GetOrCreateCollectionSettings(collection).UseBaseClassForItems;
         }
         
-        public void SetUsingBaseClassForItems(ScriptableObjectCollection collection, bool useBaseClass)
+        public void SetUseBaseClassForItems(ScriptableObjectCollection collection, bool useBaseClass)
         {
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
             settings.SetUseBaseClassForItems(useBaseClass);
@@ -299,5 +299,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             CollectionSettings settings = GetOrCreateCollectionSettings(collection);
             settings.Save();
         }
+
     }
 }

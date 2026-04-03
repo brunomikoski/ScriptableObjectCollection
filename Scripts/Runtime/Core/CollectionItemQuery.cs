@@ -37,6 +37,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         [SerializeField]
         private QuerySet[] query = Array.Empty<QuerySet>();
 
+        private HashSet<LongGuid> targetGuids = new HashSet<LongGuid>(128);
+
         public bool Matches(params T[] targetItems)
         {
             return Matches(targetItems, out _);
@@ -63,7 +65,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
-            HashSet<LongGuid> targetGuids = new HashSet<LongGuid>();
+            targetGuids.Clear();
             foreach (T item in targetItems)
             {
                 if (item) 

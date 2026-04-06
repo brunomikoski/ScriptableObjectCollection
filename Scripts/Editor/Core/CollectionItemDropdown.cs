@@ -162,10 +162,17 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
                 ScriptableObjectCollection collection = collections.First();
-                ScriptableObject newItem = CollectionCustomEditor.AddNewItem(collection, itemType);
-                callback.Invoke(newItem);
-                
-                InvokeOnSelectCallback(previousValue, newItem);
+                TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom(itemType);
+                if (types.Count == 0)
+                {
+                    ScriptableObject newItem = CollectionCustomEditor.AddNewItem(collection, itemType);
+                    callback.Invoke(newItem);
+                    InvokeOnSelectCallback(previousValue, newItem);
+                }
+                else
+                {
+                    Selection.activeObject = collection;
+                }
                 
                 return;
             }

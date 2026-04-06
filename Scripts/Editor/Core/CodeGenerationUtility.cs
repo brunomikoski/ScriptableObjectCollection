@@ -61,7 +61,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (File.Exists(Path.GetFullPath(finalFilePath)))
                 return false;
 
-            using StreamWriter writer = new StreamWriter(finalFilePath);
+            using StreamWriter writer = new StreamWriter(finalFilePath, false, new UTF8Encoding(false));
             int indentation = 0;
 
             // First write the directives.
@@ -144,7 +144,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             // Now create the script.
-            string[] lines = codeTemplateText.Split("\r\n");
+            string[] lines = codeTemplateText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             return CreateNewScript(fileName, parentFolder, nameSpace, directives, lines);
         }
 
@@ -377,12 +377,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             targetFileName += ExtensionNew;
-            using (StreamWriter writer = new StreamWriter(targetFileName))
+            using (StreamWriter writer = new StreamWriter(targetFileName, false, new UTF8Encoding(false)))
             {
                 int indentation = 0;
                 List<string> directives = new List<string>();
                 directives.Add(typeof(ScriptableObjectCollection).Namespace);
-                
+
                 directives.Add(collectionNamespace);
                 directives.Add("System");
                 directives.Add("UnityEngine");
@@ -441,10 +441,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             finalFileName += ExtensionNew;
-            using (StreamWriter writer = new StreamWriter(finalFileName))
+            using (StreamWriter writer = new StreamWriter(finalFileName, false, new UTF8Encoding(false)))
             {
                 int indentation = 0;
-                
+
                 List<string> directives = new List<string>();
                 directives.Add(typeof(CollectionsRegistry).Namespace);
                 directives.Add(collection.GetType().Namespace);
@@ -564,15 +564,20 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             Type itemType = collection.GetItemType();
             bool writeAsPartial = SOCSettings.Instance.GetWriteAsPartialClass(collection);
-            bool hasBaseTypeCollection = false;
 
-            if (itemType != null && itemType.BaseType != null)
+            // The 'new' modifier is only needed when our item type extends another type that has a generated
+            // Values property. That only happens when a collection exists for the *exact* base type (not
+            // derived types) and uses partial generation. GetCollectionsByItemType returns derived
+            // collections too (e.g. CarCollection when querying Vehicle), so we must filter.
+            bool baseTypeHasValuesProperty = false;
+            if (itemType?.BaseType != null)
             {
                 List<ScriptableObjectCollection> baseCollections = CollectionsRegistry.Instance.GetCollectionsByItemType(itemType.BaseType);
-                hasBaseTypeCollection = baseCollections != null && baseCollections.Count > 0;
+                baseTypeHasValuesProperty = baseCollections != null && baseCollections.Any(c =>
+                    c.GetItemType() == itemType.BaseType && SOCSettings.Instance.GetWriteAsPartialClass(c));
             }
 
-            bool addNewModifier = writeAsPartial && hasBaseTypeCollection;
+            bool addNewModifier = writeAsPartial && baseTypeHasValuesProperty;
 
             AppendLine(writer, indentation, $"public {(addNewModifier ? "new " : string.Empty)}static {collection.GetType().FullName} {PublicValuesName}");
             

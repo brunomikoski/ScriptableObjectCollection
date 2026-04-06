@@ -46,6 +46,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public virtual bool ShouldProtectItemOrder => false;
         
         private Dictionary<string,ScriptableObject> itemNameToScriptableObject = new();
+        private Dictionary<LongGuid,ScriptableObject> itemGuidToScriptableObject = new();
 
         public ScriptableObject this[int index]
         {
@@ -444,7 +445,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         Clear();
                     }
 
-                    if (!CollectionsRegistry.Instance.IsKnowCollection(this))
+                    if (!CollectionsRegistry.Instance.IsKnownCollection(this))
                     {
                         CollectionsRegistry.Instance.RegisterCollection(this);
                     }
@@ -468,10 +469,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void CacheItemNames()
         {
             itemNameToScriptableObject.Clear();
+            itemGuidToScriptableObject.Clear();
             for (int i = 0; i < items.Count; i++)
             {
                 ScriptableObject item = items[i];
                 itemNameToScriptableObject.TryAdd(item.name, item);
+                if (item is ISOCItem socItem && socItem.GUID.IsValid())
+                    itemGuidToScriptableObject.TryAdd(socItem.GUID, item);
             }
         }
         
@@ -499,16 +503,28 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (itemGUID.IsValid())
             {
+                if (itemGuidToScriptableObject.TryGetValue(itemGUID, out ScriptableObject cached))
+                {
+                    if (cached != null && cached is ISOCItem cachedSocItem && cachedSocItem.GUID == itemGUID)
+                    {
+                        scriptableObjectCollectionItem = cached as T;
+                        return scriptableObjectCollectionItem != null;
+                    }
+
+                    itemGuidToScriptableObject.Remove(itemGUID);
+                }
+
                 for (int i = 0; i < items.Count; i++)
                 {
                     ScriptableObject item = items[i];
                     ISOCItem socItem = item as ISOCItem;
                     if (socItem == null)
                         continue;
-                
+
                     if (socItem.GUID == itemGUID)
                     {
                         scriptableObjectCollectionItem = item as T;
+                        itemGuidToScriptableObject[itemGUID] = item;
                         return scriptableObjectCollectionItem != null;
                     }
                 }
@@ -524,6 +540,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         protected virtual void ClearCachedValues()
         {
+            itemGuidToScriptableObject.Clear();
+            itemNameToScriptableObject.Clear();
         }
     }
 
@@ -546,8 +564,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             get => (TObjectType)base[index];
             set => base[index] = value;
         }
-        
-        private readonly Dictionary<Type, List<TObjectType>> typeToItems = new();
 
 
         public new IEnumerator<TObjectType> GetEnumerator()
@@ -708,6 +724,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         protected override void ClearCachedValues()
         {
+            base.ClearCachedValues();
             cachedValues = null;
         }
     }

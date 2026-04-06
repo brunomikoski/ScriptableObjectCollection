@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,14 +7,14 @@ using UnityEngine;
 namespace BrunoMikoski.ScriptableObjectCollections.Picker
 {
     [Serializable]
-    public class CollectionItemQuery<T>  where T : ScriptableObject, ISOCItem
+    public class CollectionItemQuery<T> where T : ScriptableObject, ISOCItem
     {
         public enum MatchType
         {
             Any = 0,
             All = 1,
-            NotAny = 2,
-            NotAll = 3,
+            SomeNot = 2,
+            None = 3,
         }
 
         [Serializable]
@@ -36,6 +36,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         [SerializeField]
         private QuerySet[] query = Array.Empty<QuerySet>();
+
+        private HashSet<LongGuid> targetGuids = new HashSet<LongGuid>(128);
 
         public bool Matches(params T[] targetItems)
         {
@@ -63,7 +65,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
-            HashSet<LongGuid> targetGuids = new HashSet<LongGuid>();
+            targetGuids.Clear();
             foreach (T item in targetItems)
             {
                 if (item) 
@@ -94,13 +96,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                 switch (qs.MatchType)
                 {
-                    case MatchType.NotAny:
+                    case MatchType.SomeNot:
                     {
                         if (matchCount > 0) 
                             return false;
                         break;
                     }
-                    case MatchType.NotAll:
+                    case MatchType.None:
                     {
                         if (matchCount == pickerCount) 
                             return false; 
@@ -114,7 +116,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     }
                     case MatchType.All:
                     {
-                        if (matchCount < pickerCount) return false; 
+                        if (matchCount < pickerCount) 
+                            return false; 
                         break;
 
                     }

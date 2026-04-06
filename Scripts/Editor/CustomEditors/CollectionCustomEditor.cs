@@ -22,6 +22,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
     [CustomEditor(typeof(ScriptableObjectCollection), true)]
     public class CollectionCustomEditor : Editor
     {
+        private const string COLLECTION_EDITOR_UXML_PATH = "Packages/com.brunomikoski.scriptableobjectcollection/Editor/UXML/CollectionCustomEditorTreeAsset.uxml";
+        private const string COLLECTION_ITEM_UXML_PATH = "Packages/com.brunomikoski.scriptableobjectcollection/Editor/UXML/CollectionItemTreeAsset.uxml";
         private const string WAITING_FOR_SCRIPT_TO_BE_CREATED_KEY = "WaitingForScriptTobeCreated";
         private static ScriptableObject LAST_ADDED_COLLECTION_ITEM;
 
@@ -113,6 +115,15 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public override VisualElement CreateInspectorGUI()
         {
             VisualElement root = new();
+            EnsureVisualTreeAssetsAreLoaded();
+            if (visualTreeAsset == null || collectionItemVisualTreeAsset == null)
+            {
+                root.Add(new HelpBox(
+                    "Could not load Collection editor UI assets. Reimport 'com.brunomikoski.scriptableobjectcollection' package or restore missing UXML files.",
+                    HelpBoxMessageType.Error));
+                return root;
+            }
+
             visualTreeAsset.CloneTree(root);
 
             collection = (ScriptableObjectCollection)target;
@@ -197,7 +208,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             useBaseClassForItems.value = SOCSettings.Instance.GetUseBaseClassForItem(collection);
             useBaseClassForItems.RegisterValueChangedCallback(evt =>
             {
-                SOCSettings.Instance.SetUsingBaseClassForItems(collection, evt.newValue);
+                SOCSettings.Instance.SetUseBaseClassForItems(collection, evt.newValue);
             });
 
             TextField staticFileNameTextField = root.Q<TextField>("static-filename-textfield");
@@ -254,10 +265,26 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ToolbarSearchField toolbarSearchField = root.Q<ToolbarSearchField>();
             toolbarSearchField.RegisterValueChangedCallback(OnSearchInputChanged);
 
+            IMGUIContainer additionalIMGUIContainer = new IMGUIContainer(DrawAdditionalIMGUI);
+            root.Add(additionalIMGUIContainer);
+
             
             root.schedule.Execute(OnVisualTreeCreated).ExecuteLater(100);
 
             return root;
+        }
+
+        private void EnsureVisualTreeAssetsAreLoaded()
+        {
+            if (visualTreeAsset == null)
+                visualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(COLLECTION_EDITOR_UXML_PATH);
+
+            if (collectionItemVisualTreeAsset == null)
+                collectionItemVisualTreeAsset = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(COLLECTION_ITEM_UXML_PATH);
+        }
+
+        protected virtual void DrawAdditionalIMGUI()
+        {
         }
 
         private void UpdateAutomaticallyLoaded()
@@ -394,7 +421,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collection.Clear();
             }
 
-            if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
+            if (!CollectionsRegistry.Instance.IsKnownCollection(collection))
                 CollectionsRegistry.Instance.ReloadCollections();
 
             // Need to cache this before the reorderable list is created, because it affects how the list is displayed.

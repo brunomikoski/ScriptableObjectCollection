@@ -13,7 +13,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private const string COLLECTION_ITEM_LAST_KNOW_NAME_PROPERTY_PATH = "itemLastKnownName";
         private const string COLLECTION_GUID_VALUE_A_PROPERTY_PATH = "collectionGUIDValueA";
         private const string COLLECTION_GUID_VALUE_B_PROPERTY_PATH = "collectionGUIDValueB";
-        private const string COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH = "collectionLastKnowName";
+        private const string COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH = "collectionLastKnownName";
         
         private Type collectionItemType;
         private CollectionItemPropertyDrawer collectionItemPropertyDrawer;
@@ -23,7 +23,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
         private SerializedProperty itemLastKnowNameSerializedProperty;
         private SerializedProperty collectionGUIDValueASerializedProperty;
         private SerializedProperty collectionGUIDValueBSerializedProperty;
-        private SerializedProperty collectionLastKnowNameSerializedProperty;
+        private SerializedProperty collectionLastKnownNameSerializedProperty;
 
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
@@ -47,7 +47,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             itemLastKnowNameSerializedProperty = property.FindPropertyRelative(COLLECTION_ITEM_LAST_KNOW_NAME_PROPERTY_PATH);
             collectionGUIDValueASerializedProperty = property.FindPropertyRelative(COLLECTION_GUID_VALUE_A_PROPERTY_PATH);
             collectionGUIDValueBSerializedProperty = property.FindPropertyRelative(COLLECTION_GUID_VALUE_B_PROPERTY_PATH);
-            collectionLastKnowNameSerializedProperty = property.FindPropertyRelative(COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH);
+            collectionLastKnownNameSerializedProperty = property.FindPropertyRelative(COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH);
 
             TryGetCollectionItem(out ScriptableObject collectionItem);
             

@@ -61,7 +61,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (File.Exists(Path.GetFullPath(finalFilePath)))
                 return false;
 
-            using StreamWriter writer = new StreamWriter(finalFilePath);
+            using StreamWriter writer = new StreamWriter(finalFilePath, false, new UTF8Encoding(false));
             int indentation = 0;
 
             // First write the directives.
@@ -144,7 +144,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             // Now create the script.
-            string[] lines = codeTemplateText.Split("\r\n");
+            string[] lines = codeTemplateText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             return CreateNewScript(fileName, parentFolder, nameSpace, directives, lines);
         }
 
@@ -377,12 +377,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             targetFileName += ExtensionNew;
-            using (StreamWriter writer = new StreamWriter(targetFileName))
+            using (StreamWriter writer = new StreamWriter(targetFileName, false, new UTF8Encoding(false)))
             {
                 int indentation = 0;
                 List<string> directives = new List<string>();
                 directives.Add(typeof(ScriptableObjectCollection).Namespace);
-                
+
                 directives.Add(collectionNamespace);
                 directives.Add("System");
                 directives.Add("UnityEngine");
@@ -441,10 +441,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             
             finalFileName += ExtensionNew;
-            using (StreamWriter writer = new StreamWriter(finalFileName))
+            using (StreamWriter writer = new StreamWriter(finalFileName, false, new UTF8Encoding(false)))
             {
                 int indentation = 0;
-                
+
                 List<string> directives = new List<string>();
                 directives.Add(typeof(CollectionsRegistry).Namespace);
                 directives.Add(collection.GetType().Namespace);

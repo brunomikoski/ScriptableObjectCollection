@@ -394,7 +394,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 collection.Clear();
             }
 
-            if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
+            if (!CollectionsRegistry.Instance.IsKnownCollection(collection))
                 CollectionsRegistry.Instance.ReloadCollections();
 
             // Need to cache this before the reorderable list is created, because it affects how the list is displayed.

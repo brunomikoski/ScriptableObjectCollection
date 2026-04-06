@@ -444,7 +444,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         Clear();
                     }
 
-                    if (!CollectionsRegistry.Instance.IsKnowCollection(this))
+                    if (!CollectionsRegistry.Instance.IsKnownCollection(this))
                     {
                         CollectionsRegistry.Instance.RegisterCollection(this);
                     }

@@ -21,8 +21,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         [SerializeField]
         protected string itemLastKnownName;
-        [SerializeField]
-        protected string collectionLastKnowName;
+        [SerializeField, FormerlySerializedAs("collectionLastKnowName")]
+        protected string collectionLastKnownName;
 
         public bool Equals(CollectionItemIndirectReference other)
         {
@@ -110,9 +110,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             else
             {
-                if (!string.IsNullOrEmpty(collectionLastKnowName))
+                if (!string.IsNullOrEmpty(collectionLastKnownName))
                 {
-                    if (CollectionsRegistry.Instance.TryGetCollectionByName(collectionLastKnowName, out collection))
+                    if (CollectionsRegistry.Instance.TryGetCollectionByName(collectionLastKnownName, out collection))
                     {
                         SetCollection(collection);
 
@@ -165,7 +165,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             (long,long) collectionGUIDValues = targetCollection.GUID.GetRawValues();
             collectionGUIDValueA = collectionGUIDValues.Item1;
             collectionGUIDValueB = collectionGUIDValues.Item2;
-            collectionLastKnowName = targetCollection.name;
+            collectionLastKnownName = targetCollection.name;
         }
     }
 }

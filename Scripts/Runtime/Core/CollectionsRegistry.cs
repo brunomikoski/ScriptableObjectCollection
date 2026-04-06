@@ -31,7 +31,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             LoadOrCreateInstance<CollectionsRegistry>();
         }
 
-        public bool IsKnowCollection(ScriptableObjectCollection targetCollection)
+        public bool IsKnownCollection(ScriptableObjectCollection targetCollection)
         {
             for (int i = 0; i < collections.Count; i++)
             {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using BrunoMikoski.ScriptableObjectCollections.Popup;
@@ -329,7 +329,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 if (!validReference)
                 {
                     SerializedProperty lastKnownItemNameProperty = elementProperty.FindPropertyRelative("itemLastKnownName");
-                    SerializedProperty lastKnownCollectionNameProperty = elementProperty.FindPropertyRelative("collectionLastKnowName");
+                    SerializedProperty lastKnownCollectionNameProperty = elementProperty.FindPropertyRelative("collectionLastKnownName");
 
                     string lastKnownItemName = lastKnownItemNameProperty != null ? lastKnownItemNameProperty.stringValue : string.Empty;
                     string lastKnownCollectionName = lastKnownCollectionNameProperty != null ? lastKnownCollectionNameProperty.stringValue : string.Empty;

@@ -20,7 +20,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         private List<ScriptableObjectCollection> collections = new List<ScriptableObjectCollection>();
         public IReadOnlyList<ScriptableObjectCollection> Collections => collections;
-        
+
+        private Dictionary<LongGuid, ScriptableObjectCollection> collectionGuidLookup = new();
+
         [SerializeField, HideInInspector]
         private bool autoSearchForCollections;
         public bool AutoSearchForCollections => autoSearchForCollections;
@@ -31,7 +33,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             LoadOrCreateInstance<CollectionsRegistry>();
         }
 
-        public bool IsKnowCollection(ScriptableObjectCollection targetCollection)
+        public bool IsKnownCollection(ScriptableObjectCollection targetCollection)
         {
             for (int i = 0; i < collections.Count; i++)
             {
@@ -47,9 +49,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
         {
             if (collections.Contains(targetCollection))
                 return;
-            
+
             collections.Add(targetCollection);
-            
+            RebuildGuidLookup();
+
             ObjectUtility.SetDirty(this);
         }
 
@@ -60,7 +63,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (!collections.Remove(targetCollection))
                 return;
-            
+
+            RebuildGuidLookup();
             ObjectUtility.SetDirty(this);
         }
 
@@ -243,13 +247,33 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         public ScriptableObjectCollection GetCollectionByGUID(LongGuid guid)
         {
+            if (collectionGuidLookup.Count == 0 && collections.Count > 0)
+                RebuildGuidLookup();
+
+            if (collectionGuidLookup.TryGetValue(guid, out ScriptableObjectCollection cached) && cached != null)
+                return cached;
+
             for (int i = 0; i < collections.Count; i++)
             {
                 if (collections[i] != null && collections[i].GUID == guid)
+                {
+                    collectionGuidLookup[guid] = collections[i];
                     return collections[i];
+                }
             }
 
             return null;
+        }
+
+        private void RebuildGuidLookup()
+        {
+            collectionGuidLookup.Clear();
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                if (collection != null && collection.GUID.IsValid())
+                    collectionGuidLookup[collection.GUID] = collection;
+            }
         }
         
         public bool TryGetCollectionOfType(Type type, out ScriptableObjectCollection resultCollection)
@@ -377,6 +401,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 ValidateCollections();
                 collections = foundCollections;
+                RebuildGuidLookup();
                 ObjectUtility.SetDirty(this);
             }
 #endif

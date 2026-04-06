@@ -39,7 +39,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         Debug.LogWarning($"Collection {collection} GUID was not unique, generating a new one, and clearing the items");
                     }
 
-                    if (!CollectionsRegistry.Instance.IsKnowCollection(collection))
+                    if (!CollectionsRegistry.Instance.IsKnownCollection(collection))
                     {
                         RefreshRegistry();
                         Debug.Log($"New collection found on the Project {collection.name}, refreshing the Registry");

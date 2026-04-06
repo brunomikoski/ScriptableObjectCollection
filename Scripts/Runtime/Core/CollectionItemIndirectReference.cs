@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
@@ -68,17 +69,19 @@ namespace BrunoMikoski.ScriptableObjectCollections
         where TObject : ScriptableObject, ISOCItem
     {
         [NonSerialized]
+        private bool hasCachedRef;
+        [NonSerialized]
         private TObject cachedRef;
         public TObject Ref
         {
             get
             {
-                if (cachedRef != null)
+                if (hasCachedRef && cachedRef != null)
                     return cachedRef;
 
-                if (TryResolveReference(out TObject resultObj))
-                    cachedRef = resultObj;
-                
+                hasCachedRef = TryResolveReference(out TObject resultObj);
+                cachedRef = resultObj;
+
                 return cachedRef;
             }
         }

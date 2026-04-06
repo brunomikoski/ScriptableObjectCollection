@@ -5,6 +5,38 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 [Unreleased]
 
+## [2.5.1] - 06/04/2026
+### Added
+- New `SOCItemGuidProcessor` asset postprocessor that enforces valid and unique GUIDs on collection items at import time, replacing the inline validation in `CollectionsAssetsPostProcessor`
+- Custom `CollectionItemQueryPropertyDrawer` with foldout UI, rule editing, match type constraint filtering, impossible-rule detection, and human-readable query summaries
+- GUID-based lookup caching for collections (`CollectionsRegistry`) and items (`ScriptableObjectCollection`) for faster retrieval
+- `CollectionItemIndirectReference` now caches resolved references with a `hasCachedRef` flag to avoid repeated resolution attempts
+- Enhanced error logging in `CollectionItemPickerPropertyDrawer` with last known names and property paths
+- `DrawAdditionalIMGUI()` extension point in `CollectionCustomEditor` for subclass customization
+- GitHub Copilot review instructions (`.github/instructions.md`)
+
+### Changed
+- Renamed `CollectionItemQuery.MatchType` enum values: `NotAny` → `SomeNot`, `NotAll` → `None`
+- Reduced GC allocations in `CollectionItemQuery.Matches()` by reusing a `HashSet` instead of creating a new one per call (by @emtony)
+- `CollectionItemDropdown` now redirects to the collection when the item type has derived types, instead of immediately creating an item
+- Code generation now outputs UTF-8 without BOM and handles both `\r\n` and `\n` line endings
+- Refactored `new` modifier detection logic in code generation with improved base type filtering
+- `CollectionItemPicker` now uses reverse iteration for safe removal during enumeration
+- Refactored `CollectionsRegistry.ValidateCollections()` to validate items within collections using HashSets for duplicate detection
+- Improved bidirectional type assignability check in `CollectionsRegistry.GetCollectionsByItemType()`
+- Robust UXML asset loading in `CollectionCustomEditor` with error handling for missing visual tree assets
+
+### Fixed
+- `ScriptableObjectCollection<T>.ClearCachedValues()` now calls `base.ClearCachedValues()` to properly clear name/GUID lookup dictionaries
+- GUID cache lookups (`TryGetItemByGUID`, `GetCollectionByGUID`) now validate the cached entry's GUID still matches before returning, evicting stale entries
+- `SOCItemGuidProcessor` deleted asset handling: entries are now removed by path matching instead of attempting to load already-deleted assets
+- Removed UTF-8 BOM from `SOCItemGuidProcessor.cs` and its `.meta` file
+- Fixed typo `IsKnowCollection` → `IsKnownCollection` across multiple files
+- Fixed typo `collectionLastKnowName` → `collectionLastKnownName` with `FormerlySerializedAs` for backward compatibility
+- Fixed method name `SetUsingBaseClassForItems` → `SetUseBaseClassForItems`
+- Improved null/destroyed Unity object equality checks in `ScriptableObjectCollectionItem`
+- Removed `OnValidate()` auto-GUID generation from `ScriptableObjectCollectionItem` (now handled by the processor)
+
 ## [2.5.0] - 04/12/2025
 ## Changed
 - Fixed issue with the `TreeView` and the unity version compatibility by @RoyTheunissen https://github.com/brunomikoski/ScriptableObjectCollection/pull/182
@@ -675,6 +707,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.5.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.5.1
 [2.5.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.5.0
 [2.4.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.2
 [2.4.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.1

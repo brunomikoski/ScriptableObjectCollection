@@ -108,7 +108,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ScriptableObjectCollectionItem other = o as ScriptableObjectCollectionItem;
             if (other == null)
                 return false;
-            
+
             return guid.IsValid() && other.guid.IsValid() && guid == other.guid;
         }
 
@@ -117,10 +117,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (ReferenceEquals(left, right))
                 return true;
 
-            if (ReferenceEquals(left, null))
-                return false;
-
-            if (ReferenceEquals(right, null))
+            // Use Unity's implicit bool to detect destroyed objects
+            bool leftNull = ReferenceEquals(left, null) || !(UnityEngine.Object)left;
+            bool rightNull = ReferenceEquals(right, null) || !(UnityEngine.Object)right;
+            if (leftNull && rightNull)
+                return true;
+            if (leftNull || rightNull)
                 return false;
 
             return left.Equals(right);

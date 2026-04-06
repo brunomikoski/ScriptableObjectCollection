@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 
@@ -66,9 +66,30 @@ namespace BrunoMikoski.ScriptableObjectCollections
             LongGuid guid = item.GUID;
             if (!guid.IsValid())
                 return;
-            
+
             if (PathByGuid.TryGetValue(guid, out string existing) && existing == AssetDatabase.GetAssetPath(item))
                 PathByGuid.Remove(guid);
+        }
+
+        private static void RemoveFromIndexByPath(string path)
+        {
+            if (!indexInitialized)
+                return;
+
+            LongGuid keyToRemove = default;
+            bool found = false;
+            foreach (var kvp in PathByGuid)
+            {
+                if (string.Equals(kvp.Value, path, System.StringComparison.Ordinal))
+                {
+                    keyToRemove = kvp.Key;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found)
+                PathByGuid.Remove(keyToRemove);
         }
 
         private static void OnPostprocessAllAssets(
@@ -81,9 +102,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             foreach (string del in deletedAssets)
             {
-                ScriptableObjectCollectionItem item = AssetDatabase.LoadAssetAtPath<ScriptableObjectCollectionItem>(del);
-                if (item != null)
-                    RemoveFromIndex(item);
+                RemoveFromIndexByPath(del);
             }
 
             foreach (string path in importedAssets)

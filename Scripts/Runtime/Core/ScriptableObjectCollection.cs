@@ -505,8 +505,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             {
                 if (itemGuidToScriptableObject.TryGetValue(itemGUID, out ScriptableObject cached))
                 {
-                    scriptableObjectCollectionItem = cached as T;
-                    return scriptableObjectCollectionItem != null;
+                    if (cached != null && cached is ISOCItem cachedSocItem && cachedSocItem.GUID == itemGUID)
+                    {
+                        scriptableObjectCollectionItem = cached as T;
+                        return scriptableObjectCollectionItem != null;
+                    }
+
+                    itemGuidToScriptableObject.Remove(itemGUID);
                 }
 
                 for (int i = 0; i < items.Count; i++)
@@ -719,6 +724,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
         protected override void ClearCachedValues()
         {
+            base.ClearCachedValues();
             cachedValues = null;
         }
     }

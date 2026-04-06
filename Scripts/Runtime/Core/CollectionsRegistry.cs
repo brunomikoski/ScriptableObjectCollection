@@ -250,8 +250,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (collectionGuidLookup.Count == 0 && collections.Count > 0)
                 RebuildGuidLookup();
 
-            if (collectionGuidLookup.TryGetValue(guid, out ScriptableObjectCollection cached) && cached != null)
-                return cached;
+            if (collectionGuidLookup.TryGetValue(guid, out ScriptableObjectCollection cached))
+            {
+                if (cached != null && cached.GUID == guid)
+                    return cached;
+
+                collectionGuidLookup.Remove(guid);
+            }
 
             for (int i = 0; i < collections.Count; i++)
             {

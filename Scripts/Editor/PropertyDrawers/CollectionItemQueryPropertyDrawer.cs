@@ -453,14 +453,25 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         private static bool IsCombinationImpossible(int matchA, int matchB)
         {
-            // 0 = Any, 1 = All (positive) | 2 = SomeNot, 3 = None (negative)
-            // Invalid only when the same tag is in a positive and a negative rule.
-            bool aPositive = matchA is 0 or 1;
-            bool bPositive = matchB is 0 or 1;
-            bool aNegative = matchA is 2 or 3;
-            bool bNegative = matchB is 2 or 3;
+            // 0 = Any, 1 = All, 2 = SomeNot (forbids any), 3 = None (forbids all)
+            // Only truly impossible when overlapping items can never satisfy both rules:
+            // - All + SomeNot: must have all AND must have none → impossible
+            // - Any + SomeNot: must have at least one AND must have none → impossible
+            // - All + None: must have all AND must not have all → impossible
+            // - Any + None: must have at least one AND must not have all → satisfiable (partial overlap ok)
+            int lo = Mathf.Min(matchA, matchB);
+            int hi = Mathf.Max(matchA, matchB);
 
-            if ((aPositive && bNegative) || (aNegative && bPositive))
+            // All(1) + SomeNot(2)
+            if (lo == 1 && hi == 2)
+                return true;
+
+            // Any(0) + SomeNot(2)
+            if (lo == 0 && hi == 2)
+                return true;
+
+            // All(1) + None(3)
+            if (lo == 1 && hi == 3)
                 return true;
 
             return false;

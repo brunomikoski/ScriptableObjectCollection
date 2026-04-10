@@ -204,6 +204,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_A).longValue = collectionValues.Item1;
             newProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_B).longValue = collectionValues.Item2;
+
+            newProperty.FindPropertyRelative("itemLastKnownName").stringValue = item.name;
+            newProperty.FindPropertyRelative("collectionLastKnownName").stringValue = item.Collection.name;
         }
 
         private void SetSelectedValuesOnPopup(PopupList<PopupItem> popupList, SerializedProperty property)

@@ -20,10 +20,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         protected long collectionGUIDValueB;
         protected LongGuid CollectionGUID => new LongGuid(collectionGUIDValueA, collectionGUIDValueB);
 
+#if UNITY_EDITOR
         [SerializeField]
         protected string itemLastKnownName;
         [SerializeField, FormerlySerializedAs("collectionLastKnowName")]
         protected string collectionLastKnownName;
+#endif
 
         public bool Equals(CollectionItemIndirectReference other)
         {
@@ -111,30 +113,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     return true;
                 }
             }
-            else
-            {
-                if (!string.IsNullOrEmpty(collectionLastKnownName))
-                {
-                    if (CollectionsRegistry.Instance.TryGetCollectionByName(collectionLastKnownName, out collection))
-                    {
-                        SetCollection(collection);
-
-                        if (!string.IsNullOrEmpty(itemLastKnownName))
-                        {
-                            if(collection.TryGetItemByName(itemLastKnownName, out ScriptableObject possibleResult))
-                            {
-                                result = possibleResult as TObject;
-                                if (result == null)
-                                {
-                                    return false;
-                                }
-                                SetCollectionItem(result);
-                                return true;
-                            }
-                        }
-                    }
-                }
-            }
 
             result = null;
             return false;
@@ -160,7 +138,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             (long, long) collectionItemValues = item.GUID.GetRawValues();
             collectionItemGUIDValueA = collectionItemValues.Item1;
             collectionItemGUIDValueB = collectionItemValues.Item2;
+#if UNITY_EDITOR
             itemLastKnownName = item.name;
+#endif
         }
 
         public void SetCollection(ScriptableObjectCollection targetCollection)
@@ -168,7 +148,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             (long,long) collectionGUIDValues = targetCollection.GUID.GetRawValues();
             collectionGUIDValueA = collectionGUIDValues.Item1;
             collectionGUIDValueB = collectionGUIDValues.Item2;
+#if UNITY_EDITOR
             collectionLastKnownName = targetCollection.name;
+#endif
         }
     }
 }

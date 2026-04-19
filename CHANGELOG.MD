@@ -3,7 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-[Unreleased]
+
+## [Unreleased]
+### Changed
+- Reverted `CollectionItemQuery.MatchType` enum values: `SomeNot` → `NotAny`, `None` → `NotAll`. The new names mirror `Any`/`All` and describe the actual semantics (target has *none* of the picker items / target is missing *at least one* of them). Integer values are preserved (2 and 3), so existing serialized `QuerySet` data deserializes unchanged.
+- Added XML documentation on `MatchType` values and the `Matches` method to surface the semantics in IntelliSense.
+
+### Fixed
+- `CollectionItemQueryPropertyDrawer.IsCombinationImpossible` no longer reports false positives for `Any` + `NotAny` and `All` + `NotAll` rule pairs. Impossibility for these now requires the stricter *subset* relationship between pickers (not just any intersection), matching the real-world satisfiability. `All` + `NotAny` continues to be flagged on any intersection, which is correct.
 
 ## [2.5.1] - 06/04/2026
 ### Added

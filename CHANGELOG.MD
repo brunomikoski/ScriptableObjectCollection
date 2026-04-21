@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - `CollectionItemQueryPropertyDrawer.IsCombinationImpossible` no longer reports false positives for `Any` + `NotAny` and `All` + `NotAll` rule pairs. Impossibility for these now requires the stricter *subset* relationship between pickers (not just any intersection), matching the real-world satisfiability. `All` + `NotAny` continues to be flagged on any intersection, which is correct.
+- `CollectionItemPicker` and `CollectionItemIndirectReference<T>` now implement `ISerializationCallbackReceiver` to invalidate their runtime caches on deserialization, so inspector edits to a picker during Play Mode take effect immediately instead of returning the stale cached `Items`/`Ref`.
 
 ## [2.5.1] - 06/04/2026
 ### Added

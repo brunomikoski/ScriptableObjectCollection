@@ -11,7 +11,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     /// work if the enum had the [Flags] attribute applied to it.
     /// </summary>
     [Serializable]
-    public class CollectionItemPicker<TItemType> : IList<TItemType>, IEquatable<IList<TItemType>>, IEquatable<CollectionItemPicker<TItemType>>
+    public class CollectionItemPicker<TItemType> : IList<TItemType>, IEquatable<IList<TItemType>>, IEquatable<CollectionItemPicker<TItemType>>, ISerializationCallbackReceiver
         where TItemType : ScriptableObject, ISOCItem
     {
         [SerializeField, FormerlySerializedAs("cachedIndirectReferences")]
@@ -342,6 +342,15 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             }
 
             return true;
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            isDirty = true;
         }
     }
 }

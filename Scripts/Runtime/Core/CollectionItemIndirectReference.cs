@@ -67,7 +67,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
     }
 
     [Serializable]
-    public class CollectionItemIndirectReference<TObject> : CollectionItemIndirectReference
+    public class CollectionItemIndirectReference<TObject> : CollectionItemIndirectReference, ISerializationCallbackReceiver
         where TObject : ScriptableObject, ISOCItem
     {
         [NonSerialized]
@@ -151,6 +151,16 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #if UNITY_EDITOR
             collectionLastKnownName = targetCollection.name;
 #endif
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            hasCachedRef = false;
+            cachedRef = null;
         }
     }
 }

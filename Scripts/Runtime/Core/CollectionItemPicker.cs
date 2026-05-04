@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -351,6 +352,25 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public void OnAfterDeserialize()
         {
             isDirty = true;
+        }
+
+        public override string ToString()
+        {
+            if (Items.Count == 0)
+                return "[]";
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append('[');
+            for (int i = 0; i < Items.Count; i++)
+            {
+                if (i > 0)
+                    builder.Append(", ");
+
+                TItemType item = Items[i];
+                builder.Append(item != null ? item.name : "<null>");
+            }
+            builder.Append(']');
+            return builder.ToString();
         }
     }
 }

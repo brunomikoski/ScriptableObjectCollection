@@ -137,5 +137,20 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             
             return true;
         }
+
+        public bool IsEmpty()
+        {
+            bool allEmpty = true;
+            foreach (QuerySet qs in query)
+            {
+                if (qs.Picker.Count != 0)
+                {
+                    allEmpty = false;
+                    break;
+                }
+            }
+
+            return allEmpty;
+        }
     }
 }

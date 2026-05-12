@@ -72,15 +72,18 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         /// Returns <c>true</c> only if every set passes its <see cref="MatchType"/> check;
         /// an empty query returns <c>true</c>.
         /// </summary>
-        /// <param name="targetItems">The items to test against (e.g., the tags on a rigidbody).</param>
+        /// <param name="targetItems">The items to test against (e.g., the tags on a rigidbody). A null collection is treated as empty, so positive sets (<see cref="MatchType.Any"/>/<see cref="MatchType.All"/>) fail and negative sets (<see cref="MatchType.NotAny"/>/<see cref="MatchType.NotAll"/>) pass.</param>
         /// <param name="resultMatchCount">Total number of individual picker items found across all query sets. Informational only; does not affect the return value.</param>
         public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
             targetGuids.Clear();
-            foreach (T item in targetItems)
+            if (targetItems != null)
             {
-                if (item) 
-                    targetGuids.Add(item.GUID);
+                foreach (T item in targetItems)
+                {
+                    if (item)
+                        targetGuids.Add(item.GUID);
+                }
             }
 
             resultMatchCount = 0;

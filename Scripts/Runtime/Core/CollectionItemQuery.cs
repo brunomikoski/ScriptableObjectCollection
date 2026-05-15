@@ -76,6 +76,64 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         /// <param name="resultMatchCount">Total number of individual picker items found across all query sets. Informational only; does not affect the return value.</param>
         public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
+            resultMatchCount = 0;
+            if (query.Length == 0)
+                return true;
+
+            bool allPickersFit = true;
+            for (int i = 0; i < query.Length; i++)
+            {
+                if (!query[i].Picker.MaskFitsIn64)
+                {
+                    allPickersFit = false;
+                    break;
+                }
+            }
+
+            if (allPickersFit)
+                return MatchesViaBitmask(targetItems, out resultMatchCount);
+
+            return MatchesViaGuids(targetItems, out resultMatchCount);
+        }
+
+        private bool MatchesViaBitmask(IEnumerable<T> targetItems, out int resultMatchCount)
+        {
+            resultMatchCount = 0;
+            ulong targetMask = CollectionItemMask64.From(targetItems, out _);
+
+            for (int i = 0; i < query.Length; i++)
+            {
+                QuerySet qs = query[i];
+                int matchCount = qs.Picker.CountMatchesIn(targetMask);
+                resultMatchCount += matchCount;
+
+                int pickerCount = qs.Picker.Count;
+                switch (qs.MatchType)
+                {
+                    case MatchType.NotAny:
+                        if (matchCount > 0)
+                            return false;
+                        break;
+                    case MatchType.NotAll:
+                        if (matchCount == pickerCount)
+                            return false;
+                        break;
+                    case MatchType.Any:
+                        if (matchCount == 0)
+                            return false;
+                        break;
+                    case MatchType.All:
+                        if (matchCount < pickerCount)
+                            return false;
+                        break;
+                }
+            }
+
+            return true;
+        }
+
+        private bool MatchesViaGuids(IEnumerable<T> targetItems, out int resultMatchCount)
+        {
             targetGuids.Clear();
             if (targetItems != null)
             {
@@ -87,9 +145,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             }
 
             resultMatchCount = 0;
-            if (query.Length == 0)
-                return true;
-
             for (int i = 0; i < query.Length; i++)
             {
                 QuerySet qs = query[i];
@@ -99,9 +154,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 for (int j = 0; j < pickerCount; j++)
                 {
                     T socItem = qs.Picker[j];
-                    if (!socItem) 
+                    if (!socItem)
                         continue;
-                    
+
                     if (targetGuids.Contains(socItem.GUID))
                         matchCount++;
                 }
@@ -124,20 +179,20 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     }
                     case MatchType.Any:
                     {
-                        if (matchCount == 0) 
-                            return false; 
+                        if (matchCount == 0)
+                            return false;
                         break;
                     }
                     case MatchType.All:
                     {
-                        if (matchCount < pickerCount) 
-                            return false; 
+                        if (matchCount < pickerCount)
+                            return false;
                         break;
 
                     }
                 }
             }
-            
+
             return true;
         }
 

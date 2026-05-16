@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.6.0] - 05/16/2026
 ### Added
 - New `PreviewMode` enum (`Default`/`Inline`/`PropertyEditorWindow`) on `SOCItemEditorOptionsAttribute`, plus a matching project-wide default in `SOCSettings` (Project Settings > Scriptable Object Collection > Item Inspector). When set to `PropertyEditorWindow`, the per-field Edit button opens Unity's floating Property Editor via `EditorUtility.OpenPropertyEditor` instead of the inline preview panel — fixes rendering issues with third-party inspectors (e.g. Odin) that don't draw correctly in the inline IMGUI drawer. `Default` on the attribute defers to the project setting; project setting defaults to `Inline` so existing behavior is unchanged.
 - New `CollectionItemMask64` static helper plus `IEnumerable<T>.ToItemMask64<T>()` and `List<T>.FromItemMask64<T>()` extension methods. Provides a 64-bit bitmask representation of a set of collection items keyed on `ScriptableObjectCollectionItem.Index`, with `Bit`/`Has`/`Add`/`Remove`/`Overlaps`/`IsSubsetOf` helpers and a `From<T>(items, out bool fits)` builder that flags when any item's `Index >= 64`. Bit positions are per-collection — callers are responsible for only comparing masks built from items of the same collection.

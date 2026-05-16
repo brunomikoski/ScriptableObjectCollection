@@ -9,9 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-#if UNITY_2022_2_OR_NEWER
     [CustomPropertyDrawer(typeof(ISOCItem), true)]
-#endif
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
     public class CollectionItemPropertyDrawer : PropertyDrawer
     {

@@ -5,13 +5,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- `CollectionItemPicker<T>.ToString()` override returning `[item1, item2, ...]` (empty collection renders as `[]`; null entries render as `<null>`). Uses `StringBuilder` to avoid per-call allocations on long pickers.
+- `CollectionItemQuery<T>.IsEmpty()` returns `true` when every `QuerySet`'s picker contains zero items — useful for skipping the `Matches` evaluation on default-constructed queries.
+- `CollectionItemPickerPropertyDrawer` now writes `itemLastKnownName` and `collectionLastKnownName` when an entry is added to a picker, so newly added items have populated cache names immediately instead of empty strings.
+
 ### Changed
 - Reverted `CollectionItemQuery.MatchType` enum values: `SomeNot` → `NotAny`, `None` → `NotAll`. The new names mirror `Any`/`All` and describe the actual semantics (target has *none* of the picker items / target is missing *at least one* of them). Integer values are preserved (2 and 3), so existing serialized `QuerySet` data deserializes unchanged.
 - Added XML documentation on `MatchType` values and the `Matches` method to surface the semantics in IntelliSense.
+- `CollectionItemPicker<T>` events renamed: `OnItemTypeAddedEvent` → `OnItemAddedEvent`, `OnItemTypeRemovedEvent` → `OnItemRemovedEvent`. **Breaking** for external subscribers — `+=`/`-=` call sites must be updated. `OnChangedEvent` is unchanged.
+- `CollectionItemIndirectReference.itemLastKnownName` and `collectionLastKnownName` are now wrapped in `#if UNITY_EDITOR` and no longer compiled into player builds. Runtime resolution relies exclusively on GUIDs.
+- `CollectionItemQuery<T>.Matches(IEnumerable<T> targetItems, out int)` now tolerates a `null` `targetItems` — treated as empty, so `Any`/`All` sets fail and `NotAny`/`NotAll` sets pass.
 
 ### Fixed
 - `CollectionItemQueryPropertyDrawer.IsCombinationImpossible` no longer reports false positives for `Any` + `NotAny` and `All` + `NotAll` rule pairs. Impossibility for these now requires the stricter *subset* relationship between pickers (not just any intersection), matching the real-world satisfiability. `All` + `NotAny` continues to be flagged on any intersection, which is correct.
 - `CollectionItemPicker` and `CollectionItemIndirectReference<T>` now implement `ISerializationCallbackReceiver` to invalidate their runtime caches on deserialization, so inspector edits to a picker during Play Mode take effect immediately instead of returning the stale cached `Items`/`Ref`.
+- `CollectionItemIndirectReferencePropertyDrawer` now re-syncs stale `itemLastKnownName`/`collectionLastKnownName` from the live asset and collection names on every draw (via `ApplyModifiedPropertiesWithoutUndo`), preventing the cached names from drifting when an asset is renamed outside the inspector.
+
+### Removed
+- Removed the runtime fallback in `CollectionItemIndirectReference.TryGetCollectionItem` that, when the stored GUIDs failed to resolve, attempted to look the collection and item back up by `collectionLastKnownName`/`itemLastKnownName`. With the names now editor-only, GUID is the single runtime lookup path; rename recovery is handled at edit time by the drawer instead.
 
 ## [2.5.1] - 06/04/2026
 ### Added

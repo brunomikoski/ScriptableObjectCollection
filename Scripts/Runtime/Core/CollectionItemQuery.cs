@@ -80,17 +80,17 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             if (query.Length == 0)
                 return true;
 
-            bool allPickersFit = true;
+            bool allPickersAllowBitmask = true;
             for (int i = 0; i < query.Length; i++)
             {
-                if (!query[i].Picker.MaskFitsIn64)
+                if (!query[i].Picker.CanUseBitmask)
                 {
-                    allPickersFit = false;
+                    allPickersAllowBitmask = false;
                     break;
                 }
             }
 
-            if (allPickersFit)
+            if (allPickersAllowBitmask)
                 return MatchesViaBitmask(targetItems, out resultMatchCount);
 
             return MatchesViaGuids(targetItems, out resultMatchCount);

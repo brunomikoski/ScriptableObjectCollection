@@ -55,18 +55,31 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         [NonSerialized] private ulong cachedMask;
         [NonSerialized] private bool isMaskDirty = true;
-        [NonSerialized] private bool maskFitsIn64;
+        [NonSerialized] private bool canUseBitmask;
 
-        public bool MaskFitsIn64 { get { EnsureMaskCache(); return maskFitsIn64; } }
-        public ulong CachedMask  { get { EnsureMaskCache(); return cachedMask;  } }
+        // True when (a) every item's Index fits in 64 bits AND (b) every item's collection
+        // has SupportsBitmaskIndexing == true. Callers should gate any bitmask fast-path on
+        // this flag and fall back to GUID-based comparison otherwise.
+        public bool CanUseBitmask { get { EnsureMaskCache(); return canUseBitmask; } }
+        public ulong CachedMask   { get { EnsureMaskCache(); return cachedMask;   } }
 
         private void EnsureMaskCache()
         {
             if (Application.isPlaying && !isMaskDirty)
                 return;
 
-            cachedMask = CollectionItemMask64.From(Items, out maskFitsIn64);
+            cachedMask = CollectionItemMask64.From(Items, out bool fits);
+            canUseBitmask = fits && AllItemCollectionsAllowBitmask();
             isMaskDirty = false;
+        }
+
+        private bool AllItemCollectionsAllowBitmask()
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                return Items[i].Collection.SupportsBitmaskIndexing;
+            }
+            return true;
         }
 
         public int CountMatchesIn(ulong targetMask)
@@ -80,7 +93,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             if (targetItems == null)
                 return 0;
 
-            if (MaskFitsIn64)
+            if (CanUseBitmask)
             {
                 ulong targetMask = CollectionItemMask64.From(targetItems, out _);
                 return PopCount(targetMask & cachedMask);

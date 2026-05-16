@@ -33,16 +33,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         PropertyEditorWindow = 2,
     }
     
-#if UNITY_2022_2_OR_NEWER
-    [Obsolete("DrawAsSOCItemAttribute is not needed anymore, since Unity 2022 PropertyDrawers can be applied to interfaces")]
-#endif
-    [AttributeUsage(AttributeTargets.Field)]
-    public class DrawAsSOCItemAttribute : PropertyAttribute
-    {
-        
-    }
-    
-    
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class)]
     public class SOCItemEditorOptionsAttribute : Attribute
     {
@@ -72,11 +62,5 @@ namespace BrunoMikoski.ScriptableObjectCollections
         /// Parameters of the method should be: ItemType from, ItemType to
         /// </summary>
         public string OnSelectCallbackMethod { get; set; }
-    }
-
-    //Temporary 
-    [Obsolete("CollectionItemEditorOptions is deprecated, please use SOCItemEditorOptionsAttribute instead.")]
-    public class CollectionItemEditorOptions : SOCItemEditorOptionsAttribute
-    {
     }
 }

@@ -82,14 +82,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             "If specified, automatically derived namespaces will only include up to this many folders inside your " +
             "project's Scripts folder.");
 
-        
-        [Obsolete("Default Namespace has been renamed to Namespace Prefix. Please use the corresponding function.")]
-        public void SetDefaultNamespace(string namespacePrefix)
-        {
-            SetNamespacePrefix(namespacePrefix);
-            Save();
-        }
-        
         public void SetNamespacePrefix(string namespacePrefix)
         {
             this.namespacePrefix = namespacePrefix;

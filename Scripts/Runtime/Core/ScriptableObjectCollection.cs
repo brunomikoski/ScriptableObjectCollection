@@ -624,13 +624,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
         } 
 #endif
 
-        [Obsolete("GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class")]
-        public TObjectType GetItemByGUID(string targetGUID)
-        {
-            throw new Exception(
-                $"GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class");
-        }
-
         public TObjectType GetItemByGUID(LongGuid targetGUID)
         {
             for (int i = 0; i < Items.Count; i++)

@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reverted `CollectionItemQuery.MatchType` enum values: `SomeNot` → `NotAny`, `None` → `NotAll`. The new names mirror `Any`/`All` and describe the actual semantics (target has *none* of the picker items / target is missing *at least one* of them). Integer values are preserved (2 and 3), so existing serialized `QuerySet` data deserializes unchanged.
 - Added XML documentation on `MatchType` values and the `Matches` method to surface the semantics in IntelliSense.
 - `CollectionItemQuery<T>.Matches` now selects between a bitmask fast path (`MatchesViaBitmask`) and the existing GUID-based path (`MatchesViaGuids`) at the start of each call. The bitmask path is used only when every `QuerySet`'s picker reports `CanUseBitmask == true`; otherwise the call falls back to the original GUID comparison. Match results are unchanged — only the evaluation strategy.
-- `CollectionItemPicker<T>` events renamed: `OnItemTypeAddedEvent` → `OnItemAddedEvent`, `OnItemTypeRemovedEvent` → `OnItemRemovedEvent`. **Breaking** for external subscribers — `+=`/`-=` call sites must be updated. `OnChangedEvent` is unchanged.
+- `CollectionItemPicker<T>` events renamed: `OnItemTypeAddedEvent` → `OnItemAddedEvent`, `OnItemTypeRemovedEvent` → `OnItemRemovedEvent`. The old names are preserved as `[Obsolete]` shims with explicit `add`/`remove` accessors that forward subscriptions to the new events, so existing `+=`/`-=` call sites keep compiling with a deprecation warning pointing to the new name. The shims will be removed in a future major version. `OnChangedEvent` is unchanged.
 - `CollectionItemIndirectReference.itemLastKnownName` and `collectionLastKnownName` are now wrapped in `#if UNITY_EDITOR` and no longer compiled into player builds. Runtime resolution relies exclusively on GUIDs.
 - `CollectionItemQuery<T>.Matches(IEnumerable<T> targetItems, out int)` now tolerates a `null` `targetItems` — treated as empty, so `Any`/`All` sets fail and `NotAny`/`NotAll` sets pass.
 
@@ -29,6 +29,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Removed the runtime fallback in `CollectionItemIndirectReference.TryGetCollectionItem` that, when the stored GUIDs failed to resolve, attempted to look the collection and item back up by `collectionLastKnownName`/`itemLastKnownName`. With the names now editor-only, GUID is the single runtime lookup path; rename recovery is handled at edit time by the drawer instead.
+- Removed long-deprecated `[Obsolete]` API surface that has been carrying compile warnings across prior releases:
+  - `SOCSettings.SetDefaultNamespace(string)` — use `SetNamespacePrefix(string)` instead.
+  - The four `ScriptableObjectCollectionUtility.CreateScriptableObjectOfType(...)` overloads that took a `parentFolder` / `parentFolderPath` plus a `createFolderForThisCollection` bool. Use the overloads that take a complete path; build the path with `Path.Combine` at the call site if you previously relied on the auto-folder behavior.
+  - `DrawAsSOCItemAttribute` — no longer needed since Unity 2022.2 supports `PropertyDrawer` on interfaces directly.
+  - `CollectionItemEditorOptions` class — use `SOCItemEditorOptionsAttribute` instead.
+  - `CollectionsRegistry.GetCollectionByGUID(string)` — use the `LongGuid` overload (regenerate your collection's static access class to pick up the new GUID type).
+  - `ScriptableObjectCollection.GetItemByGUID(string)` — use the `LongGuid` overload (same: regenerate the static access class).
 
 ## [2.5.1] - 06/04/2026
 ### Added

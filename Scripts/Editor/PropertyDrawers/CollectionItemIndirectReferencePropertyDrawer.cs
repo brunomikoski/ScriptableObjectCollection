@@ -50,7 +50,8 @@ namespace BrunoMikoski.ScriptableObjectCollections
             collectionLastKnownNameSerializedProperty = property.FindPropertyRelative(COLLECTION_LAST_KNOW_NAME_PROPERTY_PATH);
 
             TryGetCollectionItem(out ScriptableObject collectionItem);
-            
+            ValidateLastKnownNames(collectionItem);
+
             int indexOfArrayPart = property.propertyPath.IndexOf('[');
             if (indexOfArrayPart > -1)
             {
@@ -130,6 +131,31 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             item = resultItem;
             return true;
+        }
+
+        private void ValidateLastKnownNames(ScriptableObject collectionItem)
+        {
+            if (collectionItem == null || collectionItem is not ISOCItem socItem)
+                return;
+
+            bool changed = false;
+
+            if (!string.Equals(itemLastKnowNameSerializedProperty.stringValue, socItem.name, StringComparison.Ordinal))
+            {
+                itemLastKnowNameSerializedProperty.stringValue = socItem.name;
+                changed = true;
+            }
+
+            if (!string.Equals(collectionLastKnownNameSerializedProperty.stringValue, socItem.Collection.name, StringComparison.Ordinal))
+            {
+                collectionLastKnownNameSerializedProperty.stringValue = socItem.Collection.name;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                itemLastKnowNameSerializedProperty.serializedObject.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private void CreateCollectionItemPropertyDrawer(SerializedProperty serializedProperty)

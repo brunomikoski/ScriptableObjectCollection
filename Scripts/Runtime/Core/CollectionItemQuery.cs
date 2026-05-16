@@ -11,10 +11,14 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     {
         public enum MatchType
         {
+            /// <summary>Target has at least one of the picker items.</summary>
             Any = 0,
+            /// <summary>Target has every one of the picker items.</summary>
             All = 1,
-            SomeNot = 2,
-            None = 3,
+            /// <summary>Target has none of the picker items (all picker items are absent).</summary>
+            NotAny = 2,
+            /// <summary>Target is missing at least one of the picker items (not all are present).</summary>
+            NotAll = 3,
         }
 
         [Serializable]
@@ -63,13 +67,23 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return stringBuilder.ToString();
         }
 
+        /// <summary>
+        /// Evaluates every <see cref="QuerySet"/> in the query against <paramref name="targetItems"/>.
+        /// Returns <c>true</c> only if every set passes its <see cref="MatchType"/> check;
+        /// an empty query returns <c>true</c>.
+        /// </summary>
+        /// <param name="targetItems">The items to test against (e.g., the tags on a rigidbody). A null collection is treated as empty, so positive sets (<see cref="MatchType.Any"/>/<see cref="MatchType.All"/>) fail and negative sets (<see cref="MatchType.NotAny"/>/<see cref="MatchType.NotAll"/>) pass.</param>
+        /// <param name="resultMatchCount">Total number of individual picker items found across all query sets. Informational only; does not affect the return value.</param>
         public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
             targetGuids.Clear();
-            foreach (T item in targetItems)
+            if (targetItems != null)
             {
-                if (item) 
-                    targetGuids.Add(item.GUID);
+                foreach (T item in targetItems)
+                {
+                    if (item)
+                        targetGuids.Add(item.GUID);
+                }
             }
 
             resultMatchCount = 0;
@@ -96,16 +110,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                 switch (qs.MatchType)
                 {
-                    case MatchType.SomeNot:
+                    case MatchType.NotAny:
                     {
-                        if (matchCount > 0) 
+                        if (matchCount > 0)
                             return false;
                         break;
                     }
-                    case MatchType.None:
+                    case MatchType.NotAll:
                     {
-                        if (matchCount == pickerCount) 
-                            return false; 
+                        if (matchCount == pickerCount)
+                            return false;
                         break;
                     }
                     case MatchType.Any:
@@ -125,6 +139,21 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             }
             
             return true;
+        }
+
+        public bool IsEmpty()
+        {
+            bool allEmpty = true;
+            foreach (QuerySet qs in query)
+            {
+                if (qs.Picker.Count != 0)
+                {
+                    allEmpty = false;
+                    break;
+                }
+            }
+
+            return allEmpty;
         }
     }
 }

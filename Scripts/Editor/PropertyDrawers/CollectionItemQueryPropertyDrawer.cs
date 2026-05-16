@@ -257,7 +257,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                 int otherEnumIndex = otherMatchTypeProp.enumValueIndex;
 
-                if (IsCombinationImpossible(candidateEnumIndex, otherEnumIndex))
+                if (IsCombinationImpossible(candidateEnumIndex, candidateItems, otherEnumIndex, otherItems))
                     return false;
             }
 
@@ -292,7 +292,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                         continue;
                     int matchB = matchTypeBProp.enumValueIndex;
 
-                    if (IsCombinationImpossible(matchA, matchB))
+                    if (IsCombinationImpossible(matchA, itemsA, matchB, itemsB))
                         return true;
                 }
             }
@@ -451,30 +451,42 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return false;
         }
 
-        private static bool IsCombinationImpossible(int matchA, int matchB)
+        private static bool IsCombinationImpossible(
+            int matchA, HashSet<(long, long)> itemsA,
+            int matchB, HashSet<(long, long)> itemsB)
         {
-            // 0 = Any, 1 = All, 2 = SomeNot (forbids any), 3 = None (forbids all)
-            // Only truly impossible when overlapping items can never satisfy both rules:
-            // - All + SomeNot: must have all AND must have none → impossible
-            // - Any + SomeNot: must have at least one AND must have none → impossible
-            // - All + None: must have all AND must not have all → impossible
-            // - Any + None: must have at least one AND must not have all → satisfiable (partial overlap ok)
-            int lo = Mathf.Min(matchA, matchB);
-            int hi = Mathf.Max(matchA, matchB);
+            // Caller guarantees itemsA ∩ itemsB is non-empty.
+            // 0 = Any, 1 = All, 2 = NotAny, 3 = NotAll.
+            //
+            // All + NotAny: the overlap is forced-in by All and forced-out by NotAny → always impossible.
+            // Any(X) + NotAny(Y): impossible iff every X item is also forbidden by Y (X ⊆ Y); otherwise an X-only item satisfies both.
+            // All(X) + NotAll(Y): impossible iff every Y item is already required by X (Y ⊆ X); otherwise target = X misses a Y-only item.
+            // Any + NotAll and all other pairings remain satisfiable in the general (non-degenerate-picker) case.
 
-            // All(1) + SomeNot(2)
-            if (lo == 1 && hi == 2)
+            if ((matchA == 1 && matchB == 2) || (matchA == 2 && matchB == 1))
                 return true;
 
-            // Any(0) + SomeNot(2)
-            if (lo == 0 && hi == 2)
-                return true;
+            if (matchA == 0 && matchB == 2) return IsSubsetOf(itemsA, itemsB);
+            if (matchA == 2 && matchB == 0) return IsSubsetOf(itemsB, itemsA);
 
-            // All(1) + None(3)
-            if (lo == 1 && hi == 3)
-                return true;
+            if (matchA == 1 && matchB == 3) return IsSubsetOf(itemsB, itemsA);
+            if (matchA == 3 && matchB == 1) return IsSubsetOf(itemsA, itemsB);
 
             return false;
+        }
+
+        private static bool IsSubsetOf(HashSet<(long, long)> candidate, HashSet<(long, long)> container)
+        {
+            if (candidate == null || container == null || candidate.Count == 0)
+                return false;
+
+            foreach ((long, long) item in candidate)
+            {
+                if (!container.Contains(item))
+                    return false;
+            }
+
+            return true;
         }
     }
 }

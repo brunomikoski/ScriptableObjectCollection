@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -11,14 +12,14 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     /// work if the enum had the [Flags] attribute applied to it.
     /// </summary>
     [Serializable]
-    public class CollectionItemPicker<TItemType> : IList<TItemType>, IEquatable<IList<TItemType>>, IEquatable<CollectionItemPicker<TItemType>>
+    public class CollectionItemPicker<TItemType> : IList<TItemType>, IEquatable<IList<TItemType>>, IEquatable<CollectionItemPicker<TItemType>>, ISerializationCallbackReceiver
         where TItemType : ScriptableObject, ISOCItem
     {
         [SerializeField, FormerlySerializedAs("cachedIndirectReferences")]
         private List<CollectionItemIndirectReference<TItemType>> indirectReferences = new();
 
-        public event Action<TItemType> OnItemTypeAddedEvent;
-        public event Action<TItemType> OnItemTypeRemovedEvent;
+        public event Action<TItemType> OnItemAddedEvent;
+        public event Action<TItemType> OnItemRemovedEvent;
         public event Action OnChangedEvent;
 
         private bool isDirty = true;
@@ -201,7 +202,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             
             indirectReferences.Add(new CollectionItemIndirectReference<TItemType>(item));
             isDirty = true;
-            OnItemTypeAddedEvent?.Invoke(item);
+            OnItemAddedEvent?.Invoke(item);
             OnChangedEvent?.Invoke();
         }
 
@@ -262,7 +263,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             {
                 isDirty = true;
                 OnChangedEvent?.Invoke();
-                OnItemTypeRemovedEvent?.Invoke(removedItem.Ref);
+                OnItemRemovedEvent?.Invoke(removedItem.Ref);
             }
 
             return removed;
@@ -295,7 +296,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             indirectReferences.RemoveAt(index);
             isDirty = true;
             OnChangedEvent?.Invoke();
-            OnItemTypeRemovedEvent?.Invoke(removedItem.Ref);
+            OnItemRemovedEvent?.Invoke(removedItem.Ref);
         }
 
         public TItemType this[int index]
@@ -342,6 +343,34 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             }
 
             return true;
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            isDirty = true;
+        }
+
+        public override string ToString()
+        {
+            if (Items.Count == 0)
+                return "[]";
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append('[');
+            for (int i = 0; i < Items.Count; i++)
+            {
+                if (i > 0)
+                    builder.Append(", ");
+
+                TItemType item = Items[i];
+                builder.Append(item != null ? item.name : "<null>");
+            }
+            builder.Append(']');
+            return builder.ToString();
         }
     }
 }

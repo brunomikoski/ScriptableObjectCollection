@@ -32,10 +32,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private readonly struct PopupItem : IPopupListItem
         {
             private readonly string name;
+            private readonly ScriptableObject scriptableObject;
             public string Name => name;
-            
+            public ScriptableObject ScriptableObject => scriptableObject;
+
             public PopupItem(ScriptableObject scriptableObject)
             {
+                this.scriptableObject = scriptableObject;
                 name = scriptableObject.name;
             }
         }
@@ -72,16 +75,19 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 SetSelectedValuesOnPopup(popupList, property);
             }
 
+            GatherItemOccurrences(property, out int targetCount, out int[] occurrences);
+            bool isMultiTarget = targetCount > 1;
+
             if (GUI.Button(totalPosition, "", buttonStyle))
             {
                 EditorWindow inspectorWindow = EditorWindow.focusedWindow;
 
-                popupList.OnClosedEvent += () =>
+                popupList.OnItemSelectedEvent += (popupItem, isSelected) =>
                 {
-                    GetValuesFromPopup(popupList, property);
-                    SetSelectedValuesOnPopup(popupList, property);
+                    ApplyItemChangeToTargets(popupItem, isSelected, property);
+                    if (inspectorWindow != null)
+                        inspectorWindow.Repaint();
                 };
-                popupList.OnItemSelectedEvent += (x, y) => { inspectorWindow.Repaint(); };
                 PopupWindow.Show(buttonRect, popupList);
             }
 
@@ -106,13 +112,22 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             float currentLineMaxHeight = 0;
 
             Color originalColor = GUI.backgroundColor;
+            Color originalGuiColor = GUI.color;
             for (int i = 0; i < popupList.Count; i++)
             {
                 if (!popupList.GetSelected(i))
                     continue;
 
                 ScriptableObject collectionItem = availableItems[i];
-                GUIContent labelContent = new GUIContent(collectionItem.name);
+
+                bool isMixed = isMultiTarget
+                    && i < occurrences.Length
+                    && occurrences[i] > 0
+                    && occurrences[i] < targetCount;
+
+                GUIContent labelContent = new GUIContent(
+                    collectionItem.name,
+                    isMixed ? "Value differs across selected objects" : null);
                 Vector2 size = labelStyle.CalcSize(labelContent);
 
                 if (currentLineWidth + size.x + 4 > inspectorWidth)
@@ -135,10 +150,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 else
                     GUI.backgroundColor = Color.black;
 
+                if (isMixed)
+                    GUI.color = new Color(originalGuiColor.r, originalGuiColor.g, originalGuiColor.b, originalGuiColor.a * 0.45f);
+                else
+                    GUI.color = originalGuiColor;
+
                 GUI.Label(labelRect, labelContent, labelStyle);
             }
 
             GUI.backgroundColor = originalColor;
+            GUI.color = originalGuiColor;
 
             maxHeight += currentLineMaxHeight;
 
@@ -154,41 +175,67 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             ScriptableObjectCollection collection = scriptableObjectCollection;
 
             ScriptableObject newItem = CollectionCustomEditor.AddNewItem(collection, scriptableObjectCollection.GetItemType());
-            SerializedProperty itemsProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
-            itemsProperty.arraySize++;
 
-            AssignItemGUIDToProperty(newItem, itemsProperty.GetArrayElementAtIndex(itemsProperty.arraySize - 1));
+            string propertyPath = property.propertyPath;
+            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
+
+            foreach (UnityEngine.Object target in targets)
+            {
+                SerializedObject targetSerializedObject = new SerializedObject(target);
+                SerializedProperty targetProperty = targetSerializedObject.FindProperty(propertyPath);
+                if (targetProperty == null)
+                    continue;
+
+                SerializedProperty itemsProperty = targetProperty.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+                itemsProperty.arraySize++;
+                AssignItemGUIDToProperty(newItem, itemsProperty.GetArrayElementAtIndex(itemsProperty.arraySize - 1));
+                targetSerializedObject.ApplyModifiedProperties();
+            }
         }
 
-        private void GetValuesFromPopup(PopupList<PopupItem> popupList, SerializedProperty property)
+        private void ApplyItemChangeToTargets(PopupItem popupItem, bool selected, SerializedProperty property)
         {
-            SerializedProperty itemsProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
-            itemsProperty.ClearArray();
+            ScriptableObject scriptableObject = popupItem.ScriptableObject;
+            if (scriptableObject == null || scriptableObject is not ISOCItem socItem)
+                return;
 
-            int selectedCount = 0;
-            for (int i = 0; i < popupList.Count; i++)
+            LongGuid itemGUID = socItem.GUID;
+            string propertyPath = property.propertyPath;
+            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
+
+            foreach (UnityEngine.Object target in targets)
             {
-                if (popupList.GetSelected(i))
+                SerializedObject targetSerializedObject = new SerializedObject(target);
+                SerializedProperty targetProperty = targetSerializedObject.FindProperty(propertyPath);
+                if (targetProperty == null)
+                    continue;
+
+                SerializedProperty itemsProperty = targetProperty.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+
+                int existingIndex = -1;
+                for (int i = 0; i < itemsProperty.arraySize; i++)
                 {
-                    selectedCount++;
+                    SerializedProperty element = itemsProperty.GetArrayElementAtIndex(i);
+                    if (GetGUIDFromProperty(element) == itemGUID)
+                    {
+                        existingIndex = i;
+                        break;
+                    }
+                }
+
+                if (selected && existingIndex < 0)
+                {
+                    itemsProperty.arraySize++;
+                    SerializedProperty newElement = itemsProperty.GetArrayElementAtIndex(itemsProperty.arraySize - 1);
+                    AssignItemGUIDToProperty(scriptableObject, newElement);
+                    targetSerializedObject.ApplyModifiedProperties();
+                }
+                else if (!selected && existingIndex >= 0)
+                {
+                    itemsProperty.DeleteArrayElementAtIndex(existingIndex);
+                    targetSerializedObject.ApplyModifiedProperties();
                 }
             }
-
-            itemsProperty.arraySize = selectedCount;
-
-            int propertyArrayIndex = 0;
-
-            for (int i = 0; i < popupList.Count; i++)
-            {
-                if (popupList.GetSelected(i))
-                {
-                    SerializedProperty newProperty = itemsProperty.GetArrayElementAtIndex(propertyArrayIndex);
-                    AssignItemGUIDToProperty(availableItems[i], newProperty);
-                    propertyArrayIndex++;
-                }
-            }
-
-            itemsProperty.serializedObject.ApplyModifiedProperties();
         }
 
         private void AssignItemGUIDToProperty(ScriptableObject scriptableObject, SerializedProperty newProperty)
@@ -213,46 +260,85 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         {
             popupList.DeselectAll();
 
-            SerializedProperty itemsProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
-
-            int arraySize = itemsProperty.arraySize;
-            for (int i = arraySize - 1; i >= 0; i--)
+            Dictionary<LongGuid, int> guidToIndex = new();
+            for (int i = 0; i < availableItems.Count; i++)
             {
-                SerializedProperty elementProperty = itemsProperty.GetArrayElementAtIndex(i);
+                if (availableItems[i] is ISOCItem item)
+                    guidToIndex[item.GUID] = i;
+            }
 
-                LongGuid socItemGUID = GetGUIDFromProperty(elementProperty);
+            string propertyPath = property.propertyPath;
+            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
 
-                ScriptableObject foundItem = availableItems.FirstOrDefault(so =>
+            HashSet<int> aggregatedIndices = new();
+
+            foreach (UnityEngine.Object target in targets)
+            {
+                SerializedObject targetSerializedObject = new SerializedObject(target);
+                SerializedProperty targetProperty = targetSerializedObject.FindProperty(propertyPath);
+                if (targetProperty == null)
+                    continue;
+
+                SerializedProperty itemsProperty = targetProperty.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+
+                bool changed = false;
+                for (int i = itemsProperty.arraySize - 1; i >= 0; i--)
                 {
-                    if (so is ISOCItem item)
-                    {
-                        if(item.GUID == socItemGUID)
-                        {
-                            return true;
-                        }
-                    }
+                    SerializedProperty elementProperty = itemsProperty.GetArrayElementAtIndex(i);
+                    LongGuid socItemGUID = GetGUIDFromProperty(elementProperty);
 
-                    return false;
-                });
-                if (foundItem != null)
-                {
-                    int indexOf = availableItems.IndexOf(foundItem);
-                    if (indexOf >= 0)
+                    if (guidToIndex.TryGetValue(socItemGUID, out int indexOf))
                     {
-                        popupList.SetSelected(indexOf, true);
+                        aggregatedIndices.Add(indexOf);
                     }
                     else
                     {
                         itemsProperty.DeleteArrayElementAtIndex(i);
+                        changed = true;
                     }
                 }
-                else
-                {
-                    itemsProperty.DeleteArrayElementAtIndex(i);
-                }
+
+                if (changed)
+                    targetSerializedObject.ApplyModifiedProperties();
             }
 
-            itemsProperty.serializedObject.ApplyModifiedProperties();
+            foreach (int index in aggregatedIndices)
+                popupList.SetSelected(index, true);
+        }
+
+        private void GatherItemOccurrences(SerializedProperty property, out int targetCount, out int[] occurrences)
+        {
+            string propertyPath = property.propertyPath;
+            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
+            targetCount = targets.Length;
+            occurrences = new int[availableItems.Count];
+
+            Dictionary<LongGuid, int> guidToIndex = new();
+            for (int i = 0; i < availableItems.Count; i++)
+            {
+                if (availableItems[i] is ISOCItem item)
+                    guidToIndex[item.GUID] = i;
+            }
+
+            foreach (UnityEngine.Object target in targets)
+            {
+                SerializedObject targetSerializedObject = new SerializedObject(target);
+                SerializedProperty targetProperty = targetSerializedObject.FindProperty(propertyPath);
+                if (targetProperty == null)
+                    continue;
+
+                SerializedProperty itemsProperty = targetProperty.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+
+                HashSet<int> seenThisTarget = new();
+                for (int i = 0; i < itemsProperty.arraySize; i++)
+                {
+                    SerializedProperty elementProperty = itemsProperty.GetArrayElementAtIndex(i);
+                    LongGuid socItemGUID = GetGUIDFromProperty(elementProperty);
+
+                    if (guidToIndex.TryGetValue(socItemGUID, out int indexOf) && seenThisTarget.Add(indexOf))
+                        occurrences[indexOf]++;
+                }
+            }
         }
 
         private LongGuid GetGUIDFromProperty(SerializedProperty property)
@@ -305,61 +391,70 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         private void ValidateIndirectReferencesInProperty(SerializedProperty property)
         {
-            SerializedProperty indirectReferencesProperty = property.FindPropertyRelative(ITEMS_PROPERTY_NAME);
+            string propertyPath = property.propertyPath;
+            UnityEngine.Object[] targets = property.serializedObject.targetObjects;
 
-            bool changed = false;
-            for (int i = indirectReferencesProperty.arraySize - 1; i >= 0; i--)
+            foreach (UnityEngine.Object target in targets)
             {
-                SerializedProperty elementProperty = indirectReferencesProperty.GetArrayElementAtIndex(i);
+                SerializedObject targetSerializedObject = new SerializedObject(target);
+                SerializedProperty targetProperty = targetSerializedObject.FindProperty(propertyPath);
+                if (targetProperty == null)
+                    continue;
 
-                long collectionGUIDValueA = elementProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_A).longValue;
-                long collectionGUIDValueB = elementProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_B).longValue;
-                LongGuid collectionGUID = new(collectionGUIDValueA, collectionGUIDValueB);
+                SerializedProperty indirectReferencesProperty = targetProperty.FindPropertyRelative(ITEMS_PROPERTY_NAME);
 
-                long itemGUIDValueA = elementProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A).longValue;
-                long itemGUIDValueB = elementProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B).longValue;
-                LongGuid itemGUID = new(itemGUIDValueA, itemGUIDValueB);
-
-                bool validReference = false;
-                if(CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID, out ScriptableObjectCollection collection))
+                bool changed = false;
+                for (int i = indirectReferencesProperty.arraySize - 1; i >= 0; i--)
                 {
-                    if (collection.TryGetItemByGUID(itemGUID, out _))
+                    SerializedProperty elementProperty = indirectReferencesProperty.GetArrayElementAtIndex(i);
+
+                    long collectionGUIDValueA = elementProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_A).longValue;
+                    long collectionGUIDValueB = elementProperty.FindPropertyRelative(COLLECTION_GUID_VALUE_B).longValue;
+                    LongGuid collectionGUID = new(collectionGUIDValueA, collectionGUIDValueB);
+
+                    long itemGUIDValueA = elementProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_A).longValue;
+                    long itemGUIDValueB = elementProperty.FindPropertyRelative(COLLECTION_ITEM_GUID_VALUE_B).longValue;
+                    LongGuid itemGUID = new(itemGUIDValueA, itemGUIDValueB);
+
+                    bool validReference = false;
+                    if (CollectionsRegistry.Instance.TryGetCollectionByGUID(collectionGUID, out ScriptableObjectCollection collection))
                     {
-                        validReference = true;
+                        if (collection.TryGetItemByGUID(itemGUID, out _))
+                        {
+                            validReference = true;
+                        }
+                    }
+
+                    if (!validReference)
+                    {
+                        SerializedProperty lastKnownItemNameProperty = elementProperty.FindPropertyRelative("itemLastKnownName");
+                        SerializedProperty lastKnownCollectionNameProperty = elementProperty.FindPropertyRelative("collectionLastKnownName");
+
+                        string lastKnownItemName = lastKnownItemNameProperty != null ? lastKnownItemNameProperty.stringValue : string.Empty;
+                        string lastKnownCollectionName = lastKnownCollectionNameProperty != null ? lastKnownCollectionNameProperty.stringValue : string.Empty;
+
+                        if (!string.IsNullOrEmpty(lastKnownItemName) || !string.IsNullOrEmpty(lastKnownCollectionName))
+                        {
+                            string ownerName = target != null ? target.name : "Unknown Owner";
+
+                            Debug.LogError(
+                                $"Missing collection item reference in CollectionItemPicker.\n" +
+                                $"Item Tag: '{lastKnownItemName}'\n" +
+                                $"Collection: '{lastKnownCollectionName}'\n" +
+                                $"Owner: '{ownerName}'\n" +
+                                $"Property Path: '{propertyPath}'",
+                                target);
+                        }
+
+                        indirectReferencesProperty.DeleteArrayElementAtIndex(i);
+                        changed = true;
                     }
                 }
 
-                if (!validReference)
+                if (changed)
                 {
-                    SerializedProperty lastKnownItemNameProperty = elementProperty.FindPropertyRelative("itemLastKnownName");
-                    SerializedProperty lastKnownCollectionNameProperty = elementProperty.FindPropertyRelative("collectionLastKnownName");
-
-                    string lastKnownItemName = lastKnownItemNameProperty != null ? lastKnownItemNameProperty.stringValue : string.Empty;
-                    string lastKnownCollectionName = lastKnownCollectionNameProperty != null ? lastKnownCollectionNameProperty.stringValue : string.Empty;
-
-                    if (!string.IsNullOrEmpty(lastKnownItemName) || !string.IsNullOrEmpty(lastKnownCollectionName))
-                    {
-                        string ownerName = property.serializedObject != null && property.serializedObject.targetObject != null
-                            ? property.serializedObject.targetObject.name
-                            : "Unknown Owner";
-
-                        Debug.LogError(
-                            $"Missing collection item reference in CollectionItemPicker.\n" +
-                            $"Item Tag: '{lastKnownItemName}'\n" +
-                            $"Collection: '{lastKnownCollectionName}'\n" +
-                            $"Owner: '{ownerName}'\n" +
-                            $"Property Path: '{property.propertyPath}'",
-                            property.serializedObject?.targetObject);
-                    }
-
-                    indirectReferencesProperty.DeleteArrayElementAtIndex(i);
-                    changed = true;
+                    targetSerializedObject.ApplyModifiedProperties();
                 }
-            }
-
-            if (changed)
-            {
-                indirectReferencesProperty.serializedObject.ApplyModifiedProperties();
             }
         }
 

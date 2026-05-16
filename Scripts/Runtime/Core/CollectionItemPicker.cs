@@ -22,6 +22,20 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public event Action<TItemType> OnItemRemovedEvent;
         public event Action OnChangedEvent;
 
+        [Obsolete("OnItemTypeAddedEvent has been renamed to OnItemAddedEvent. This shim will be removed in a future major version.")]
+        public event Action<TItemType> OnItemTypeAddedEvent
+        {
+            add => OnItemAddedEvent += value;
+            remove => OnItemAddedEvent -= value;
+        }
+
+        [Obsolete("OnItemTypeRemovedEvent has been renamed to OnItemRemovedEvent. This shim will be removed in a future major version.")]
+        public event Action<TItemType> OnItemTypeRemovedEvent
+        {
+            add => OnItemRemovedEvent += value;
+            remove => OnItemRemovedEvent -= value;
+        }
+
         private bool isDirty = true;
         private List<TItemType> cachedItems = new();
         public List<TItemType> Items

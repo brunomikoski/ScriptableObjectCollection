@@ -44,6 +44,13 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool IsReadOnly => false;
 
         public virtual bool ShouldProtectItemOrder => false;
+
+        // When true (default), consumers like CollectionItemPicker / CollectionItemQuery
+        // may use bit-position-based fast paths keyed on each item's Index. Set to false
+        // for collections whose items can be inserted, reordered, or removed at runtime
+        // (e.g. CDN-delivered content) — the per-item Index is cached on first access and
+        // becomes stale after a reorder, breaking any mask built from it.
+        public virtual bool SupportsBitmaskIndexing => true;
         
         private Dictionary<string,ScriptableObject> itemNameToScriptableObject = new();
         private Dictionary<LongGuid,ScriptableObject> itemGuidToScriptableObject = new();
@@ -616,13 +623,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return (TObjectType)AddNew(GetItemType());
         } 
 #endif
-
-        [Obsolete("GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class")]
-        public TObjectType GetItemByGUID(string targetGUID)
-        {
-            throw new Exception(
-                $"GetItemByGUID(string targetGUID) is obsolete, please regenerate your static class");
-        }
 
         public TObjectType GetItemByGUID(LongGuid targetGUID)
         {

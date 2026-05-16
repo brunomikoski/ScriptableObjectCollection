@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace BrunoMikoski.ScriptableObjectCollections
@@ -8,16 +9,49 @@ namespace BrunoMikoski.ScriptableObjectCollections
     {
         public const int BitCount = 64;
 
-        public static bool IsValidIndex(int index) => index >= 0 && index < BitCount;
-        public static ulong Bit(int index) => 1UL << index;
-        public static bool Has(ulong mask, int index) => (mask & Bit(index)) != 0UL;
-        public static ulong Add(ulong mask, int index) => mask | Bit(index);
-        public static ulong Remove(ulong mask, int index) => mask & ~Bit(index);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsValidIndex(int index)
+        {
+            return index >= 0 && index < BitCount;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong Bit(int index)
+        {
+            return 1UL << index;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Has(ulong mask, int index)
+        {
+            return (mask & Bit(index)) != 0UL;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong Add(ulong mask, int index)
+        {
+            return mask | Bit(index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong Remove(ulong mask, int index)
+        {
+            return mask & ~Bit(index);
+        }
 
         // Set-comparison helpers. Caller is responsible for ensuring both masks were built
         // from items of the same collection — bit positions are per-collection.
-        public static bool Overlaps(ulong a, ulong b) => (a & b) != 0UL;
-        public static bool IsSubsetOf(ulong subset, ulong superset) => (subset & ~superset) == 0UL;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Overlaps(ulong a, ulong b)
+        {
+            return (a & b) != 0UL;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsSubsetOf(ulong subset, ulong superset)
+        {
+            return (subset & ~superset) == 0UL;
+        }
 
         public static ulong From<T>(IEnumerable<T> items, out bool fits)
             where T : ScriptableObject, ISOCItem

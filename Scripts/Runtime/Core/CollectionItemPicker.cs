@@ -77,7 +77,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         {
             for (int i = 0; i < Items.Count; i++)
             {
-                return Items[i].Collection.SupportsBitmaskIndexing;
+                if (!Items[i].Collection.SupportsBitmaskIndexing)
+                    return false;
             }
             return true;
         }

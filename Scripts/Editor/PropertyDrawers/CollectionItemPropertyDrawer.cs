@@ -9,9 +9,7 @@ using Object = UnityEngine.Object;
 
 namespace BrunoMikoski.ScriptableObjectCollections
 {
-#if UNITY_2022_2_OR_NEWER
     [CustomPropertyDrawer(typeof(ISOCItem), true)]
-#endif
     [CustomPropertyDrawer(typeof(ScriptableObjectCollectionItem), true)]
     public class CollectionItemPropertyDrawer : PropertyDrawer
     {
@@ -331,15 +329,27 @@ namespace BrunoMikoski.ScriptableObjectCollections
             popupRect.width -= buttonRect.width;
             buttonRect.x += popupRect.width;
 
-            GUIContent guiContent = CollectionEditorGUI.EditGUIContent;
+            if (ResolvePreviewMode() == PreviewMode.PropertyEditorWindow)
+            {
+                if (GUI.Button(buttonRect, CollectionEditorGUI.EditGUIContent))
+                    EditorUtility.OpenPropertyEditor(targetItem);
+                return;
+            }
 
-            if (showingItemPreview)
-                guiContent = CollectionEditorGUI.CloseGUIContent;
+            GUIContent guiContent = showingItemPreview
+                ? CollectionEditorGUI.CloseGUIContent
+                : CollectionEditorGUI.EditGUIContent;
 
             if (GUI.Button(buttonRect, guiContent))
             {
                 showingItemPreview = !showingItemPreview;
             }
+        }
+
+        private PreviewMode ResolvePreviewMode()
+        {
+            PreviewMode mode = OptionsAttribute.PreviewMode;
+            return mode == PreviewMode.Default ? SOCSettings.Instance.DefaultPreviewMode : mode;
         }
 
         public void OverrideFieldInfo(FieldInfo targetFieldInfo)

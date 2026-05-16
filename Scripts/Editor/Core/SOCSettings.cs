@@ -67,6 +67,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
         [SerializeField]
         internal string generatedScriptsDefaultFilePath = @"Assets\Generated\Scripts";
 
+        [SerializeField]
+        private PreviewMode defaultPreviewMode = PreviewMode.Inline;
+        public PreviewMode DefaultPreviewMode =>
+            defaultPreviewMode == PreviewMode.Default ? PreviewMode.Inline : defaultPreviewMode;
+
         private static readonly GUIContent namespacePrefixGUIContent = new GUIContent(
             "Prefix",
             "When using the Create New Collection wizard," +
@@ -77,14 +82,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             "If specified, automatically derived namespaces will only include up to this many folders inside your " +
             "project's Scripts folder.");
 
-        
-        [Obsolete("Default Namespace has been renamed to Namespace Prefix. Please use the corresponding function.")]
-        public void SetDefaultNamespace(string namespacePrefix)
-        {
-            SetNamespacePrefix(namespacePrefix);
-            Save();
-        }
-        
         public void SetNamespacePrefix(string namespacePrefix)
         {
             this.namespacePrefix = namespacePrefix;
@@ -130,6 +127,28 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
             }
             
+            EditorGUILayout.LabelField("Item Inspector", EditorStyles.boldLabel);
+            using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
+            {
+                PreviewMode resolvedMode = DefaultPreviewMode;
+                PreviewMode newMode = (PreviewMode)EditorGUILayout.EnumPopup(
+                    new GUIContent(
+                        "Default Preview Mode",
+                        "How the Edit button on a collection item field reveals the item.\n" +
+                        "Inline draws the item's properties beneath the field.\n" +
+                        "Property Editor Window opens Unity's floating inspector — useful when " +
+                        "third-party inspectors (e.g. Odin) don't render correctly inline.\n" +
+                        "Per-field [SOCItemEditorOptions(PreviewMode = ...)] overrides this."),
+                    resolvedMode,
+                    value => (PreviewMode)value != PreviewMode.Default,
+                    false);
+                if (changeCheck.changed)
+                {
+                    defaultPreviewMode = newMode;
+                    Save();
+                }
+            }
+
             EditorGUILayout.LabelField("Default Generated Scripts Folder", EditorStyles.boldLabel);
             using (EditorGUI.ChangeCheckScope changeCheck = new EditorGUI.ChangeCheckScope())
             {
@@ -154,6 +173,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public void SetGeneratedScriptsDefaultFilePath(string assetPath)
         {
             generatedScriptsDefaultFilePath = assetPath;
+            Save();
+        }
+
+        public void SetDefaultPreviewMode(PreviewMode previewMode)
+        {
+            defaultPreviewMode = previewMode == PreviewMode.Default ? PreviewMode.Inline : previewMode;
             Save();
         }
 

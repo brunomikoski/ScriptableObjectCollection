@@ -15,16 +15,23 @@ namespace BrunoMikoski.ScriptableObjectCollections
         NoLabel = 1,
         //LabelOnSeparateLine = 2, // TODO
     }
-    
-#if UNITY_2022_2_OR_NEWER
-    [Obsolete("DrawAsSOCItemAttribute is not needed anymore, since Unity 2022 PropertyDrawers can be applied to interfaces")]
-#endif
-    [AttributeUsage(AttributeTargets.Field)]
-    public class DrawAsSOCItemAttribute : PropertyAttribute
+
+    public enum PreviewMode
     {
-        
+        /// <summary>
+        /// Defer to the project-wide default set in Project Settings &gt; Scriptable Object Collection.
+        /// </summary>
+        Default = 0,
+        /// <summary>
+        /// Draw the item's properties as an inline panel beneath the field.
+        /// </summary>
+        Inline = 1,
+        /// <summary>
+        /// Open Unity's floating Property Editor window for the item. Useful when third-party
+        /// inspectors (e.g. Odin) don't render correctly in the inline drawer.
+        /// </summary>
+        PropertyEditorWindow = 2,
     }
-    
     
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Class)]
     public class SOCItemEditorOptionsAttribute : Attribute
@@ -34,6 +41,12 @@ namespace BrunoMikoski.ScriptableObjectCollections
         public bool ShouldDrawGotoButton { get; set; } = true;
 
         public bool ShouldDrawPreviewButton { get; set; } = true;
+
+        /// <summary>
+        /// Controls how the preview button reveals the item. <see cref="PreviewMode.Default"/>
+        /// falls back to the project-wide setting in <c>SOCSettings</c>.
+        /// </summary>
+        public PreviewMode PreviewMode { get; set; } = PreviewMode.Default;
 
         public string ValidateMethod { get; set; }
         
@@ -49,11 +62,5 @@ namespace BrunoMikoski.ScriptableObjectCollections
         /// Parameters of the method should be: ItemType from, ItemType to
         /// </summary>
         public string OnSelectCallbackMethod { get; set; }
-    }
-
-    //Temporary 
-    [Obsolete("CollectionItemEditorOptions is deprecated, please use SOCItemEditorOptionsAttribute instead.")]
-    public class CollectionItemEditorOptions : SOCItemEditorOptionsAttribute
-    {
     }
 }

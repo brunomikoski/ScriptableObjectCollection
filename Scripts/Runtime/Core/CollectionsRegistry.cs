@@ -239,12 +239,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
             return result;
         }
 
-        [Obsolete("Use GetCollectionByGUID(ULongGuid guid) is obsolete, please regenerate your static class")]
-        public ScriptableObjectCollection GetCollectionByGUID(string guid)
-        {
-            throw new Exception("GetCollectionByGUID(ULongGuid guid) is obsolete, please regenerate your static class");
-        }
-
         public ScriptableObjectCollection GetCollectionByGUID(LongGuid guid)
         {
             if (collectionGuidLookup.Count == 0 && collections.Count > 0)

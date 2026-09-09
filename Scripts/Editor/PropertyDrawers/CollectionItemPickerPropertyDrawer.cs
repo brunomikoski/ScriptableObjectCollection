@@ -21,7 +21,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         private static GUIStyle labelStyle;
         private static GUIStyle buttonStyle;
-        private float buttonHeight = EditorGUIUtility.singleLineHeight;
+        private readonly Dictionary<string, float> propertyPathToHeight = new();
         private List<ScriptableObjectCollection> possibleCollections;
         private List<ScriptableObject> availableItems = new();
 
@@ -45,8 +45,15 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return Mathf.Max(buttonHeight,
+            return Mathf.Max(GetHeight(property),
                 EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+        }
+
+        private float GetHeight(SerializedProperty property)
+        {
+            return propertyPathToHeight.TryGetValue(property.propertyPath, out float height)
+                ? height
+                : EditorGUIUtility.singleLineHeight;
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -56,6 +63,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             Initialize(property);
 
             PopupList<PopupItem> popupList = propertyPathToPopupList[property.propertyPath];
+            float buttonHeight = GetHeight(property);
 
             position = EditorGUI.PrefixLabel(position, label);
 
@@ -163,8 +171,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             maxHeight += currentLineMaxHeight;
 
-            buttonHeight = Mathf.Max(maxHeight + EditorGUIUtility.standardVerticalSpacing * 3,
+            float height = Mathf.Max(maxHeight + EditorGUIUtility.standardVerticalSpacing * 3,
                 EditorGUIUtility.singleLineHeight);
+            if (Event.current.type == EventType.Repaint && height != buttonHeight)
+            {
+                propertyPathToHeight[property.propertyPath] = height;
+                HandleUtility.Repaint();
+            }
 
             EditorGUI.EndProperty();
         }

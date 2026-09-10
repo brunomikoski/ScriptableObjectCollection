@@ -121,6 +121,10 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 }
 
                 UpsertIndex(item, assetGuid);
+
+                ScriptableObjectCollection collection = item.Collection;
+                if (collection != null && collection.Add(item))
+                    anyDirty = true;
             }
 
             for (int i = 0; i < movedAssets.Length; i++)

@@ -5,6 +5,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.7.1] - 11/05/2026
+### Fixed
+- `package.json` now declares `"unity": "6000.2"`. 2.7.0 already needed Unity 6000.2, because it calls `Object.GetEntityId()`, but it still declared 6000.0, so the Package Manager allowed installing it on editors where it does not compile.
+- The README System Requirements now say Unity 6000.2 or later, instead of 2018.4.
+- The 2.7.0 changelog entries are complete. The 2.7.0 tag shipped without the entries for its last fixes.
+
+No code changes since 2.7.0.
+
 ## [2.7.0] - 11/05/2026
 ### Added
 - New `CONTEXT/ScriptableObjectCollection/Sort Items By Name` context menu item on the collection inspector, next to `Create Generator` and `Create Indirect Reference file`. It calls the existing `ScriptableObjectCollection.OrderByName()`, is undoable, and is disabled for collections that override `ShouldProtectItemOrder` (the same collections that already forbid drag reordering).
@@ -17,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New editor-side `CollectionItemQuerySatisfiability` helper: exact satisfiability analysis of a query's rule set by enumerating presence assignments over the (few) referenced items, with a smallest-conflicting-subset finder for error attribution and a pairwise fallback above 16 distinct items. Covered by a brute-force EditMode test suite (`Tests/Editor`) that verifies agreement with the runtime semantics over every rule pair (4-item universe) and every rule triple (3-item universe).
 
 ### Changed
-- **Minimum Unity version is now 6000.2** (`package.json` `"unity": "6000.2"`). `ScriptableObjectCollection` and `CollectionItemQueryPropertyDrawer` now use `Object.GetEntityId()`, which Unity 6000.0 and 6000.1 do not have. The query drawer's memo key uses it in place of `GetInstanceID()`.
+- **Requires Unity 6000.2 or newer.** `ScriptableObjectCollection` and `CollectionItemQueryPropertyDrawer` now use `Object.GetEntityId()`, which Unity 6000.0 and 6000.1 do not have. The query drawer's memo key uses it in place of `GetInstanceID()`. This release's `package.json` still declared `"unity": "6000.0"`; 2.7.1 corrects it.
 - `SOCItemGuidProcessor` now adds every imported item to the collection its `collectionGUID` points to. Items restored from version control or created outside the inspector show up in their collection without a manual refresh. Items already in the collection are left as they are.
 - Picker popup selections now apply immediately per item toggle (via `OnItemSelectedEvent`) instead of once when the popup closes — each click lands on the targets right away and repaints the inspector, which is what makes per-item multi-object application possible.
 - Picker stale-reference validation (`ValidateIndirectReferencesInProperty`) now runs against every selected target and attributes the "Missing collection item reference" error log to the specific owning object; popup selection sync resolves items through a GUID dictionary instead of a per-element `FirstOrDefault` scan.
@@ -774,6 +782,7 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.7.1]: https://github.com/brunomikoski/ScriptableObjectCollection/releases/tag/v2.7.1
 [2.7.0]: https://github.com/brunomikoski/ScriptableObjectCollection/releases/tag/v2.7.0
 [2.6.0]: https://github.com/brunomikoski/ScriptableObjectCollection/releases/tag/v2.6.0
 [2.5.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.5.1

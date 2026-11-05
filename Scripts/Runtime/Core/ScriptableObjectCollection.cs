@@ -469,6 +469,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         RemoveAt(i);
                         Debug.Log($"Removing item at index {i} since it belongs to another collection {socItem.Collection}");
                         changed = true;
+                        continue;
                     }
                 }
 
@@ -477,18 +478,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 RemoveAt(i);
                 Debug.Log($"Removing item at index {i} {scriptableObject} since it is not of type {GetItemType()}");
-            }
-
-            HashSet<ScriptableObject> seen = new HashSet<ScriptableObject>();
-            for (int i = items.Count - 1; i >= 0; i--)
-            {
-                ScriptableObject obj = items[i];
-                if (!seen.Add(obj))
-                {
-                    RemoveAt(i);
-                    Debug.Log($"Removing duplicated reference to item {obj} at index {i}");
-                    changed = true;
-                }
             }
 
             if (itemsFromOtherCollections.Any())

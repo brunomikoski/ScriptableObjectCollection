@@ -5,12 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [Unreleased]
+## [2.7.0] - 11/05/2026
 ### Added
 - New `CONTEXT/ScriptableObjectCollection/Sort Items By Name` context menu item on the collection inspector, next to `Create Generator` and `Create Indirect Reference file`. It calls the existing `ScriptableObjectCollection.OrderByName()`, is undoable, and is disabled for collections that override `ShouldProtectItemOrder` (the same collections that already forbid drag reordering).
-
-## [2.7.0] - 07/08/2026
-### Added
+- `CollectionItemQuery<T>.Matches(IReadOnlyList<T>)` overload (plus an `out int` variant) and matching `CollectionItemMask64.From<T>(IReadOnlyList<T>, ...)` overloads. List and array targets are walked by index, so matching them allocates no enumerator.
 - `CollectionItemPickerPropertyDrawer` now fully supports editing multiple selected objects at once: the popup shows the union of items across all selected objects, items present on only some of them render dimmed with a "Value differs across selected objects" tooltip, toggling an item adds/removes exactly that item on every selected object (preserving each object's other items), and creating a new item from the picker appends it to every selected target instead of only the first.
 - New non-generic `CollectionItemQueryRule` static class — the single source of truth for evaluating one `MatchType` rule (`Passes(matchType, matchCount, pickerCount)`). Both runtime match paths, the property drawer's validation, and the new test suite share it, so their semantics can no longer drift apart.
 - `CollectionItemQuery<T>.Matches(CollectionItemPicker<T> targetPicker)` overload (plus an `out int` variant). When the query's pickers and the target picker are bitmask-compatible on the same collection, matching is pure bit arithmetic on cached masks — zero allocation and no enumeration. Existing call sites that pass a picker (e.g. a tag list) bind to it automatically; anything else falls back to the `IEnumerable<T>` path.
@@ -19,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New editor-side `CollectionItemQuerySatisfiability` helper: exact satisfiability analysis of a query's rule set by enumerating presence assignments over the (few) referenced items, with a smallest-conflicting-subset finder for error attribution and a pairwise fallback above 16 distinct items. Covered by a brute-force EditMode test suite (`Tests/Editor`) that verifies agreement with the runtime semantics over every rule pair (4-item universe) and every rule triple (3-item universe).
 
 ### Changed
+- **Minimum Unity version is now 6000.2** (`package.json` `"unity": "6000.2"`). `ScriptableObjectCollection` and `CollectionItemQueryPropertyDrawer` now use `Object.GetEntityId()`, which Unity 6000.0 and 6000.1 do not have. The query drawer's memo key uses it in place of `GetInstanceID()`.
+- `SOCItemGuidProcessor` now adds every imported item to the collection its `collectionGUID` points to. Items restored from version control or created outside the inspector show up in their collection without a manual refresh. Items already in the collection are left as they are.
 - Picker popup selections now apply immediately per item toggle (via `OnItemSelectedEvent`) instead of once when the popup closes — each click lands on the targets right away and repaints the inspector, which is what makes per-item multi-object application possible.
 - Picker stale-reference validation (`ValidateIndirectReferencesInProperty`) now runs against every selected target and attributes the "Missing collection item reference" error log to the specific owning object; popup selection sync resolves items through a GUID dictionary instead of a per-element `FirstOrDefault` scan.
 - **`CollectionItemQuery<T>.Matches` now skips rules whose picker has no (resolvable) items instead of evaluating them.** Previously an empty `Any`/`NotAll` rule — e.g. a freshly added, not-yet-configured row — made the whole query permanently return `false`. Empty rules are now inert, which also makes `IsEmpty() == true` imply `Matches(...) == true`, consistent with callers that use `IsEmpty()` as a "no filter configured" guard.
@@ -26,6 +26,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CollectionItemQueryPropertyDrawer` improvements: the `MatchType` dropdown shows semantic hints ("Any (has at least one)", "Not All (missing at least one)", …); the query summary uses singular phrasing for one-item rules ("forbids objects that contain Frozen"); validation results are memoized per serialized content instead of recomputed twice per repaint; help box heights use the same width basis in `GetPropertyHeight` and `OnGUI`.
 
 ### Fixed
+- Changing an item's script on disk (an `m_Script` edit followed by a reimport) no longer duplicates the item in its collection. `Add` now matches entries by `EntityId` and replaces a stale reference in place. The new `RemoveRepeatedEntries()` collapses repeated entries for the same asset, keeping the first index; it runs at the start of `RefreshCollection` and before the GUID pass in `CollectionsRegistry.ValidateCollections`. Previously the duplicate made the next `ValidateCollections` give the live item a new `LongGuid`, which broke every reference stored by GUID.
+- `RefreshCollection` no longer drops the original when two distinct item assets share one `LongGuid`. Its last dedupe loop walked from the end using the GUID-based `Equals`, so it kept the later copy and orphaned the original: the original still pointed at the collection, but `Add` refused it. Both entries now stay, and `ValidateCollections` gives the later copy a new GUID while the original keeps its index and GUID.
+- `RefreshCollection` no longer calls `RemoveAt` twice for an entry that belongs to another collection and is also of the wrong item type. The second call removed an already-checked neighbour, or threw when the entry was last in the list.
+- `CollectionItemPickerPropertyDrawer` now tracks its height per property path instead of in one shared field, so several pickers drawn by the same drawer (for example list elements) no longer take each other's height. A height change is applied on Repaint and triggers a repaint.
+- The collection inspector's "Add New" menu no longer lists open generic item types, which cannot be instantiated.
 - Multi-editing a `CollectionItemPicker` no longer overwrites every selected object's items with the first object's selection state. Previously the popup was seeded from the first target only and rebuilt the entire `indirectReferences` array from that view on close, applying it to all selected objects and silently discarding their per-object differences.
 - `SOCItemGuidProcessor` duplicate detection is now keyed on Unity asset GUIDs (`.meta` GUIDs, which survive renames and moves) instead of asset paths, so renaming or moving a collection item asset is no longer misdetected as a duplicated asset — previously that regenerated the item's `LongGuid` and broke existing indirect references to it.
 - The property drawer's impossible-query detection is now exact instead of pairwise, closing three verified gaps: `Any{t}` + `NotAll{t}` on the same single item was never flagged; rules with empty pickers (which silently made the query unmatchable) were never flagged (now surfaced as an info note since they are skipped); and multi-rule conflicts invisible to any pairwise check (e.g. `Any{a}` + `Any{b}` + `NotAll{a,b}`) were never flagged. Error messages now name the smallest conflicting rule subset ("Rules 1 and 3 can never all be satisfied").
@@ -769,6 +774,8 @@ public bool IsValidConsumable(Consumable consumable)
 ### Added 
  - First initial working version 
 
+[2.7.0]: https://github.com/brunomikoski/ScriptableObjectCollection/releases/tag/v2.7.0
+[2.6.0]: https://github.com/brunomikoski/ScriptableObjectCollection/releases/tag/v2.6.0
 [2.5.1]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.5.1
 [2.5.0]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.5.0
 [2.4.2]: https://github.com/badawe/ScriptableObjectCollection/releases/tag/v2.4.2

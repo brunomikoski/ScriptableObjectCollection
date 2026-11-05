@@ -103,7 +103,7 @@ There are two Draw Types for now:<br /><br />
  
  
 ## System Requirements
-Unity 2018.4.0 or later versions
+Unity 6000.2 or later versions
 
 
 ## How to install

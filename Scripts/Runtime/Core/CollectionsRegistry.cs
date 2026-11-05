@@ -487,6 +487,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                     continue;
                 }
 
+                if (collection.RemoveRepeatedEntries())
+                    changed = true;
+
                 HashSet<LongGuid> seen = new();
                 for (int j = 0; j < collection.Items.Count; j++)
                 {

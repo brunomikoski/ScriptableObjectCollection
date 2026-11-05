@@ -529,6 +529,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             TypeCache.TypeCollection sub = TypeCache.GetTypesDerivedFrom(collection.GetItemType());
             for (int i = 0; i < sub.Count; i++)
             {
+                if (sub[i].IsGenericTypeDefinition)
+                    continue;
+
                 itemsSubclasses.Add(sub[i]);
             }
 

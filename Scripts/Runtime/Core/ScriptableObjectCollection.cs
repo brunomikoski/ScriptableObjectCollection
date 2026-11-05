@@ -109,6 +109,18 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (item is not ISOCItem socItem)
                 return false;
             
+            int existingIndex = IndexOfEntity(item);
+            if (existingIndex >= 0)
+            {
+                if (!ReferenceEquals(items[existingIndex], item))
+                {
+                    items[existingIndex] = item;
+                    ClearCachedValues();
+                }
+
+                return false;
+            }
+
             if (items.Contains(item))
                 return false;
             
@@ -119,6 +131,54 @@ namespace BrunoMikoski.ScriptableObjectCollections
             ObjectUtility.SetDirty(this);
             ClearCachedValues();
             return true;
+        }
+
+        private int IndexOfEntity(ScriptableObject item)
+        {
+            EntityId entityId = item.GetEntityId();
+            for (int i = 0; i < items.Count; i++)
+            {
+                ScriptableObject existing = items[i];
+                if (!existing.IsNull() && existing.GetEntityId() == entityId)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        internal bool RemoveRepeatedEntries()
+        {
+            bool removed = false;
+            Dictionary<EntityId, int> firstIndexByEntityId = new Dictionary<EntityId, int>();
+            for (int i = 0; i < items.Count; i++)
+            {
+                ScriptableObject item = items[i];
+                if (item.IsNull())
+                    continue;
+
+                EntityId entityId = item.GetEntityId();
+                if (!firstIndexByEntityId.TryGetValue(entityId, out int firstIndex))
+                {
+                    firstIndexByEntityId.Add(entityId, i);
+                    continue;
+                }
+
+                if (items[firstIndex] == null)
+                    items[firstIndex] = item;
+
+                Debug.LogWarning($"ScriptableObjectCollection->RemoveRepeatedEntries: Removing repeated entry at index {i} in {name}, {items[firstIndex]} stays at index {firstIndex}");
+                items.RemoveAt(i);
+                i--;
+                removed = true;
+            }
+
+            if (removed)
+            {
+                ObjectUtility.SetDirty(this);
+                ClearCachedValues();
+            }
+
+            return removed;
         }
 
         public void GenerateNewGUID()
@@ -354,6 +414,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             if (string.IsNullOrEmpty(assetPath))
                 return;
 
+            if (RemoveRepeatedEntries())
+                changed = true;
+
             string folder = Path.GetDirectoryName(assetPath);
             string[] guids = AssetDatabase.FindAssets($"t:{collectionItemType.Name}", new []{folder});
 
@@ -406,6 +469,7 @@ namespace BrunoMikoski.ScriptableObjectCollections
                         RemoveAt(i);
                         Debug.Log($"Removing item at index {i} since it belongs to another collection {socItem.Collection}");
                         changed = true;
+                        continue;
                     }
                 }
 
@@ -414,18 +478,6 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
                 RemoveAt(i);
                 Debug.Log($"Removing item at index {i} {scriptableObject} since it is not of type {GetItemType()}");
-            }
-
-            HashSet<ScriptableObject> seen = new HashSet<ScriptableObject>();
-            for (int i = items.Count - 1; i >= 0; i--)
-            {
-                ScriptableObject obj = items[i];
-                if (!seen.Add(obj))
-                {
-                    RemoveAt(i);
-                    Debug.Log($"Removing duplicated reference to item {obj} at index {i}");
-                    changed = true;
-                }
             }
 
             if (itemsFromOtherCollections.Any())

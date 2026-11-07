@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
@@ -83,50 +82,119 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
             bool shouldConstrainToCollection = collectionToConstrainTo != null;
 
-            AdvancedDropdownItem targetParent = root;
-            bool multipleCollections = collections.Count > 1;
+            List<ScriptableObjectCollection> visibleCollections = new List<ScriptableObjectCollection>();
+            List<List<ScriptableObject>> visibleItems = new List<List<ScriptableObject>>();
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection collection = collections[i];
-                
+
                 // If we're meant to constrain the selection to a specific collection, enforce that now.
                 if (shouldConstrainToCollection && collectionToConstrainTo != collection)
                     continue;
 
-                // If there are multiple collections, group them together.
-                if (multipleCollections && !shouldConstrainToCollection)
-                {
-                    AdvancedDropdownItem collectionParent = new AdvancedDropdownItem(collection.name);
-                    root.AddChild(collectionParent);
-                    targetParent = collectionParent;
-                }
+                // A collection of a base type is also returned here, but it may hold no item of the target type.
+                List<ScriptableObject> selectableItems = GetSelectableItems(collection);
+                if (selectableItems.Count == 0)
+                    continue;
 
-                // Add every individual item in the collection.
-                for (int j = 0; j < collection.Count; j++)
-                {
-                    ScriptableObject collectionItem = collection[j];
-
-                    if (!itemType.IsInstanceOfType(collectionItem))
-                        continue;
-                    
-                    if (validationMethod != null)
-                    {
-                        bool result = (bool) validationMethod.Invoke(
-                            serializedProperty.serializedObject.targetObject, new object[] {collectionItem});
-                        if (!result)
-                            continue;
-                    }
-
-                    targetParent.AddChild(new CollectionItemDropdownItem(collectionItem));
-                }
+                visibleCollections.Add(collection);
+                visibleItems.Add(selectableItems);
             }
 
-            if (!multipleCollections && !itemType.IsAbstract)
+            bool groupByCollection = visibleCollections.Count > 1;
+            for (int i = 0; i < visibleCollections.Count; i++)
             {
-                root.AddSeparator();
-                root.AddChild(new AdvancedDropdownItem(CREATE_NEW_TEXT));
+                AdvancedDropdownItem targetParent = root;
+                if (groupByCollection)
+                {
+                    targetParent = new AdvancedDropdownItem(visibleCollections[i].name);
+                    root.AddChild(targetParent);
+                }
+
+                List<ScriptableObject> selectableItems = visibleItems[i];
+                for (int j = 0; j < selectableItems.Count; j++)
+                    targetParent.AddChild(new CollectionItemDropdownItem(selectableItems[j]));
             }
+
+            AddCreateNewOption(root, collectionToConstrainTo);
             return root;
+        }
+
+        private void AddCreateNewOption(AdvancedDropdownItem root, ScriptableObjectCollection collectionToConstrainTo)
+        {
+            if (itemType.IsAbstract)
+                return;
+
+            if (!TryGetCreateNewCollection(out ScriptableObjectCollection createNewCollection))
+                return;
+
+            if (collectionToConstrainTo != null && collectionToConstrainTo != createNewCollection)
+                return;
+
+            root.AddSeparator();
+            root.AddChild(new AdvancedDropdownItem(CREATE_NEW_TEXT));
+        }
+
+        private bool TryGetCreateNewCollection(out ScriptableObjectCollection result)
+        {
+            result = null;
+
+            Type mostSpecificItemType = null;
+            for (int i = 0; i < collections.Count; i++)
+            {
+                Type collectionItemType = collections[i].GetItemType();
+                if (!collectionItemType.IsAssignableFrom(itemType))
+                    continue;
+
+                if (mostSpecificItemType != null && !mostSpecificItemType.IsAssignableFrom(collectionItemType))
+                    continue;
+
+                mostSpecificItemType = collectionItemType;
+            }
+
+            if (mostSpecificItemType == null)
+                return false;
+
+            for (int i = 0; i < collections.Count; i++)
+            {
+                ScriptableObjectCollection collection = collections[i];
+                if (collection.GetItemType() != mostSpecificItemType)
+                    continue;
+
+                if (result != null)
+                {
+                    result = null;
+                    return false;
+                }
+
+                result = collection;
+            }
+
+            return true;
+        }
+
+        private List<ScriptableObject> GetSelectableItems(ScriptableObjectCollection collection)
+        {
+            List<ScriptableObject> result = new List<ScriptableObject>();
+            for (int i = 0; i < collection.Count; i++)
+            {
+                ScriptableObject collectionItem = collection[i];
+
+                if (!itemType.IsInstanceOfType(collectionItem))
+                    continue;
+
+                if (validationMethod != null)
+                {
+                    bool isValid = (bool) validationMethod.Invoke(
+                        serializedProperty.serializedObject.targetObject, new object[] {collectionItem});
+                    if (!isValid)
+                        continue;
+                }
+
+                result.Add(collectionItem);
+            }
+
+            return result;
         }
 
         private void InvokeOnSelectCallback(ScriptableObject from, ScriptableObject to)
@@ -161,7 +229,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
 
             if (item.name.Equals(CREATE_NEW_TEXT, StringComparison.OrdinalIgnoreCase))
             {
-                ScriptableObjectCollection collection = collections.First();
+                if (!TryGetCreateNewCollection(out ScriptableObjectCollection collection))
+                    return;
+
                 TypeCache.TypeCollection types = TypeCache.GetTypesDerivedFrom(itemType);
                 if (types.Count == 0)
                 {

@@ -85,6 +85,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection collection = collections[i];
+                if (collection == null)
+                    continue;
+
                 if (collection.name.Equals(targetCollectionName, StringComparison.Ordinal))
                 {
                     resultCollection = collection;
@@ -116,6 +119,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (scriptableObjectCollection == null)
+                    continue;
+
                 Type collectionItemType = scriptableObjectCollection.GetItemType();
                 if (!targetItemType.IsAssignableFrom(collectionItemType))
                     continue;
@@ -208,6 +214,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                if (scriptableObjectCollection == null)
+                    continue;
+
                 Type collectionType = scriptableObjectCollection.GetType();
                 if (collectionType == targetType || (allowSubclasses && collectionType.IsSubclassOf(targetType)))
                     result.Add((T)scriptableObjectCollection);
@@ -229,6 +238,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection col = collections[i];
+                if (col == null)
+                    continue;
+
                 Type collectionItemType = col.GetItemType();
                 if (collectionItemType != null && (targetCollectionItemType.IsAssignableFrom(collectionItemType) || collectionItemType.IsAssignableFrom(targetCollectionItemType)))
                 {
@@ -339,6 +351,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
                 for (int i = 0; i < collections.Count; i++)
                 {
                     ScriptableObjectCollection scriptableObjectCollection = collections[i];
+                    if (scriptableObjectCollection == null)
+                        continue;
+
                     if (scriptableObjectCollection.GUID == targetGUID)
                     {
                         resultCollection = (T) scriptableObjectCollection;
@@ -423,6 +438,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = collections.Count - 1; i >= 0; i--)
             {
                 ScriptableObjectCollection collection = collections[i];
+
+                if (collection == null)
+                    continue;
 
                 if (collection.AutomaticallyLoaded)
                     continue;
@@ -526,6 +544,49 @@ namespace BrunoMikoski.ScriptableObjectCollections
 #endif
         }
 
+        public void RepairMissingCollections()
+        {
+#if UNITY_EDITOR
+            if (Application.isPlaying)
+                return;
+
+            int missingCount = 0;
+            for (int i = 0; i < collections.Count; i++)
+            {
+                if (collections[i] == null)
+                    missingCount++;
+            }
+
+            if (missingCount == 0)
+                return;
+
+            List<string> relinkedNames = new List<string>();
+            string[] collectionGUIDs = AssetDatabase.FindAssets($"t:{nameof(ScriptableObjectCollection)}");
+            for (int i = 0; i < collectionGUIDs.Length; i++)
+            {
+                if (relinkedNames.Count == missingCount)
+                    break;
+
+                ScriptableObjectCollection collection =
+                    AssetDatabase.LoadAssetAtPath<ScriptableObjectCollection>(AssetDatabase.GUIDToAssetPath(collectionGUIDs[i]));
+                if (collection == null)
+                    continue;
+
+                if (collections.Contains(collection))
+                    continue;
+
+                int emptyIndex = collections.FindIndex(registered => registered == null);
+                collections[emptyIndex] = collection;
+                relinkedNames.Add(collection.name);
+            }
+
+            int removedCount = collections.RemoveAll(registered => registered == null);
+            RebuildGuidLookup();
+            ObjectUtility.SetDirty(this);
+            Debug.LogWarning($"[SOC] CollectionsRegistry had {missingCount} missing collection reference(s): re-linked [{string.Join(", ", relinkedNames)}], removed {removedCount} with no asset");
+#endif
+        }
+
         public void SetAutoSearchForCollections(bool isOn)
         {
             if (isOn == autoSearchForCollections)
@@ -540,6 +601,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < Collections.Count; i++)
             {
                 ScriptableObjectCollection collection = Collections[i];
+                if (collection == null)
+                    continue;
+
                 if (!collection.AutomaticallyLoaded)
                 {
                     SetAutoSearchForCollections(true);
@@ -555,6 +619,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
             for (int i = 0; i < collections.Count; i++)
             {
                 ScriptableObjectCollection collection = collections[i];
+                if (collection == null)
+                    continue;
+
                 if (collection != targetCollection && collection.GUID == targetCollection.GUID)
                     return false;
             }

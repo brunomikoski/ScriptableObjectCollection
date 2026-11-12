@@ -18,6 +18,9 @@ namespace BrunoMikoski.ScriptableObjectCollections
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets,
             string[] movedFromAssetPaths)
         {
+            EditorApplication.delayCall -= RepairMissingCollections;
+            EditorApplication.delayCall += RepairMissingCollections;
+
             for (int i = 0; i < importedAssets.Length; i++)
             {
                 string importedAssetPath = importedAssets[i];
@@ -58,6 +61,11 @@ namespace BrunoMikoski.ScriptableObjectCollections
             }
 
             EditorApplication.delayCall += () => { CollectionsRegistry.Instance.ReloadCollections(); };
+        }
+
+        private static void RepairMissingCollections()
+        {
+            CollectionsRegistry.Instance.RepairMissingCollections();
         }
 
 

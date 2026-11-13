@@ -11,14 +11,19 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public enum MatchType
         {
             /// <summary>Target has at least one of the picker items.</summary>
+            [InspectorName("Has any of")]
             Any = CollectionItemQueryRule.Any,
             /// <summary>Target has every one of the picker items.</summary>
+            [InspectorName("Has all of")]
             All = CollectionItemQueryRule.All,
             /// <summary>Target has none of the picker items (all picker items are absent).</summary>
+            [InspectorName("Has none of")]
             NotAny = CollectionItemQueryRule.NotAny,
             /// <summary>Target is missing at least one of the picker items (not all are present).</summary>
+            [InspectorName("Is missing one of")]
             NotAll = CollectionItemQueryRule.NotAll,
             /// <summary>Target has at least <see cref="QuerySet.MinimumCount"/> of the picker items.</summary>
+            [InspectorName("Has at least")]
             AtLeast = CollectionItemQueryRule.AtLeast,
         }
 
@@ -47,6 +52,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private QuerySet[] query = Array.Empty<QuerySet>();
 
         private HashSet<LongGuid> targetGuids = new HashSet<LongGuid>(128);
+        private HashSet<LongGuid> pickerGuids = new HashSet<LongGuid>(64);
 
         public bool Matches(params T[] targetItems)
         {
@@ -239,10 +245,15 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 int slotCount = qs.Picker.Count;
                 int validCount = 0;
                 int matchCount = 0;
+                // Each item counts once, like the bitmask path. A duplicate entry would otherwise pass AtLeast twice.
+                pickerGuids.Clear();
                 for (int j = 0; j < slotCount; j++)
                 {
                     T socItem = qs.Picker[j];
                     if (!socItem)
+                        continue;
+
+                    if (!pickerGuids.Add(socItem.GUID))
                         continue;
 
                     validCount++;

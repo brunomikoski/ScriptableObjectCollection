@@ -12,9 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `CollectionItemQueryPropertyDrawer` shows a count field next to an `AtLeast` rule, and the summary describes it. "Add Rule" resets the count to 1 instead of copying the previous rule's.
 
 ### Changed
-- The match type in `CollectionItemQueryPropertyDrawer` is a dropdown button that shows only the name, because the hints were cut off in the closed popup. The hint is its tooltip. The menu lists every match type with its hint and greys out the ones that would make the query never match, instead of hiding them.
+- The match types have sentence labels in the inspector through `[InspectorName]`: "Has any of", "Has all of", "Has none of", "Is missing one of" and "Has at least". The enum names and serialized values are unchanged.
+- The match type in `CollectionItemQueryPropertyDrawer` is a dropdown button sized to the longest label. Its menu greys out the match types that would make the query never match, instead of hiding them.
+- The summary describes `Any` with more than one item as "requires objects to contain at least one of", instead of "allows objects that contain".
+- A query with no picked items shows "(matches everything)" after its label.
 
 ### Fixed
+- The GUID match path counts an item picked twice in one set once, like the bitmask path. Before, `AtLeast` 2 of [A, A] passed for a target holding only A.
 - `CollectionItemQueryPropertyDrawer` no longer indents its rows a second time when the query is drawn inside an indented parent.
 - Help box heights use the width they are drawn at, so long messages are not clipped in narrow or nested inspectors.
 - The match type and count fields support prefab overrides (bold label, right-click revert) and show a mixed value when the selected objects differ.

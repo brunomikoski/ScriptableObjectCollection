@@ -20,22 +20,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private const string COLLECTION_GUID_VALUE_B = "collectionGUIDValueB";
 
         private const string EMPTY_RULES_MESSAGE = "Rules with no items selected are ignored.";
+        private const string MATCHES_EVERYTHING_SUFFIX = " (matches everything)";
 
         private const int MATCH_TYPE_COUNT = 5;
 
         private const float HELP_BOX_CALC_WIDTH_MARGIN = 48f;
         private const float MINIMUM_COUNT_WIDTH = 36f;
-
-        private static readonly string[] MATCH_TYPE_HINTS =
-        {
-            "has at least one",
-            "has every one",
-            "has none",
-            "missing at least one",
-            "has at least N",
-        };
+        private const float FALLBACK_MATCH_TYPE_WIDTH = 120f;
 
         private float lastContentWidth;
+        private float matchTypeWidth;
         private bool hasValidationCache;
         private int cachedValidationHash;
         private readonly List<Rule> cachedRules = new List<Rule>();
@@ -43,6 +37,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         private bool cachedIsSatisfiable = true;
         private string cachedConflictMessage;
         private bool cachedHasEmptyRules;
+        private bool cachedMatchesEverything;
         private string cachedSummary;
         private readonly List<int> conflictIndicesBuffer = new List<int>();
 
@@ -90,12 +85,18 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 position.width,
                 EditorGUIUtility.singleLineHeight);
 
-            property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, label, true);
+            GUIContent foldoutLabel = label;
+            if (queryProp != null)
+            {
+                EnsureValidation(property, queryProp);
+                if (cachedMatchesEverything)
+                    foldoutLabel = new GUIContent(label.text + MATCHES_EVERYTHING_SUFFIX, label.image, label.tooltip);
+            }
+
+            property.isExpanded = EditorGUI.Foldout(foldoutRect, property.isExpanded, foldoutLabel, true);
 
             if (property.isExpanded && queryProp != null)
             {
-                EnsureValidation(property, queryProp);
-
                 int previousIndent = EditorGUI.indentLevel;
                 EditorGUI.indentLevel = previousIndent + 1;
                 Rect contentRect = EditorGUI.IndentedRect(new Rect(
@@ -132,11 +133,10 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                         removeButtonWidth,
                         EditorGUIUtility.singleLineHeight);
 
-                    float matchWidth = 100f;
                     Rect matchRect = new Rect(
                         rowRect.x,
                         rowRect.y,
-                        matchWidth,
+                        GetMatchTypeWidth(matchTypeProp),
                         EditorGUIUtility.singleLineHeight);
 
                     int validTypeMask = i < cachedValidTypeMasks.Count ? cachedValidTypeMasks[i] : ~0;
@@ -297,6 +297,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             cachedIsSatisfiable = true;
             cachedConflictMessage = null;
             cachedHasEmptyRules = false;
+            cachedMatchesEverything = true;
             cachedSummary = string.Empty;
 
             int arraySize = queryProp.arraySize;
@@ -320,6 +321,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 items ??= new HashSet<(long, long)>();
                 if (items.Count == 0)
                     cachedHasEmptyRules = true;
+                else
+                    cachedMatchesEverything = false;
 
                 cachedRules.Add(new Rule(matchType, items, minimumCount));
             }
@@ -447,10 +450,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             GUIContent buttonContent = new GUIContent("—");
             if (!matchTypeProp.hasMultipleDifferentValues && currentEnumIndex >= 0 && currentEnumIndex < allNames.Length)
-                buttonContent = new GUIContent(allNames[currentEnumIndex], GetMatchTypeHint(currentEnumIndex));
+                buttonContent = new GUIContent(allNames[currentEnumIndex]);
 
-            // The closed button shows only the name, because the hints do not fit its width.
-            // The menu lists every match type with its hint and greys out the ones that would never match.
+            // A custom menu instead of an enum popup, so it can grey out the match types that would never match.
             EditorGUI.BeginProperty(position, GUIContent.none, matchTypeProp);
             if (EditorGUI.DropdownButton(position, buttonContent, FocusType.Keyboard, EditorStyles.popup))
                 ShowMatchTypeMenu(position, matchTypeProp, allNames, validTypeMask);
@@ -469,7 +471,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             for (int enumIndex = 0; enumIndex < allNames.Length; enumIndex++)
             {
                 bool isCurrent = !hasMixedValues && enumIndex == currentEnumIndex;
-                GUIContent itemContent = new GUIContent(GetFriendlyMatchTypeName(allNames, enumIndex));
+                GUIContent itemContent = new GUIContent(allNames[enumIndex]);
                 bool isValid = enumIndex >= MATCH_TYPE_COUNT || (validTypeMask & (1 << enumIndex)) != 0;
                 if (!isValid)
                 {
@@ -513,21 +515,20 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             EditorGUI.EndProperty();
         }
 
-        private static string GetFriendlyMatchTypeName(string[] enumDisplayNames, int enumIndex)
+        private float GetMatchTypeWidth(SerializedProperty matchTypeProp)
         {
-            string baseName = enumDisplayNames[enumIndex];
-            if (enumIndex < MATCH_TYPE_HINTS.Length)
-                return $"{baseName} ({MATCH_TYPE_HINTS[enumIndex]})";
+            if (matchTypeWidth > 0f)
+                return matchTypeWidth;
 
-            return baseName;
-        }
+            if (matchTypeProp == null)
+                return FALLBACK_MATCH_TYPE_WIDTH;
 
-        private static string GetMatchTypeHint(int enumIndex)
-        {
-            if (enumIndex < MATCH_TYPE_HINTS.Length)
-                return MATCH_TYPE_HINTS[enumIndex];
+            float widestName = 0f;
+            foreach (string displayName in matchTypeProp.enumDisplayNames)
+                widestName = Mathf.Max(widestName, EditorStyles.popup.CalcSize(new GUIContent(displayName)).x);
 
-            return string.Empty;
+            matchTypeWidth = widestName;
+            return matchTypeWidth;
         }
 
         private string BuildSummaryText(SerializedProperty queryProp)
@@ -575,7 +576,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             switch (matchType)
             {
                 case CollectionItemQueryRule.Any:
-                    return $"allows objects that contain at least one of {joinedNames}";
+                    return $"requires objects to contain at least one of {joinedNames}";
                 case CollectionItemQueryRule.All:
                     return $"requires objects to contain all of {joinedNames}";
                 case CollectionItemQueryRule.NotAny:

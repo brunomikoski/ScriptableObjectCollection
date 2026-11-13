@@ -24,11 +24,14 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             public readonly int MatchType;
             /// <summary>The rule's picker items as raw LongGuid value pairs.</summary>
             public readonly HashSet<(long, long)> Items;
+            /// <summary>Only read by <see cref="CollectionItemQueryRule.AtLeast"/>.</summary>
+            public readonly int MinimumCount;
 
-            public Rule(int matchType, HashSet<(long, long)> items)
+            public Rule(int matchType, HashSet<(long, long)> items, int minimumCount = 1)
             {
                 MatchType = matchType;
                 Items = items;
+                MinimumCount = minimumCount;
             }
         }
 
@@ -66,12 +69,13 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
             int itemCount = itemToBitBuffer.Count;
             if (itemCount > MaxExactItems)
-                return !HasPairwiseConflict(activeRulesBuffer);
+                return !HasImpossibleRule(activeRulesBuffer) && !HasPairwiseConflict(activeRulesBuffer);
 
             int ruleCount = activeRulesBuffer.Count;
             ulong[] ruleMasks = new ulong[ruleCount];
             int[] pickerCounts = new int[ruleCount];
             int[] matchTypes = new int[ruleCount];
+            int[] minimumCounts = new int[ruleCount];
             for (int i = 0; i < ruleCount; i++)
             {
                 Rule rule = activeRulesBuffer[i];
@@ -82,6 +86,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 ruleMasks[i] = mask;
                 pickerCounts[i] = rule.Items.Count;
                 matchTypes[i] = rule.MatchType;
+                minimumCounts[i] = rule.MinimumCount;
             }
 
             ulong assignmentCount = 1UL << itemCount;
@@ -91,7 +96,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 for (int i = 0; i < ruleCount; i++)
                 {
                     int matchCount = PopCount(assignment & ruleMasks[i]);
-                    if (!CollectionItemQueryRule.Passes(matchTypes[i], matchCount, pickerCounts[i]))
+                    if (!CollectionItemQueryRule.Passes(matchTypes[i], matchCount, pickerCounts[i], minimumCounts[i]))
                     {
                         allPass = false;
                         break;
@@ -159,6 +164,30 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return true;
         }
 
+        // A rule that fails for every possible match count, such as AtLeast 3 of 2 items.
+        private static bool HasImpossibleRule(List<Rule> rules)
+        {
+            for (int i = 0; i < rules.Count; i++)
+            {
+                Rule rule = rules[i];
+                int pickerCount = rule.Items.Count;
+                bool canPass = false;
+                for (int matchCount = 0; matchCount <= pickerCount; matchCount++)
+                {
+                    if (!CollectionItemQueryRule.Passes(rule.MatchType, matchCount, pickerCount, rule.MinimumCount))
+                        continue;
+
+                    canPass = true;
+                    break;
+                }
+
+                if (!canPass)
+                    return true;
+            }
+
+            return false;
+        }
+
         // Conservative fallback for queries referencing more than MaxExactItems distinct items:
         // detects only pairwise contradictions (proven to never flag a satisfiable query).
         private static bool HasPairwiseConflict(List<Rule> rules)
@@ -170,7 +199,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     if (!HasItemIntersection(rules[i].Items, rules[j].Items))
                         continue;
 
-                    if (IsCombinationImpossible(rules[i].MatchType, rules[i].Items, rules[j].MatchType, rules[j].Items))
+                    if (IsCombinationImpossible(rules[i], rules[j]))
                         return true;
                 }
             }
@@ -178,16 +207,26 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             return false;
         }
 
-        private static bool IsCombinationImpossible(
-            int matchA, HashSet<(long, long)> itemsA,
-            int matchB, HashSet<(long, long)> itemsB)
+        private static bool IsCombinationImpossible(Rule ruleA, Rule ruleB)
         {
+            int matchA = ruleA.MatchType;
+            int matchB = ruleB.MatchType;
+            HashSet<(long, long)> itemsA = ruleA.Items;
+            HashSet<(long, long)> itemsB = ruleB.Items;
+
             // Caller guarantees itemsA ∩ itemsB is non-empty.
             //
             // All + NotAny: the overlap is forced-in by All and forced-out by NotAny → always impossible.
             // Any(X) + NotAny(Y): impossible iff every X item is also forbidden by Y (X ⊆ Y).
             // All(X) + NotAll(Y): impossible iff every Y item is already required by X (Y ⊆ X).
             // Any(X) + NotAll(Y): impossible iff X == Y == a single shared item.
+            // AtLeast N(X) + NotAny(Y): impossible iff fewer than N X items are outside Y.
+            // AtLeast N(X) + NotAll(Y): impossible iff Y ⊆ X and |X| <= N, since one Y item must be missing.
+
+            if (matchA == CollectionItemQueryRule.AtLeast)
+                return IsAtLeastCombinationImpossible(ruleA, ruleB);
+            if (matchB == CollectionItemQueryRule.AtLeast)
+                return IsAtLeastCombinationImpossible(ruleB, ruleA);
 
             if ((matchA == CollectionItemQueryRule.All && matchB == CollectionItemQueryRule.NotAny) ||
                 (matchA == CollectionItemQueryRule.NotAny && matchB == CollectionItemQueryRule.All))
@@ -208,6 +247,35 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 return itemsA.Count == 1 && itemsB.Count == 1 && IsSubsetOf(itemsA, itemsB);
 
             return false;
+        }
+
+        private static bool IsAtLeastCombinationImpossible(Rule atLeastRule, Rule otherRule)
+        {
+            int minimumCount = System.Math.Max(atLeastRule.MinimumCount, 1);
+            switch (otherRule.MatchType)
+            {
+                case CollectionItemQueryRule.NotAny:
+                    return CountNotIn(atLeastRule.Items, otherRule.Items) < minimumCount;
+                case CollectionItemQueryRule.NotAll:
+                    if (!IsSubsetOf(otherRule.Items, atLeastRule.Items))
+                        return false;
+
+                    return atLeastRule.Items.Count <= minimumCount;
+                default:
+                    return false;
+            }
+        }
+
+        private static int CountNotIn(HashSet<(long, long)> items, HashSet<(long, long)> excluded)
+        {
+            int count = 0;
+            foreach ((long, long) item in items)
+            {
+                if (!excluded.Contains(item))
+                    count++;
+            }
+
+            return count;
         }
 
         private static bool HasItemIntersection(HashSet<(long, long)> a, HashSet<(long, long)> b)

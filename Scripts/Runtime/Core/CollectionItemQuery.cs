@@ -18,6 +18,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             NotAny = CollectionItemQueryRule.NotAny,
             /// <summary>Target is missing at least one of the picker items (not all are present).</summary>
             NotAll = CollectionItemQueryRule.NotAll,
+            /// <summary>Target has at least <see cref="QuerySet.MinimumCount"/> of the picker items.</summary>
+            AtLeast = CollectionItemQueryRule.AtLeast,
         }
 
         [Serializable]
@@ -26,6 +28,10 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             [SerializeField]
             private MatchType matchType;
             public MatchType MatchType => matchType;
+
+            [SerializeField]
+            private int minimumCount = 1;
+            public int MinimumCount => minimumCount;
 
             [SerializeField]
             private CollectionItemPicker<T> picker;
@@ -95,6 +101,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             {
                 stringBuilder.Append(querySet.MatchType);
                 stringBuilder.Append(" ");
+                if (querySet.MatchType == MatchType.AtLeast)
+                {
+                    stringBuilder.Append(querySet.MinimumCount);
+                    stringBuilder.Append(" ");
+                }
                 stringBuilder.Append(querySet);
                 stringBuilder.Append(" ");
             }
@@ -108,7 +119,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         /// an empty query returns <c>true</c>, and sets whose picker has no (resolvable) items are
         /// skipped as inert — a half-configured rule expresses no constraint.
         /// </summary>
-        /// <param name="targetItems">The items to test against (e.g., the tags on a rigidbody). A null collection is treated as empty, so positive sets (<see cref="MatchType.Any"/>/<see cref="MatchType.All"/>) fail and negative sets (<see cref="MatchType.NotAny"/>/<see cref="MatchType.NotAll"/>) pass. May be enumerated twice when the bitmask fast path detects a foreign-collection item and falls back to GUID matching.</param>
+        /// <param name="targetItems">The items to test against (e.g., the tags on a rigidbody). A null collection is treated as empty, so positive sets (<see cref="MatchType.Any"/>/<see cref="MatchType.All"/>/<see cref="MatchType.AtLeast"/>) fail and negative sets (<see cref="MatchType.NotAny"/>/<see cref="MatchType.NotAll"/>) pass. May be enumerated twice when the bitmask fast path detects a foreign-collection item and falls back to GUID matching.</param>
         /// <param name="resultMatchCount">Total number of individual picker items found across all query sets. Informational only (and partial when the method early-returns false); does not affect the return value.</param>
         public bool Matches(IEnumerable<T> targetItems, out int resultMatchCount)
         {
@@ -184,7 +195,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 int matchCount = qs.Picker.CountMatchesIn(targetMask);
                 resultMatchCount += matchCount;
 
-                if (!CollectionItemQueryRule.Passes((int)qs.MatchType, matchCount, pickerCount))
+                if (!CollectionItemQueryRule.Passes((int)qs.MatchType, matchCount, pickerCount, qs.MinimumCount))
                     return false;
             }
 
@@ -244,7 +255,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 if (validCount == 0)
                     continue;
 
-                if (!CollectionItemQueryRule.Passes((int)qs.MatchType, matchCount, validCount))
+                if (!CollectionItemQueryRule.Passes((int)qs.MatchType, matchCount, validCount, qs.MinimumCount))
                     return false;
             }
 

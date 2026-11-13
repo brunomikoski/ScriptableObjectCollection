@@ -5,6 +5,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.8.0] - 11/13/2026
+### Added
+- `CollectionItemQuery<T>.MatchType.AtLeast`: the set passes when the target has at least `MinimumCount` of the picked items, for "at least N of these" checks the other match types cannot express. Each `QuerySet` has a new serialized `minimumCount` field (default 1) that only `AtLeast` reads. `CollectionItemQueryRule.Passes` takes it as an optional fourth parameter, and a value below 1 counts as 1.
+- `CollectionItemQuerySatisfiability.Rule` carries the minimum count, so the drawer's conflict check covers `AtLeast`. Above 16 distinct items, the fallback check now also flags a single rule that can never pass (such as `AtLeast` 3 of 2 items) and `AtLeast` conflicts with `NotAny` and `NotAll`. The brute-force test suite covers `AtLeast` with every count.
+- `CollectionItemQueryPropertyDrawer` shows a count field next to an `AtLeast` rule, and the summary describes it. "Add Rule" resets the count to 1 instead of copying the previous rule's.
+
+### Changed
+- The match type in `CollectionItemQueryPropertyDrawer` is a dropdown button that shows only the name, because the hints were cut off in the closed popup. The hint is its tooltip. The menu lists every match type with its hint and greys out the ones that would make the query never match, instead of hiding them.
+
+### Fixed
+- `CollectionItemQueryPropertyDrawer` no longer indents its rows a second time when the query is drawn inside an indented parent.
+- Help box heights use the width they are drawn at, so long messages are not clipped in narrow or nested inspectors.
+- The match type and count fields support prefab overrides (bold label, right-click revert) and show a mixed value when the selected objects differ.
+
 ## [2.7.1] - 11/05/2026
 ### Fixed
 - `package.json` now declares `"unity": "6000.2"`. 2.7.0 already needed Unity 6000.2, because it calls `Object.GetEntityId()`, but it still declared 6000.0, so the Package Manager allowed installing it on editors where it does not compile.

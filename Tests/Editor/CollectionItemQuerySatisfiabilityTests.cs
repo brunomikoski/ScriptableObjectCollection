@@ -14,25 +14,42 @@ namespace BrunoMikoski.ScriptableObjectCollections.Tests
     /// </summary>
     public class CollectionItemQuerySatisfiabilityTests
     {
-        private const int MatchTypeCount = 4;
+        // Every rule shape over the universe: the four plain match types, plus AtLeast with every
+        // count from 1 to one past the universe size (that last count can never pass).
+        private static List<(int matchType, int pickerMask, int minimumCount)> AllRules(int universeSize)
+        {
+            List<(int, int, int)> rules = new List<(int, int, int)>();
+            int subsetCount = 1 << universeSize;
+            for (int mask = 0; mask < subsetCount; mask++)
+            {
+                rules.Add((CollectionItemQueryRule.Any, mask, 1));
+                rules.Add((CollectionItemQueryRule.All, mask, 1));
+                rules.Add((CollectionItemQueryRule.NotAny, mask, 1));
+                rules.Add((CollectionItemQueryRule.NotAll, mask, 1));
+                for (int minimumCount = 1; minimumCount <= universeSize + 1; minimumCount++)
+                    rules.Add((CollectionItemQueryRule.AtLeast, mask, minimumCount));
+            }
+
+            return rules;
+        }
 
         // Reference satisfiability: enumerate every target subset of a fixed universe and evaluate
         // rules with the exact runtime contract. Independent of the checker's item-restriction and
         // mask machinery. Rules with empty pickers are skipped, mirroring the runtime.
-        private static bool ReferenceIsSatisfiable(List<(int matchType, int pickerMask)> rules, int universeSize)
+        private static bool ReferenceIsSatisfiable(List<(int matchType, int pickerMask, int minimumCount)> rules, int universeSize)
         {
             for (int target = 0; target < 1 << universeSize; target++)
             {
                 bool allPass = true;
                 for (int i = 0; i < rules.Count; i++)
                 {
-                    (int matchType, int pickerMask) = rules[i];
+                    (int matchType, int pickerMask, int minimumCount) = rules[i];
                     int pickerCount = PopCount(pickerMask);
                     if (pickerCount == 0)
                         continue;
 
                     int matchCount = PopCount(target & pickerMask);
-                    if (!CollectionItemQueryRule.Passes(matchType, matchCount, pickerCount))
+                    if (!CollectionItemQueryRule.Passes(matchType, matchCount, pickerCount, minimumCount))
                     {
                         allPass = false;
                         break;
@@ -63,16 +80,16 @@ namespace BrunoMikoski.ScriptableObjectCollections.Tests
             return (itemIndex + 1, itemIndex + 100);
         }
 
-        private static Rule ToCheckerRule(int matchType, int pickerMask)
+        private static Rule ToCheckerRule((int matchType, int pickerMask, int minimumCount) rule)
         {
             HashSet<(long, long)> items = new HashSet<(long, long)>();
             for (int bit = 0; bit < 32; bit++)
             {
-                if ((pickerMask & (1 << bit)) != 0)
+                if ((rule.pickerMask & (1 << bit)) != 0)
                     items.Add(ItemGuid(bit));
             }
 
-            return new Rule(matchType, items);
+            return new Rule(rule.matchType, items, rule.minimumCount);
         }
 
         private static Rule MakeRule(int matchType, params int[] itemIndices)
@@ -84,23 +101,30 @@ namespace BrunoMikoski.ScriptableObjectCollections.Tests
             return new Rule(matchType, items);
         }
 
+        private static Rule MakeAtLeastRule(int minimumCount, params int[] itemIndices)
+        {
+            HashSet<(long, long)> items = new HashSet<(long, long)>();
+            foreach (int itemIndex in itemIndices)
+                items.Add(ItemGuid(itemIndex));
+
+            return new Rule(CollectionItemQueryRule.AtLeast, items, minimumCount);
+        }
+
         [Test]
         public void AllRulePairs_OverFourItemUniverse_AgreeWithBruteForce()
         {
             const int universeSize = 4;
-            int subsetCount = 1 << universeSize;
+            List<(int matchType, int pickerMask, int minimumCount)> allRules = AllRules(universeSize);
 
             int disagreements = 0;
-            for (int typeA = 0; typeA < MatchTypeCount; typeA++)
-            for (int maskA = 0; maskA < subsetCount; maskA++)
-            for (int typeB = 0; typeB < MatchTypeCount; typeB++)
-            for (int maskB = 0; maskB < subsetCount; maskB++)
+            for (int i = 0; i < allRules.Count; i++)
+            for (int j = 0; j < allRules.Count; j++)
             {
-                List<(int, int)> referenceRules = new List<(int, int)> { (typeA, maskA), (typeB, maskB) };
+                List<(int, int, int)> referenceRules = new List<(int, int, int)> { allRules[i], allRules[j] };
                 List<Rule> checkerRules = new List<Rule>
                 {
-                    ToCheckerRule(typeA, maskA),
-                    ToCheckerRule(typeB, maskB),
+                    ToCheckerRule(allRules[i]),
+                    ToCheckerRule(allRules[j]),
                 };
 
                 bool expected = ReferenceIsSatisfiable(referenceRules, universeSize);
@@ -116,24 +140,19 @@ namespace BrunoMikoski.ScriptableObjectCollections.Tests
         public void AllRuleTriples_OverThreeItemUniverse_AgreeWithBruteForce()
         {
             const int universeSize = 3;
-            int subsetCount = 1 << universeSize;
-
-            List<(int matchType, int pickerMask)> allRules = new List<(int, int)>();
-            for (int type = 0; type < MatchTypeCount; type++)
-            for (int mask = 0; mask < subsetCount; mask++)
-                allRules.Add((type, mask));
+            List<(int matchType, int pickerMask, int minimumCount)> allRules = AllRules(universeSize);
 
             int disagreements = 0;
             for (int i = 0; i < allRules.Count; i++)
             for (int j = i; j < allRules.Count; j++)
             for (int k = j; k < allRules.Count; k++)
             {
-                List<(int, int)> referenceRules = new List<(int, int)> { allRules[i], allRules[j], allRules[k] };
+                List<(int, int, int)> referenceRules = new List<(int, int, int)> { allRules[i], allRules[j], allRules[k] };
                 List<Rule> checkerRules = new List<Rule>
                 {
-                    ToCheckerRule(allRules[i].matchType, allRules[i].pickerMask),
-                    ToCheckerRule(allRules[j].matchType, allRules[j].pickerMask),
-                    ToCheckerRule(allRules[k].matchType, allRules[k].pickerMask),
+                    ToCheckerRule(allRules[i]),
+                    ToCheckerRule(allRules[j]),
+                    ToCheckerRule(allRules[k]),
                 };
 
                 bool expected = ReferenceIsSatisfiable(referenceRules, universeSize);
@@ -285,6 +304,33 @@ namespace BrunoMikoski.ScriptableObjectCollections.Tests
             {
                 MakeRule(CollectionItemQueryRule.All, manyItems),
             }));
+
+            // AtLeast 18 of 17 items: can never pass on its own.
+            Assert.IsFalse(CollectionItemQuerySatisfiability.IsSatisfiable(new List<Rule>
+            {
+                MakeAtLeastRule(manyItems.Length + 1, manyItems),
+            }));
+
+            // AtLeast 17 of 17 items + NotAny{first item}: only 16 items are left.
+            Assert.IsFalse(CollectionItemQuerySatisfiability.IsSatisfiable(new List<Rule>
+            {
+                MakeAtLeastRule(manyItems.Length, manyItems),
+                MakeRule(CollectionItemQueryRule.NotAny, 0),
+            }));
+
+            // AtLeast 16 of 17 items + NotAny{first item}: the other 16 are enough.
+            Assert.IsTrue(CollectionItemQuerySatisfiability.IsSatisfiable(new List<Rule>
+            {
+                MakeAtLeastRule(manyItems.Length - 1, manyItems),
+                MakeRule(CollectionItemQueryRule.NotAny, 0),
+            }));
+
+            // AtLeast 17 of 17 items + NotAll{first two items}: one of the two must be missing.
+            Assert.IsFalse(CollectionItemQuerySatisfiability.IsSatisfiable(new List<Rule>
+            {
+                MakeAtLeastRule(manyItems.Length, manyItems),
+                MakeRule(CollectionItemQueryRule.NotAll, 0, 1),
+            }));
         }
 
         [Test]
@@ -305,6 +351,14 @@ namespace BrunoMikoski.ScriptableObjectCollections.Tests
             // NotAll: at least one missing.
             Assert.IsTrue(CollectionItemQueryRule.Passes(CollectionItemQueryRule.NotAll, 2, 3));
             Assert.IsFalse(CollectionItemQueryRule.Passes(CollectionItemQueryRule.NotAll, 3, 3));
+
+            // AtLeast: the minimum count present.
+            Assert.IsFalse(CollectionItemQueryRule.Passes(CollectionItemQueryRule.AtLeast, 1, 4, 2));
+            Assert.IsTrue(CollectionItemQueryRule.Passes(CollectionItemQueryRule.AtLeast, 2, 4, 2));
+
+            // AtLeast: a count below 1, as in a rule added zeroed, counts as 1.
+            Assert.IsFalse(CollectionItemQueryRule.Passes(CollectionItemQueryRule.AtLeast, 0, 4, 0));
+            Assert.IsTrue(CollectionItemQueryRule.Passes(CollectionItemQueryRule.AtLeast, 1, 4, 0));
         }
     }
 }

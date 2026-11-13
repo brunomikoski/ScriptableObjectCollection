@@ -15,14 +15,18 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public const int NotAny = 2;
         /// <summary>Mirrors <c>MatchType.NotAll</c>.</summary>
         public const int NotAll = 3;
+        /// <summary>Mirrors <c>MatchType.AtLeast</c>.</summary>
+        public const int AtLeast = 4;
 
         /// <summary>
         /// Evaluates one rule given how many of the rule's picker items were found on the target
         /// (<paramref name="matchCount"/>) out of the picker's total (<paramref name="pickerCount"/>).
         /// Callers are expected to skip rules with <paramref name="pickerCount"/> == 0 (inert rules)
         /// before calling; passing 0 evaluates the raw quantifier semantics.
+        /// <paramref name="minimumCount"/> is only read by <see cref="AtLeast"/>. Values below 1 count
+        /// as 1, because a rule added in the inspector can start zeroed.
         /// </summary>
-        public static bool Passes(int matchType, int matchCount, int pickerCount)
+        public static bool Passes(int matchType, int matchCount, int pickerCount, int minimumCount = 1)
         {
             switch (matchType)
             {
@@ -34,6 +38,8 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     return matchCount > 0;
                 case All:
                     return matchCount >= pickerCount;
+                case AtLeast:
+                    return matchCount >= System.Math.Max(minimumCount, 1);
                 default:
                     return true;
             }

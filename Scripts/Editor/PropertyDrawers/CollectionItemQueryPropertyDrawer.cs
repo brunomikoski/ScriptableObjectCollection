@@ -11,6 +11,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
     {
         private const string QUERY_PROPERTY_NAME = "query";
         private const string MATCH_TYPE_PROPERTY_NAME = "matchType";
+        private const string MINIMUM_COUNT_PROPERTY_NAME = "minimumCount";
         private const string PICKER_PROPERTY_NAME = "picker";
         private const string ITEMS_PROPERTY_NAME = "indirectReferences";
         private const string COLLECTION_ITEM_GUID_VALUE_A = "collectionItemGUIDValueA";
@@ -20,18 +21,21 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
         private const string EMPTY_RULES_MESSAGE = "Rules with no items selected are ignored.";
 
-        private const int MATCH_TYPE_COUNT = 4;
+        private const int MATCH_TYPE_COUNT = 5;
 
         private const float HELP_BOX_CALC_WIDTH_MARGIN = 48f;
+        private const float MINIMUM_COUNT_WIDTH = 36f;
 
         private static readonly string[] MATCH_TYPE_HINTS =
         {
-            " (has at least one)",
-            " (has every one)",
-            " (has none)",
-            " (missing at least one)",
+            "has at least one",
+            "has every one",
+            "has none",
+            "missing at least one",
+            "has at least N",
         };
 
+        private float lastContentWidth;
         private bool hasValidationCache;
         private int cachedValidationHash;
         private readonly List<Rule> cachedRules = new List<Rule>();
@@ -99,7 +103,9 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     foldoutRect.yMax + EditorGUIUtility.standardVerticalSpacing,
                     position.width,
                     position.height));
-                EditorGUI.indentLevel = previousIndent;
+                // The rows are placed by hand inside the indented rect, so the controls must not indent again.
+                EditorGUI.indentLevel = 0;
+                lastContentWidth = contentRect.width;
 
                 Rect line = contentRect;
 
@@ -109,6 +115,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 {
                     SerializedProperty element = queryProp.GetArrayElementAtIndex(i);
                     SerializedProperty matchTypeProp = element.FindPropertyRelative(MATCH_TYPE_PROPERTY_NAME);
+                    SerializedProperty minimumCountProp = element.FindPropertyRelative(MINIMUM_COUNT_PROPERTY_NAME);
                     SerializedProperty pickerProp = element.FindPropertyRelative(PICKER_PROPERTY_NAME);
 
                     float rowHeight = EditorGUIUtility.singleLineHeight;
@@ -132,14 +139,27 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                         matchWidth,
                         EditorGUIUtility.singleLineHeight);
 
-                    Rect pickerRect = new Rect(
-                        matchRect.xMax + 4f,
-                        rowRect.y,
-                        rowRect.xMax - matchRect.xMax - removeButtonWidth - 6f,
-                        rowHeight);
-
                     int validTypeMask = i < cachedValidTypeMasks.Count ? cachedValidTypeMasks[i] : ~0;
                     DrawConstrainedMatchType(matchRect, matchTypeProp, validTypeMask);
+
+                    float pickerX = matchRect.xMax + 4f;
+                    if (ShowsMinimumCount(matchTypeProp, minimumCountProp))
+                    {
+                        Rect minimumCountRect = new Rect(
+                            pickerX,
+                            rowRect.y,
+                            MINIMUM_COUNT_WIDTH,
+                            EditorGUIUtility.singleLineHeight);
+                        DrawMinimumCount(minimumCountRect, minimumCountProp);
+                        pickerX = minimumCountRect.xMax + 4f;
+                    }
+
+                    Rect pickerRect = new Rect(
+                        pickerX,
+                        rowRect.y,
+                        removeRect.x - 2f - pickerX,
+                        rowHeight);
+
                     if (pickerProp != null)
                         EditorGUI.PropertyField(pickerRect, pickerProp, GUIContent.none, true);
 
@@ -172,7 +192,11 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                         newMatchType.enumValueIndex = 0; // default to first enum value
 
                     // Growing the array clones the previous element's serialized data; without
-                    // this the new rule starts pre-filled with the previous rule's picker items.
+                    // this the new rule starts pre-filled with the previous rule's count and picker items.
+                    SerializedProperty newMinimumCount = newElement.FindPropertyRelative(MINIMUM_COUNT_PROPERTY_NAME);
+                    if (newMinimumCount != null)
+                        newMinimumCount.intValue = 1;
+
                     SerializedProperty newPickerProp = newElement.FindPropertyRelative(PICKER_PROPERTY_NAME);
                     SerializedProperty newItemsProp = newPickerProp != null
                         ? newPickerProp.FindPropertyRelative(ITEMS_PROPERTY_NAME)
@@ -212,15 +236,21 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     EditorGUI.HelpBox(summaryRect, cachedSummary, MessageType.Info);
                     line.y += summaryHeight + EditorGUIUtility.standardVerticalSpacing;
                 }
+
+                EditorGUI.indentLevel = previousIndent;
             }
 
             EditorGUI.EndProperty();
         }
 
-        // currentViewWidth is only valid during a GUI event; fall back to a fixed width for
-        // programmatic height queries (Event.current is null outside OnGUI).
-        private static float GetHelpBoxCalcWidth()
+        // Help box heights must use the width they are drawn at, which only OnGUI knows.
+        // Before the first OnGUI, estimate it: currentViewWidth is only valid during a GUI event,
+        // so use a fixed width for programmatic height queries (Event.current is null outside OnGUI).
+        private float GetHelpBoxCalcWidth()
         {
+            if (lastContentWidth > 0f)
+                return lastContentWidth;
+
             if (Event.current == null)
                 return 320f;
 
@@ -273,6 +303,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             for (int i = 0; i < arraySize; i++)
             {
                 int matchType = 0;
+                int minimumCount = 1;
                 HashSet<(long, long)> items = null;
                 if (TryGetElementAndItems(queryProp, i, out SerializedProperty element, out HashSet<(long, long)> elementItems))
                 {
@@ -280,13 +311,17 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     SerializedProperty matchTypeProp = element.FindPropertyRelative(MATCH_TYPE_PROPERTY_NAME);
                     if (matchTypeProp != null)
                         matchType = matchTypeProp.enumValueIndex;
+
+                    SerializedProperty minimumCountProp = element.FindPropertyRelative(MINIMUM_COUNT_PROPERTY_NAME);
+                    if (minimumCountProp != null)
+                        minimumCount = minimumCountProp.intValue;
                 }
 
                 items ??= new HashSet<(long, long)>();
                 if (items.Count == 0)
                     cachedHasEmptyRules = true;
 
-                cachedRules.Add(new Rule(matchType, items));
+                cachedRules.Add(new Rule(matchType, items, minimumCount));
             }
 
             cachedIsSatisfiable = CollectionItemQuerySatisfiability.IsSatisfiable(cachedRules);
@@ -309,7 +344,7 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                     validMask = 0;
                     for (int candidate = 0; candidate < MATCH_TYPE_COUNT; candidate++)
                     {
-                        cachedRules[i] = new Rule(candidate, original.Items);
+                        cachedRules[i] = new Rule(candidate, original.Items, original.MinimumCount);
                         if (CollectionItemQuerySatisfiability.IsSatisfiable(cachedRules))
                             validMask |= 1 << candidate;
                     }
@@ -344,6 +379,10 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
 
                     SerializedProperty matchTypeProp = element.FindPropertyRelative(MATCH_TYPE_PROPERTY_NAME);
                     hash = hash * 31 + (matchTypeProp != null ? matchTypeProp.enumValueIndex : -1);
+
+                    SerializedProperty minimumCountProp = element.FindPropertyRelative(MINIMUM_COUNT_PROPERTY_NAME);
+                    if (minimumCountProp != null)
+                        hash = hash * 31 + minimumCountProp.intValue;
 
                     SerializedProperty pickerProp = element.FindPropertyRelative(PICKER_PROPERTY_NAME);
                     SerializedProperty itemsProp = pickerProp != null
@@ -404,46 +443,91 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             }
 
             string[] allNames = matchTypeProp.enumDisplayNames;
-            int enumCount = allNames.Length;
-
-            List<int> validValues = new List<int>();
-            List<string> validNames = new List<string>();
-
-            for (int enumIndex = 0; enumIndex < enumCount; enumIndex++)
-            {
-                bool isValid = enumIndex >= MATCH_TYPE_COUNT || (validTypeMask & (1 << enumIndex)) != 0;
-                if (!isValid)
-                    continue;
-
-                validValues.Add(enumIndex);
-                validNames.Add(GetFriendlyMatchTypeName(allNames, enumIndex));
-            }
-
             int currentEnumIndex = matchTypeProp.enumValueIndex;
 
-            if (!validValues.Contains(currentEnumIndex) && currentEnumIndex >= 0 && currentEnumIndex < enumCount)
+            GUIContent buttonContent = new GUIContent("—");
+            if (!matchTypeProp.hasMultipleDifferentValues && currentEnumIndex >= 0 && currentEnumIndex < allNames.Length)
+                buttonContent = new GUIContent(allNames[currentEnumIndex], GetMatchTypeHint(currentEnumIndex));
+
+            // The closed button shows only the name, because the hints do not fit its width.
+            // The menu lists every match type with its hint and greys out the ones that would never match.
+            EditorGUI.BeginProperty(position, GUIContent.none, matchTypeProp);
+            if (EditorGUI.DropdownButton(position, buttonContent, FocusType.Keyboard, EditorStyles.popup))
+                ShowMatchTypeMenu(position, matchTypeProp, allNames, validTypeMask);
+
+            EditorGUI.EndProperty();
+        }
+
+        private static void ShowMatchTypeMenu(Rect position, SerializedProperty matchTypeProp, string[] allNames, int validTypeMask)
+        {
+            SerializedObject serializedObject = matchTypeProp.serializedObject;
+            string propertyPath = matchTypeProp.propertyPath;
+            bool hasMixedValues = matchTypeProp.hasMultipleDifferentValues;
+            int currentEnumIndex = matchTypeProp.enumValueIndex;
+
+            GenericMenu menu = new GenericMenu();
+            for (int enumIndex = 0; enumIndex < allNames.Length; enumIndex++)
             {
-                validValues.Add(currentEnumIndex);
-                validNames.Add(GetFriendlyMatchTypeName(allNames, currentEnumIndex) + " (invalid)");
+                bool isCurrent = !hasMixedValues && enumIndex == currentEnumIndex;
+                GUIContent itemContent = new GUIContent(GetFriendlyMatchTypeName(allNames, enumIndex));
+                bool isValid = enumIndex >= MATCH_TYPE_COUNT || (validTypeMask & (1 << enumIndex)) != 0;
+                if (!isValid)
+                {
+                    menu.AddDisabledItem(itemContent, isCurrent);
+                    continue;
+                }
+
+                int selectedEnumIndex = enumIndex;
+                menu.AddItem(itemContent, isCurrent, () =>
+                {
+                    serializedObject.Update();
+                    serializedObject.FindProperty(propertyPath).enumValueIndex = selectedEnumIndex;
+                    serializedObject.ApplyModifiedProperties();
+                });
             }
 
-            int newEnumIndex = EditorGUI.IntPopup(
-                position,
-                currentEnumIndex,
-                validNames.ToArray(),
-                validValues.ToArray());
+            menu.DropDown(position);
+        }
 
-            if (newEnumIndex != currentEnumIndex)
-                matchTypeProp.enumValueIndex = newEnumIndex;
+        private static bool ShowsMinimumCount(SerializedProperty matchTypeProp, SerializedProperty minimumCountProp)
+        {
+            if (matchTypeProp == null)
+                return false;
+
+            if (minimumCountProp == null)
+                return false;
+
+            return matchTypeProp.enumValueIndex == CollectionItemQueryRule.AtLeast;
+        }
+
+        private static void DrawMinimumCount(Rect position, SerializedProperty minimumCountProp)
+        {
+            EditorGUI.BeginProperty(position, GUIContent.none, minimumCountProp);
+            EditorGUI.showMixedValue = minimumCountProp.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            int newValue = EditorGUI.IntField(position, Mathf.Max(minimumCountProp.intValue, 1));
+            if (EditorGUI.EndChangeCheck())
+                minimumCountProp.intValue = Mathf.Max(newValue, 1);
+
+            EditorGUI.showMixedValue = false;
+            EditorGUI.EndProperty();
         }
 
         private static string GetFriendlyMatchTypeName(string[] enumDisplayNames, int enumIndex)
         {
             string baseName = enumDisplayNames[enumIndex];
             if (enumIndex < MATCH_TYPE_HINTS.Length)
-                return baseName + MATCH_TYPE_HINTS[enumIndex];
+                return $"{baseName} ({MATCH_TYPE_HINTS[enumIndex]})";
 
             return baseName;
+        }
+
+        private static string GetMatchTypeHint(int enumIndex)
+        {
+            if (enumIndex < MATCH_TYPE_HINTS.Length)
+                return MATCH_TYPE_HINTS[enumIndex];
+
+            return string.Empty;
         }
 
         private string BuildSummaryText(SerializedProperty queryProp)
@@ -466,33 +550,12 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 if (matchTypeProp == null)
                     continue;
 
-                int matchIndex = matchTypeProp.enumValueIndex;
+                int minimumCount = 1;
+                SerializedProperty minimumCountProp = element.FindPropertyRelative(MINIMUM_COUNT_PROPERTY_NAME);
+                if (minimumCountProp != null)
+                    minimumCount = Mathf.Max(minimumCountProp.intValue, 1);
 
-                string ruleDescription;
-                if (itemNames.Count == 1)
-                {
-                    // Singular phrasing: for one item, Any==All ("must contain it") and
-                    // NotAny==NotAll ("must not contain it").
-                    ruleDescription = matchIndex switch
-                    {
-                        0 or 1 => $"requires objects to contain {itemNames[0]}",
-                        2 or 3 => $"forbids objects that contain {itemNames[0]}",
-                        _ => null
-                    };
-                }
-                else
-                {
-                    string joinedNames = "{" + string.Join(", ", itemNames) + "}";
-                    ruleDescription = matchIndex switch
-                    {
-                        0 => $"allows objects that contain at least one of {joinedNames}",
-                        1 => $"requires objects to contain all of {joinedNames}",
-                        2 => $"forbids objects that contain any of {joinedNames}",
-                        3 => $"forbids objects that contain all of {joinedNames} together",
-                        _ => null
-                    };
-                }
-
+                string ruleDescription = DescribeRule(matchTypeProp.enumValueIndex, itemNames, minimumCount);
                 if (!string.IsNullOrEmpty(ruleDescription))
                     parts.Add(ruleDescription);
             }
@@ -501,6 +564,51 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
                 return string.Empty;
 
             return "This query: " + string.Join(" and ", parts) + ".";
+        }
+
+        private static string DescribeRule(int matchType, List<string> itemNames, int minimumCount)
+        {
+            if (itemNames.Count == 1)
+                return DescribeSingleItemRule(matchType, itemNames[0], minimumCount);
+
+            string joinedNames = "{" + string.Join(", ", itemNames) + "}";
+            switch (matchType)
+            {
+                case CollectionItemQueryRule.Any:
+                    return $"allows objects that contain at least one of {joinedNames}";
+                case CollectionItemQueryRule.All:
+                    return $"requires objects to contain all of {joinedNames}";
+                case CollectionItemQueryRule.NotAny:
+                    return $"forbids objects that contain any of {joinedNames}";
+                case CollectionItemQueryRule.NotAll:
+                    return $"forbids objects that contain all of {joinedNames} together";
+                case CollectionItemQueryRule.AtLeast:
+                    return $"requires objects to contain at least {minimumCount} of {joinedNames}";
+                default:
+                    return null;
+            }
+        }
+
+        // Singular phrasing: for one item, Any, All and AtLeast 1 mean "must contain it",
+        // and NotAny and NotAll both mean "must not contain it".
+        private static string DescribeSingleItemRule(int matchType, string itemName, int minimumCount)
+        {
+            switch (matchType)
+            {
+                case CollectionItemQueryRule.Any:
+                case CollectionItemQueryRule.All:
+                    return $"requires objects to contain {itemName}";
+                case CollectionItemQueryRule.NotAny:
+                case CollectionItemQueryRule.NotAll:
+                    return $"forbids objects that contain {itemName}";
+                case CollectionItemQueryRule.AtLeast:
+                    if (minimumCount > 1)
+                        return $"requires objects to contain at least {minimumCount} of {{{itemName}}}";
+
+                    return $"requires objects to contain {itemName}";
+                default:
+                    return null;
+            }
         }
 
         private bool TryGetElementAndItems(

@@ -5,6 +5,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [3.0.0] - 11/21/2026
+### Removed
+- The 64-bit bitmask match path. Target sets are small, so the mask saved little time, and it meant two match paths that had to agree. This is a breaking change for code that uses the removed API:
+  - `CollectionItemMask64`, with the `ToItemMask64` and `FromItemMask64` extension methods.
+  - `CollectionItemPicker<T>.CanUseBitmask`, `CachedMask`, `MaskCollection`, `MaskItemCount` and both `CountMatchesIn` overloads.
+  - `ScriptableObjectCollection.SupportsBitmaskIndexing`. Delete any override of it.
+  - `CollectionItemQuery<T>.Matches(CollectionItemPicker<T>)` and its `out int` variant. A call that passes a picker still compiles and now binds to `Matches(IEnumerable<T>)`.
+
+### Changed
+- `CollectionItemQuery<T>.Matches` always matches by item GUID. Results are the same as before. Pickers are no longer limited to 64 items or to one collection.
+- The GUID match compares GUIDs in a plain loop instead of filling two `HashSet<LongGuid>` on every call. Target sets are small, so the loop is faster and the query holds less state.
+
 ## [2.8.0] - 11/13/2026
 ### Added
 - `CollectionItemQuery<T>.MatchType.AtLeast`: the set passes when the target has at least `MinimumCount` of the picked items, for "at least N of these" checks the other match types cannot express. Each `QuerySet` has a new serialized `minimumCount` field (default 1) that only `AtLeast` reads. `CollectionItemQueryRule.Passes` takes it as an optional fourth parameter, and a value below 1 counts as 1.

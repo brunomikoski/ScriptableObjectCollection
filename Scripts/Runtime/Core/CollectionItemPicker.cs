@@ -67,105 +67,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             }
         }
 
-        [NonSerialized] private ulong cachedMask;
-        [NonSerialized] private bool isMaskDirty = true;
-        [NonSerialized] private bool canUseBitmask;
-        [NonSerialized] private ScriptableObjectCollection maskCollection;
-
-        // True when (a) every item's Index fits in 64 bits, (b) every item belongs to the same
-        // collection (bit positions are per-collection, so mixing collections would let unrelated
-        // items collide), and (c) that collection has SupportsBitmaskIndexing == true. Callers
-        // should gate any bitmask fast-path on this flag and fall back to GUID-based comparison
-        // otherwise. Empty pickers report true with a null MaskCollection.
-        public bool CanUseBitmask { get { EnsureMaskCache(); return canUseBitmask; } }
-        public ulong CachedMask   { get { EnsureMaskCache(); return cachedMask;   } }
-
-        // The single collection every picked item belongs to; null when the picker is empty or
-        // when items span multiple collections (in which case CanUseBitmask is false).
-        public ScriptableObjectCollection MaskCollection { get { EnsureMaskCache(); return maskCollection; } }
-
-        // Number of distinct items represented in CachedMask. Prefer this over Count inside
-        // bitmask fast-paths: Count includes duplicate/unresolvable serialized entries, which
-        // never contribute bits.
-        public int MaskItemCount { get { EnsureMaskCache(); return PopCount(cachedMask); } }
-
-        private void EnsureMaskCache()
-        {
-            if (Application.isPlaying && !isMaskDirty)
-                return;
-
-            cachedMask = CollectionItemMask64.From(Items, out bool fits);
-            bool singleCollection = TryFindSingleItemCollection(out maskCollection);
-            canUseBitmask = fits && singleCollection &&
-                            (maskCollection == null || maskCollection.SupportsBitmaskIndexing);
-            isMaskDirty = false;
-        }
-
-        // True when all items belong to one collection (result is null for an empty picker);
-        // false when items span multiple collections or an item has no collection.
-        private bool TryFindSingleItemCollection(out ScriptableObjectCollection collection)
-        {
-            collection = null;
-            List<TItemType> items = Items;
-            for (int i = 0; i < items.Count; i++)
-            {
-                ScriptableObjectCollection itemCollection = items[i].Collection;
-                if (itemCollection == null)
-                    return false;
-
-                if (collection == null)
-                    collection = itemCollection;
-                else if (itemCollection != collection)
-                    return false;
-            }
-
-            return true;
-        }
-
-        public int CountMatchesIn(ulong targetMask)
-        {
-            EnsureMaskCache();
-            return PopCount(targetMask & cachedMask);
-        }
-
-        public int CountMatchesIn(IEnumerable<TItemType> targetItems)
-        {
-            if (targetItems == null)
-                return 0;
-
-            if (CanUseBitmask)
-            {
-                ulong targetMask = CollectionItemMask64.From(targetItems, out _);
-                return PopCount(targetMask & cachedMask);
-            }
-
-            int n = 0;
-            foreach (TItemType item in targetItems)
-            {
-                if (item != null && Contains(item))
-                    n++;
-            }
-            return n;
-        }
-
-        // Counts the number of set bits in a 64-bit value (a.k.a. "population count" / popcount).
-        // Standard SWAR algorithm: sums bits in pairs, then nibbles, then bytes, in parallel
-        // across the whole word. Each line halves the number of subgroups being summed:
-        //   line 1: pairs of bits  -> 32 x 2-bit counts (each 0..2)
-        //   line 2: nibbles        -> 16 x 4-bit counts (each 0..4)
-        //   line 3: bytes          ->  8 x 8-bit counts (each 0..8)
-        //   line 4: multiply by 0x01010101_01010101 to sum the 8 byte counts into the high byte,
-        //          then shift down 56 bits to read it.
-        // Used in place of System.Numerics.BitOperations.PopCount, which isn't available in
-        // this Unity build's API surface.
-        private static int PopCount(ulong x)
-        {
-            x = x - ((x >> 1) & 0x5555555555555555UL);
-            x = (x & 0x3333333333333333UL) + ((x >> 2) & 0x3333333333333333UL);
-            x = (x + (x >> 4)) & 0x0F0F0F0F0F0F0F0FUL;
-            return (int)((x * 0x0101010101010101UL) >> 56);
-        }
-
         public CollectionItemPicker()
         {
             
@@ -315,7 +216,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             
             indirectReferences.Add(new CollectionItemIndirectReference<TItemType>(item));
             isDirty = true;
-            isMaskDirty = true;
             OnItemAddedEvent?.Invoke(item);
             OnChangedEvent?.Invoke();
         }
@@ -324,7 +224,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         {
             indirectReferences.Clear();
             isDirty = true;
-            isMaskDirty = true;
             OnChangedEvent?.Invoke();
         }
 
@@ -377,7 +276,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             if (removed)
             {
                 isDirty = true;
-                isMaskDirty = true;
                 OnChangedEvent?.Invoke();
                 OnItemRemovedEvent?.Invoke(removedItem.Ref);
             }
@@ -401,7 +299,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             
             indirectReferences.Insert(index, new CollectionItemIndirectReference<TItemType>(item));
             isDirty = true;
-            isMaskDirty = true;
         }
 
         public void RemoveAt(int index)
@@ -412,7 +309,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             CollectionItemIndirectReference<TItemType> removedItem = indirectReferences[index];
             indirectReferences.RemoveAt(index);
             isDirty = true;
-            isMaskDirty = true;
             OnChangedEvent?.Invoke();
             OnItemRemovedEvent?.Invoke(removedItem.Ref);
         }
@@ -424,7 +320,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
             {
                 indirectReferences[index] = new CollectionItemIndirectReference<TItemType>(value);
                 isDirty = true;
-                isMaskDirty = true;
             }
         }
 
@@ -471,7 +366,6 @@ namespace BrunoMikoski.ScriptableObjectCollections.Picker
         public void OnAfterDeserialize()
         {
             isDirty = true;
-            isMaskDirty = true;
         }
 
         public override string ToString()
